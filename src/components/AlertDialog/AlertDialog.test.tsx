@@ -572,7 +572,7 @@ describe('AlertDialog', () => {
   });
 
   describe('Foco', () => {
-    it('leva o foco pro diálogo ao abrir', () => {
+    it('leva o foco pro título ao abrir', () => {
       const { rerender } = render(
         <AlertDialog
           {...defaultProps}
@@ -585,9 +585,23 @@ describe('AlertDialog', () => {
         <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
       );
 
-      // No próprio diálogo, e não no primeiro botão: assim o leitor anuncia
-      // título e descrição antes das ações.
-      expect(screen.getByRole('dialog')).toHaveFocus();
+      // No título, e não no diálogo nem no primeiro botão: é o que faz o
+      // VoiceOver começar a leitura pelo nome do diálogo e seguir dali pra
+      // descrição e as ações, em vez de pousar fora de ordem.
+      const titulo = screen.getByRole('heading', { name: 'Test Dialog' });
+      expect(titulo).toHaveFocus();
+      expect(screen.getByRole('dialog')).not.toHaveFocus();
+    });
+
+    it('o título recebe foco sem virar um controle', () => {
+      render(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
+
+      const titulo = screen.getByRole('heading', { name: 'Test Dialog' });
+      // Fora do ciclo de Tab e sem anel de foco: ele não é interativo.
+      expect(titulo).toHaveAttribute('tabindex', '-1');
+      expect(titulo).toHaveClass('focus:outline-none');
     });
 
     it('devolve o foco a quem abriu ao fechar', () => {
@@ -605,7 +619,9 @@ describe('AlertDialog', () => {
       rerender(
         <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
       );
-      expect(screen.getByRole('dialog')).toHaveFocus();
+      expect(
+        screen.getByRole('heading', { name: 'Test Dialog' })
+      ).toHaveFocus();
 
       rerender(
         <AlertDialog
@@ -632,6 +648,47 @@ describe('AlertDialog', () => {
       fireEvent.keyDown(document, { key: 'Tab' });
 
       expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
+    });
+
+    it('o Tab a partir do título segue pras ações, sem ser interceptado', () => {
+      render(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
+
+      // O título está fora do ciclo (`tabindex="-1"`): quem leva o foco pro
+      // "Cancel" é o navegador. No jsdom o Tab nativo não move o foco; o que
+      // se verifica é que o evento NÃO foi cancelado.
+      const naoCancelado = fireEvent.keyDown(document, { key: 'Tab' });
+
+      expect(naoCancelado).toBe(true);
+    });
+
+    it('Shift+Tab a partir do título fecha o anel no último focusável', () => {
+      render(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
+
+      fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+
+      expect(screen.getByRole('button', { name: 'Confirm' })).toHaveFocus();
+    });
+
+    it('lê título → descrição → ações, nessa ordem no DOM', () => {
+      render(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
+
+      const dialogo = screen.getByRole('dialog');
+      const ordem = Array.from(dialogo.querySelectorAll('h2, p, button')).map(
+        (element) => element.textContent
+      );
+
+      expect(ordem).toEqual([
+        'Test Dialog',
+        'This is a test dialog',
+        'Cancel',
+        'Confirm',
+      ]);
     });
   });
 

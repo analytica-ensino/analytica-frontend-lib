@@ -117,9 +117,9 @@ describe('Modal', () => {
 
       const title = screen.getByText('Test Modal');
       expect(title).not.toHaveAttribute('data-print-hide');
-      // O header é o container do X, mas carrega o <h2>. Marcá-lo apagaria o
-      // título no PDF — é por isso que o atributo vai no botão, exceção
-      // deliberada ao "container, não botão" do contrato.
+      // O header carrega só o <h2>, que É conteúdo do relatório. Marcá-lo
+      // apagaria o título no PDF — o atributo vai no próprio X, que hoje mora
+      // fora do header.
       expect(title.parentElement).not.toHaveAttribute('data-print-hide');
     });
   });
@@ -482,15 +482,28 @@ describe('Modal', () => {
       expect(contentDiv).toBeInTheDocument();
     });
 
-    it('deve ter header apenas com botão X na variante activity', () => {
-      render(<Modal {...activityProps} />);
+    it('põe o botão X por último no DOM, posicionado no topo à direita', () => {
+      const { container } = render(<Modal {...activityProps} />);
 
-      const header = document.querySelector('.flex.justify-end.p-6.pb-0');
-      expect(header).toBeInTheDocument();
+      const dialog = container.querySelector('dialog') as HTMLDialogElement;
+      const fechar = screen.getByLabelText('Fechar modal');
 
-      // Não deve ter título no header para variante activity
-      const headerTitle = header?.querySelector('h2');
-      expect(headerTitle).not.toBeInTheDocument();
+      // O X era o PRIMEIRO nó da montagem activity, e era por onde o VoiceOver
+      // começava a leitura. Agora é o último, e só o CSS o leva de volta pro
+      // canto superior direito.
+      expect(dialog.lastElementChild).toBe(fechar);
+      expect(fechar).toHaveClass('absolute', 'right-6', 'top-6');
+      expect(document.querySelector('.flex.justify-end.p-6.pb-0')).toBeNull();
+    });
+
+    it('reserva no diálogo o espaço que o header do X ocupava', () => {
+      const { container, rerender } = render(<Modal {...activityProps} />);
+
+      // Fora da área que rola, pro conteúdo não passar por baixo do X.
+      expect(container.querySelector('dialog')).toHaveClass('pt-12.5');
+
+      rerender(<Modal {...activityProps} hideCloseButton />);
+      expect(container.querySelector('dialog')).toHaveClass('pt-6');
     });
 
     it('deve exibir botão quando URL é do YouTube mas ID não é extraído', () => {
@@ -616,27 +629,58 @@ describe('Modal', () => {
   });
 
   describe('Gerenciamento de foco', () => {
-    it('leva o foco pro diálogo quando abre', () => {
-      const { container } = render(<Modal {...defaultProps} />);
-      const dialog = container.querySelector('dialog');
+    it('leva o foco pro título quando abre', () => {
+      render(<Modal {...defaultProps} />);
+      const titulo = screen.getByRole('heading', { name: 'Test Modal' });
 
-      expect(dialog).toHaveAttribute('tabindex', '-1');
-      expect(dialog).toHaveFocus();
+      // No título, e não no diálogo: é o que faz o VoiceOver começar a leitura
+      // pelo nome do modal e seguir dali pra baixo.
+      expect(titulo).toHaveAttribute('tabindex', '-1');
+      expect(titulo).toHaveFocus();
     });
 
-    it('foca o diálogo, e não o botão de fechar, pra não engolir a mensagem', () => {
+    it('não deixa anel de foco no título, que não é interativo', () => {
+      render(<Modal {...defaultProps} />);
+
+      expect(screen.getByRole('heading', { name: 'Test Modal' })).toHaveClass(
+        'focus:outline-none'
+      );
+    });
+
+    it('foca o título, e não o botão de fechar, pra não engolir a mensagem', () => {
       const { container } = render(<Modal {...defaultProps} />);
 
       expect(
         screen.getByRole('button', { name: 'Fechar modal' })
       ).not.toHaveFocus();
-      expect(container.querySelector('dialog')).toHaveFocus();
+      expect(container.querySelector('dialog')).not.toHaveFocus();
+      expect(screen.getByRole('heading', { name: 'Test Modal' })).toHaveFocus();
     });
 
-    it('leva o foco pro diálogo também na variante activity', () => {
+    it('leva o foco pro título também na variante activity', () => {
       const { container } = render(
         <Modal {...defaultProps} variant="activity" />
       );
+
+      // Na montagem activity o título é um <Text> (um <p>), não um <h2>.
+      const titulo = screen.getByText('Test Modal');
+      expect(titulo).toHaveAttribute('tabindex', '-1');
+      expect(titulo).toHaveFocus();
+      expect(container.querySelector('dialog')).not.toHaveFocus();
+    });
+
+    it('cai no diálogo quando não há título próprio (labelledBy no conteúdo)', () => {
+      const { container } = render(
+        <Modal
+          isOpen
+          onClose={jest.fn()}
+          title=""
+          labelledBy="titulo-no-conteudo"
+        >
+          <h2 id="titulo-no-conteudo">Título dentro do conteúdo</h2>
+        </Modal>
+      );
+
       expect(container.querySelector('dialog')).toHaveFocus();
     });
 
@@ -656,8 +700,8 @@ describe('Modal', () => {
       document.body.appendChild(trigger);
       trigger.focus();
 
-      const { rerender, container } = render(<Modal {...defaultProps} />);
-      expect(container.querySelector('dialog')).toHaveFocus();
+      const { rerender } = render(<Modal {...defaultProps} />);
+      expect(screen.getByRole('heading', { name: 'Test Modal' })).toHaveFocus();
 
       rerender(<Modal {...defaultProps} isOpen={false} />);
       expect(trigger).toHaveFocus();
@@ -678,6 +722,25 @@ describe('Modal', () => {
       ).not.toThrow();
     });
 
+    it('o Tab a partir do título segue pro conteúdo, sem ser interceptado', () => {
+      render(
+        <Modal
+          {...defaultProps}
+          footer={<button type="button">Confirmar</button>}
+        >
+          <button type="button">Ação do conteúdo</button>
+        </Modal>
+      );
+
+      // O título fica fora do ciclo (`tabindex="-1"`): quem leva o foco pro
+      // próximo focusável do DOM — a "Ação do conteúdo" — é o navegador.
+      // Interceptar aqui pularia justamente o conteúdo. No jsdom o Tab nativo
+      // não move o foco; o que se verifica é que o evento NÃO foi cancelado.
+      const naoCancelado = fireEvent.keyDown(document, { key: 'Tab' });
+
+      expect(naoCancelado).toBe(true);
+    });
+
     it('prende o Tab: do último focusável volta pro primeiro', () => {
       const { container } = render(
         <Modal
@@ -686,13 +749,11 @@ describe('Modal', () => {
         />
       );
 
-      const confirmar = screen.getByRole('button', { name: 'Confirmar' });
-      confirmar.focus();
+      // O último é o "Fechar modal", que agora é o último do DOM.
+      screen.getByRole('button', { name: 'Fechar modal' }).focus();
       fireEvent.keyDown(document, { key: 'Tab' });
 
-      expect(
-        screen.getByRole('button', { name: 'Fechar modal' })
-      ).toHaveFocus();
+      expect(screen.getByRole('button', { name: 'Confirmar' })).toHaveFocus();
       expect(container.querySelector('dialog')).toBeInTheDocument();
     });
 
@@ -704,13 +765,15 @@ describe('Modal', () => {
         />
       );
 
-      screen.getByRole('button', { name: 'Fechar modal' }).focus();
+      screen.getByRole('button', { name: 'Confirmar' }).focus();
       fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
 
-      expect(screen.getByRole('button', { name: 'Confirmar' })).toHaveFocus();
+      expect(
+        screen.getByRole('button', { name: 'Fechar modal' })
+      ).toHaveFocus();
     });
 
-    it('Shift+Tab a partir do próprio diálogo cai no último focusável', () => {
+    it('Shift+Tab a partir do título cai no último focusável', () => {
       render(
         <Modal
           {...defaultProps}
@@ -718,18 +781,22 @@ describe('Modal', () => {
         />
       );
 
+      // O foco começa no título; o Shift+Tab fecha o anel no fim, em vez de
+      // sair do modal.
       fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
 
-      expect(screen.getByRole('button', { name: 'Confirmar' })).toHaveFocus();
+      expect(
+        screen.getByRole('button', { name: 'Fechar modal' })
+      ).toHaveFocus();
     });
 
-    it('mantém o foco no diálogo quando não há nada focusável dentro', () => {
+    it('mantém o foco no título quando não há nada focusável dentro', () => {
       const { container } = render(<Modal {...defaultProps} hideCloseButton />);
-      const dialog = container.querySelector('dialog');
 
+      container.querySelector('dialog')?.focus();
       fireEvent.keyDown(document, { key: 'Tab' });
 
-      expect(dialog).toHaveFocus();
+      expect(screen.getByRole('heading', { name: 'Test Modal' })).toHaveFocus();
     });
 
     it('ignora teclas que não são Tab', () => {
@@ -748,14 +815,16 @@ describe('Modal', () => {
     });
 
     it('respeita um autoFocus no conteúdo e não rouba o foco dele', () => {
-      const { container } = render(
+      render(
         <Modal {...defaultProps}>
           <input autoFocus aria-label="Nome" />
         </Modal>
       );
 
       expect(screen.getByLabelText('Nome')).toHaveFocus();
-      expect(container.querySelector('dialog')).not.toHaveFocus();
+      expect(
+        screen.getByRole('heading', { name: 'Test Modal' })
+      ).not.toHaveFocus();
     });
 
     it('mantém o trap de Tab mesmo quando o foco inicial veio do autoFocus', () => {
@@ -768,12 +837,10 @@ describe('Modal', () => {
         </Modal>
       );
 
-      screen.getByRole('button', { name: 'Confirmar' }).focus();
+      screen.getByRole('button', { name: 'Fechar modal' }).focus();
       fireEvent.keyDown(document, { key: 'Tab' });
 
-      expect(
-        screen.getByRole('button', { name: 'Fechar modal' })
-      ).toHaveFocus();
+      expect(screen.getByLabelText('Nome')).toHaveFocus();
     });
 
     it('com dois modais irmãos abertos, só o que tem o foco prende o Tab', () => {
@@ -826,6 +893,115 @@ describe('Modal', () => {
 
       expect(outside).toHaveFocus();
       outside.remove();
+    });
+  });
+
+  describe('Ordem do DOM', () => {
+    /**
+     * A ordem do DOM é o que o leitor de tela percorre com VO + setas, e é ela
+     * que define o ciclo de Tab. Tem que ser título → conteúdo → ações →
+     * fechar; o X vinha antes e fazia o modal ser lido de baixo pra cima.
+     */
+    const ordemDeLeitura = (dialog: HTMLElement) =>
+      Array.from(
+        dialog.querySelectorAll<HTMLElement>('h2, button, a[href], input')
+      ).map(
+        (element) => element.getAttribute('aria-label') ?? element.textContent
+      );
+
+    it('lê título → conteúdo → footer → fechar na montagem default', () => {
+      const { container } = render(
+        <Modal
+          {...defaultProps}
+          footer={<button type="button">Confirmar</button>}
+        >
+          <button type="button">Ação do conteúdo</button>
+        </Modal>
+      );
+
+      expect(
+        ordemDeLeitura(container.querySelector('dialog') as HTMLElement)
+      ).toEqual([
+        'Test Modal',
+        'Ação do conteúdo',
+        'Confirmar',
+        'Fechar modal',
+      ]);
+    });
+
+    it('põe o botão X por último no DOM, posicionado no topo à direita', () => {
+      const { container } = render(
+        <Modal
+          {...defaultProps}
+          footer={<button type="button">Confirmar</button>}
+        />
+      );
+
+      const dialog = container.querySelector('dialog') as HTMLDialogElement;
+      const fechar = screen.getByLabelText('Fechar modal');
+
+      expect(dialog.lastElementChild).toBe(fechar);
+      expect(fechar).toHaveClass('absolute', 'right-6', 'top-6');
+      // O header deixou de ser a casa do X e carrega só o título.
+      expect(
+        screen.getByRole('heading', { name: 'Test Modal' }).parentElement
+      ).not.toContainElement(fechar);
+    });
+
+    it('reserva no título a faixa por onde o X passa a flutuar', () => {
+      const { rerender } = render(<Modal {...defaultProps} />);
+
+      expect(screen.getByRole('heading', { name: 'Test Modal' })).toHaveClass(
+        'pr-8'
+      );
+
+      // Sem o X não há o que desviar.
+      rerender(<Modal {...defaultProps} hideCloseButton />);
+      expect(
+        screen.getByRole('heading', { name: 'Test Modal' })
+      ).not.toHaveClass('pr-8');
+    });
+
+    it('sem título próprio, o header ainda reserva a altura do X', () => {
+      // O QRCodeStudent abre um modal com `title=""` e o X visível: sem a
+      // reserva, o header encolheria a altura do botão e ele encostaria no
+      // conteúdo.
+      const { container, rerender } = render(
+        <Modal isOpen onClose={jest.fn()} title="">
+          conteúdo
+        </Modal>
+      );
+
+      const header = container.querySelector('dialog > div');
+      expect(header?.firstElementChild).toHaveClass('h-6.5');
+
+      rerender(
+        <Modal isOpen onClose={jest.fn()} title="" hideCloseButton>
+          conteúdo
+        </Modal>
+      );
+      expect(
+        container.querySelector('dialog > div')?.firstElementChild
+      ).not.toHaveClass('h-6.5');
+    });
+
+    it('o X é o último focusável, então o Tab só chega nele no fim', () => {
+      const { container } = render(
+        <Modal
+          {...defaultProps}
+          footer={<button type="button">Confirmar</button>}
+        >
+          <button type="button">Ação do conteúdo</button>
+        </Modal>
+      );
+
+      const focusaveis = Array.from(
+        (container.querySelector('dialog') as HTMLElement).querySelectorAll(
+          'button:not([disabled])'
+        )
+      );
+
+      expect(focusaveis.at(-1)).toBe(screen.getByLabelText('Fechar modal'));
     });
   });
 

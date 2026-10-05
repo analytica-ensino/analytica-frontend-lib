@@ -71,6 +71,8 @@ const AlertDialog = forwardRef<HTMLDialogElement, AlertDialogProps>(
     ref
   ) => {
     const dialogRef = useRef<HTMLDialogElement>(null);
+    /** Quem recebe o foco na abertura — ver `useModalFocus` abaixo. */
+    const titleRef = useRef<HTMLHeadingElement>(null);
 
     /**
      * Ids por instância. Fixos, dois diálogos abertos ao mesmo tempo — ou um
@@ -82,15 +84,20 @@ const AlertDialog = forwardRef<HTMLDialogElement, AlertDialogProps>(
     const descriptionId = useId();
 
     /**
-     * Leva o foco pro diálogo ao abrir, prende o Tab lá dentro e devolve o foco
-     * a quem o abriu ao fechar. Sem isto o foco ficava no botão que está ATRÁS
-     * do backdrop: o leitor de tela seguia lendo a página de trás, sem nunca
-     * anunciar que um diálogo abriu, e o Tab passeava pelo conteúdo bloqueado.
+     * Leva o foco pro TÍTULO ao abrir, prende o Tab dentro do diálogo e devolve
+     * o foco a quem o abriu ao fechar. Sem isto o foco ficava no botão que está
+     * ATRÁS do backdrop: o leitor de tela seguia lendo a página de trás, sem
+     * nunca anunciar que um diálogo abriu, e o Tab passeava pelo conteúdo
+     * bloqueado.
+     *
+     * O foco no título (e não no diálogo) é o que faz o VoiceOver começar a
+     * leitura pelo nome do diálogo e seguir dali pra descrição e as ações, em
+     * vez de pousar antes do primeiro nó e ler fora de ordem.
      *
      * É o mesmo hook que o `Modal` usa — o `AlertDialog` é que tinha ficado de
      * fora quando o foco foi resolvido lá.
      */
-    useModalFocus(isOpen, dialogRef);
+    useModalFocus(isOpen, dialogRef, titleRef);
 
     /**
      * O nó é preciso aqui (para o foco) e também no `ref` do consumidor, que
@@ -171,9 +178,9 @@ const AlertDialog = forwardRef<HTMLDialogElement, AlertDialogProps>(
               //
               // `open` (e não `showModal()`) porque o backdrop é nosso; em
               // troca, o navegador não gerencia foco — quem faz isso é o
-              // `useModalFocus` acima, e é dele o requisito do `tabIndex={-1}`:
-              // o foco inicial vai pro próprio diálogo, não pro primeiro botão,
-              // para o leitor anunciar título e descrição antes das ações.
+              // `useModalFocus` acima. O `tabIndex={-1}` daqui é o destino de
+              // reserva do foco inicial, para quando o título ainda não montou;
+              // no caminho normal ele vai pro <h2> abaixo.
               open
               aria-modal="true"
               aria-labelledby={titleId}
@@ -193,7 +200,12 @@ const AlertDialog = forwardRef<HTMLDialogElement, AlertDialogProps>(
             >
               <h2
                 id={titleId}
-                className="pb-3 text-xl font-semibold text-text-950"
+                ref={titleRef}
+                // Alvo do foco inicial (`useModalFocus`), e não um controle:
+                // recebe foco por código, fica fora do ciclo de Tab (o seletor
+                // do hook descarta `tabindex="-1"`) e não mostra anel.
+                tabIndex={-1}
+                className="pb-3 text-xl font-semibold text-text-950 focus:outline-none"
               >
                 {title}
               </h2>
