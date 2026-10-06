@@ -596,6 +596,10 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
       onClick: handleClick,
       onKeyDown: (e: KeyboardEvent<HTMLLIElement>) => {
         if (['Enter', ' '].includes(e.key)) {
+          // Espaço rola a página por padrão. Como aqui ele ativa o item, o
+          // scroll é cancelado antes — senão selecionar pelo teclado joga a
+          // página para baixo. Enter não tem default a cancelar.
+          if (e.key === ' ') e.preventDefault();
           handleClick(e);
           return;
         }

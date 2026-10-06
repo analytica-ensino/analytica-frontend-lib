@@ -421,6 +421,23 @@ describe('Menu Component', () => {
       fireEvent.keyDown(homeItem, { key: ' ' });
       expect(handleChange).toHaveBeenLastCalledWith('home');
     });
+
+    // Espaço rola a página por padrão: ativar o item pelo teclado não pode
+    // levar a página junto. Enter não tem default a cancelar.
+    it('cancela o scroll do Espaço, mas não o default do Enter', () => {
+      render(
+        <Menu defaultValue="home">
+          <MenuItem value="home">Home</MenuItem>
+          <MenuItem value="dashboard">Dashboard</MenuItem>
+        </Menu>
+      );
+
+      const item = screen.getByText('Dashboard');
+
+      // fireEvent devolve false quando preventDefault foi chamado.
+      expect(fireEvent.keyDown(item, { key: ' ' })).toBe(false);
+      expect(fireEvent.keyDown(item, { key: 'Enter' })).toBe(true);
+    });
   });
 
   describe('Controlled Mode', () => {
