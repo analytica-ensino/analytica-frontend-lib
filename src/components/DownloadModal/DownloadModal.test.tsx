@@ -196,6 +196,9 @@ describe('DownloadModal', () => {
     expect(mockOnClose).not.toHaveBeenCalled();
   });
 
+  // `asyncPdf` não é detalhe incidental: sem Excel e sem ele, o componente
+  // baixa direto e não há título nenhum para renderizar. Este teste é sobre o
+  // `title`, então fixa o ramo em que o seletor existe.
   it('should render the title it is given', () => {
     render(
       <DownloadModal
@@ -205,6 +208,7 @@ describe('DownloadModal', () => {
         error={null}
         onDownloadPdf={mockOnDownloadPdf}
         title="Como deseja baixar a tabela?"
+        asyncPdf
       />
     );
 
