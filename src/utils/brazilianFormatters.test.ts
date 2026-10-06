@@ -97,9 +97,16 @@ describe('brazilianFormatters', () => {
       expect(isValidCnpj('11.222.333/0001-81')).toBe(true);
     });
 
-    it('rejeita digito verificador errado', () => {
+    it('rejeita segundo digito verificador errado', () => {
       expect(isValidCnpj('12ABC34501DE34')).toBe(false);
       expect(isValidCnpj('11222333000180')).toBe(false);
+    });
+
+    it('rejeita primeiro digito verificador errado', () => {
+      // O correto e 35 / 81: aqui o PRIMEIRO digito e que diverge, exercitando
+      // o retorno antecipado antes do calculo do segundo.
+      expect(isValidCnpj('12ABC34501DE45')).toBe(false);
+      expect(isValidCnpj('11222333000191')).toBe(false);
     });
 
     it('rejeita comprimento invalido', () => {

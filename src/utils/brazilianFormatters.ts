@@ -183,12 +183,16 @@ const CNPJ_FIRST_WEIGHTS = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
 const CNPJ_SECOND_WEIGHTS = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
 
 /**
- * Valor numerico de um caractere do CNPJ: codigo ASCII menos 48.
+ * Valor numerico de um caractere do CNPJ: code point menos 48.
  * Produz '0'-'9' => 0-9 e 'A'-'Z' => 17-42. Para entrada numerica o
  * resultado e identico a conversao direta, o que preserva a validacao
  * dos CNPJs ja cadastrados.
+ *
+ * A asserção é necessária e não cria ramo morto: `codePointAt` devolve
+ * `number | undefined` porque a string poderia ser vazia, e `extractChars`
+ * ja garante que todo caractere aqui esta em [0-9A-Z].
  */
-const cnpjCharValue = (char: string): number => char.charCodeAt(0) - 48;
+const cnpjCharValue = (char: string): number => char.codePointAt(0)! - 48;
 
 const cnpjCheckDigit = (chars: string, weights: number[]): number => {
   let sum = 0;
