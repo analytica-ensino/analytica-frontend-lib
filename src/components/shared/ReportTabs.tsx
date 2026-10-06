@@ -62,6 +62,7 @@ export const ReportTabs = ({
       defaultValue={initial}
       value={value}
       variant="menu2"
+      semantics="tabs"
       onValueChange={handleValueChange}
     >
       <MenuContent variant="menu2">

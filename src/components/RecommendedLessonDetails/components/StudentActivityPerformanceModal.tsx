@@ -215,15 +215,19 @@ const LessonItem = ({ lesson }: { lesson: PerformanceLesson }) => (
       {lesson.title}
     </Text>
     <div className="flex items-center gap-2">
+      {/* A barra leva o nome com a aula e o valor; o percentual visível ao lado
+          fica fora da árvore de acessibilidade para não ser lido duas vezes. */}
       <ProgressBar
         value={lesson.progress}
         size="small"
         variant="blue"
         className="flex-1"
+        accessibleLabel={`Progresso em ${lesson.title}: ${lesson.progress}%`}
       />
       <Text
         size="xs"
         className="text-primary-700 font-medium min-w-[40px] text-right"
+        aria-hidden="true"
       >
         {lesson.progress}%
       </Text>
@@ -235,10 +239,13 @@ const LessonItem = ({ lesson }: { lesson: PerformanceLesson }) => (
  * Loading skeleton
  */
 const LoadingSkeleton = () => (
+  // `<output>` (região viva nativa) com texto `sr-only`: o esqueleto é só
+  // visual, e sem isso o leitor de tela não sabe que o conteúdo está carregando.
   <div
     data-testid="loading-skeleton"
     className="flex flex-col gap-4 animate-pulse"
   >
+    <output className="sr-only">Carregando desempenho do estudante...</output>
     <div className="h-6 bg-background-200 rounded w-48" />
     <div className="grid grid-cols-3 gap-3">
       <div className="h-28 bg-background-200 rounded-xl" />
@@ -257,12 +264,20 @@ const LoadingSkeleton = () => (
  * Error content
  */
 const ErrorContent = ({ message }: { message: string }) => (
-  <div className="flex flex-col items-center justify-center py-8 gap-3">
+  // `role="alert"`: a falha substitui o conteúdo e precisa ser anunciada na hora.
+  <div
+    className="flex flex-col items-center justify-center py-8 gap-3"
+    role="alert"
+  >
     <Text
       as="span"
       className="size-12 rounded-full bg-error-100 flex items-center justify-center"
     >
-      <WarningCircleIcon size={24} className="text-error-700" />
+      <WarningCircleIcon
+        size={24}
+        className="text-error-700"
+        aria-hidden="true"
+      />
     </Text>
     <Text size="md" className="text-error-700 text-center">
       {message}
@@ -467,7 +482,10 @@ export const StudentActivityPerformanceModal = ({
    * Render correction fields for a question (radio group, textarea, save button)
    * Same pattern as CorrectActivityModal
    */
-  const renderCorrectionFields = (question: LessonQuestion) => {
+  const renderCorrectionFields = (
+    question: LessonQuestion,
+    questionNumber: number
+  ) => {
     const questionKey = getQuestionKey(question);
     const correction = essayCorrections[questionKey] || {
       isCorrect: null,
@@ -488,8 +506,14 @@ export const StudentActivityPerformanceModal = ({
     return (
       <div className="space-y-4 border-t border-border-100 pt-4 mt-4">
         {/* Is correct radio group */}
-        <div className="space-y-2">
-          <Text className="text-sm font-semibold text-text-950">
+        {/* `fieldset` + `legend`: sem eles o leitor de tela anuncia só as
+            opções, sem a pergunta nem a questão. O "Questão N" fica `sr-only`
+            porque o cabeçalho do acordeão já o mostra visualmente. */}
+        <fieldset className="space-y-2 border-0 p-0 m-0 min-w-0">
+          <Text as="legend" className="text-sm font-semibold text-text-950 p-0">
+            <Text as="span" className="sr-only">
+              Questão {questionNumber} —{' '}
+            </Text>
             {labels.isCorrectQuestionLabel}
           </Text>
           <div className="flex gap-4">
@@ -530,14 +554,25 @@ export const StudentActivityPerformanceModal = ({
               }}
             />
           </div>
-        </div>
+        </fieldset>
 
         {/* Teacher feedback textarea */}
         <div className="space-y-2">
-          <Text className="text-sm font-semibold text-text-950">
+          <Text
+            as="label"
+            htmlFor={`teacher-feedback-${questionKey}`}
+            className="text-sm font-semibold text-text-950"
+          >
             {labels.observationLabel}
+            {/* Vários acordeões abertos têm campos iguais: o número da
+                questão desambigua o nome do campo para o leitor de tela. */}
+            <Text as="span" className="sr-only">
+              {' '}
+              da questão {questionNumber}
+            </Text>
           </Text>
           <TextArea
+            id={`teacher-feedback-${questionKey}`}
             value={correction.teacherFeedback}
             onChange={(e) => {
               updateEssayCorrection(
@@ -641,7 +676,7 @@ export const StudentActivityPerformanceModal = ({
               CorrectActivityModal makes. */}
           {apiClient &&
             question.questionType === QUESTION_TYPE.DISSERTATIVA &&
-            renderCorrectionFields(question)}
+            renderCorrectionFields(question, index + 1)}
           {apiClient &&
             question.questionType !== QUESTION_TYPE.DISSERTATIVA && (
               <QuestionCommentField

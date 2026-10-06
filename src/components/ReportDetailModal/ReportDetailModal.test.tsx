@@ -23,11 +23,11 @@ function openFormatChooser(): void {
 /**
  * Escolhe um formato e confirma.
  *
- * Os cartões são botões com `aria-label` PDF/Excel; "Baixar" é o botão de
+ * Os cartões são radios (`radiogroup`) com `aria-label` PDF/Excel; "Baixar" é o botão de
  * confirmação do rodapé (o de fora se chama "Baixar relatório").
  */
 function chooseFormatAndConfirm(format: 'PDF' | 'Excel'): void {
-  fireEvent.click(screen.getByRole('button', { name: format }));
+  fireEvent.click(screen.getByRole('radio', { name: format }));
   fireEvent.click(screen.getByRole('button', { name: 'Baixar' }));
 }
 
@@ -165,16 +165,28 @@ describe('ReportDetailModal', () => {
     expect(
       screen.getByText('Como deseja baixar o relatório?')
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'PDF' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Excel' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'PDF' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Excel' })).toBeInTheDocument();
   });
 
   describe('caminho PDF', () => {
+    /**
+     * Props com o seletor de formato de pé.
+     *
+     * O Excel está aqui por necessidade, não por capricho: com um formato só o
+     * componente baixa direto e não existe seletor por onde confirmar o PDF.
+     * O que estes testes exercitam é a MECÂNICA da impressão — a classe no
+     * `<body>`, o nome da aba, a precedência do escape hatch — e para chegar
+     * nela precisam do caminho que todos os seis consumidores reais usam, que
+     * é o de dois formatos. O caminho direto tem teste próprio logo abaixo.
+     */
+    const withChooser = { ...defaultProps, onDownloadExcel: jest.fn() };
+
     it('imprime com body.printing-modal e desfaz no afterprint', () => {
       const snapshots = captureDuringPrint();
 
       render(
-        <ReportDetailModal {...defaultProps}>
+        <ReportDetailModal {...withChooser}>
           <p>Tabela de escolas</p>
         </ReportDetailModal>
       );
@@ -198,7 +210,7 @@ describe('ReportDetailModal', () => {
       const snapshots = captureDuringPrint();
 
       render(
-        <ReportDetailModal {...defaultProps} fileName="participacao-20-08-2026">
+        <ReportDetailModal {...withChooser} fileName="participacao-20-08-2026">
           <p>Tabela de escolas</p>
         </ReportDetailModal>
       );
@@ -223,7 +235,7 @@ describe('ReportDetailModal', () => {
       const onDownloadPdf = jest.fn();
 
       render(
-        <ReportDetailModal {...defaultProps} onDownloadPdf={onDownloadPdf}>
+        <ReportDetailModal {...withChooser} onDownloadPdf={onDownloadPdf}>
           <p>Tabela de escolas</p>
         </ReportDetailModal>
       );
@@ -241,7 +253,7 @@ describe('ReportDetailModal', () => {
 
       render(
         <ReportDetailModal
-          {...defaultProps}
+          {...withChooser}
           onDownloadPdf={onDownloadPdf}
           fileName="participacao-20-08-2026"
         >
@@ -261,7 +273,7 @@ describe('ReportDetailModal', () => {
 
     it('imprime mesmo sem onDownloadPdf: o PDF é responsabilidade do componente', () => {
       render(
-        <ReportDetailModal {...defaultProps}>
+        <ReportDetailModal {...withChooser}>
           <p>Tabela de escolas</p>
         </ReportDetailModal>
       );
@@ -290,7 +302,7 @@ describe('ReportDetailModal', () => {
       expect(printAsPdfMock).not.toHaveBeenCalled();
     });
 
-    it('sem onDownloadExcel, o seletor oferece só PDF', () => {
+    it('sem onDownloadExcel, o botão imprime direto e o seletor não aparece', () => {
       render(
         <ReportDetailModal {...defaultProps}>
           <p>Tabela de escolas</p>
@@ -299,9 +311,12 @@ describe('ReportDetailModal', () => {
 
       openFormatChooser();
 
-      expect(screen.getByRole('button', { name: 'PDF' })).toBeInTheDocument();
+      expect(printAsPdfMock).toHaveBeenCalledTimes(1);
       expect(
-        screen.queryByRole('button', { name: 'Excel' })
+        screen.queryByRole('radio', { name: 'PDF' })
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('radio', { name: 'Excel' })
       ).not.toBeInTheDocument();
     });
   });

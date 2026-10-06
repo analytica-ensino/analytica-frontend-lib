@@ -359,7 +359,11 @@ export function SimulatedStudentSimulationsModal({
     content = <ModalSkeleton />;
   } else if (error) {
     content = (
-      <div className="flex min-h-[160px] items-center justify-center">
+      // `role="alert"`: a falha substitui o conteúdo e precisa ser anunciada.
+      <div
+        className="flex min-h-[160px] items-center justify-center"
+        role="alert"
+      >
         <Text size="sm" className="text-text-500">
           {error}
         </Text>

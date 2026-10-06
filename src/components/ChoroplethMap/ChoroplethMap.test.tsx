@@ -1,6 +1,14 @@
 /* global google */
 /* eslint-disable @typescript-eslint/no-require-imports */
-import { render, screen, waitFor, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  waitFor,
+  act,
+  within,
+  configure,
+  getConfig,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ChoroplethMap from './ChoroplethMap';
 import type {
@@ -127,6 +135,19 @@ const mockGoogle = {
 Object.defineProperty(globalThis, 'google', {
   value: mockGoogle,
   writable: true,
+});
+
+// The map repeats every region (name, band, tooltip text) in a visually
+// hidden data table for screen readers. Text queries in this file target the
+// visible UI, so they skip that table; it is covered through roles below.
+const originalIgnore = getConfig().defaultIgnore;
+beforeAll(() => {
+  configure({
+    defaultIgnore: `${originalIgnore}, table.sr-only, table.sr-only *`,
+  });
+});
+afterAll(() => {
+  configure({ defaultIgnore: originalIgnore });
 });
 
 describe('ChoroplethMap', () => {
@@ -268,7 +289,88 @@ describe('ChoroplethMap', () => {
   it('shows loading skeleton when loading is true', () => {
     render(<ChoroplethMap data={[]} apiKey={mockApiKey} loading={true} />);
 
-    expect(screen.getByText('Carregando mapa...')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Carregando mapa...');
+    // No map group nor data table while loading
+    expect(screen.queryByRole('group')).not.toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
+  it('names the map and describes it with an sr-only table of regions', () => {
+    render(
+      <ChoroplethMap
+        data={[
+          { ...mockRegionData[0], groupName: 'NRE Norte' },
+          {
+            ...mockRegionData[1],
+            participation: { withAction: 30, total: 100 },
+          },
+          {
+            ...mockRegionData[1],
+            id: 'region-3',
+            name: 'Região Oeste',
+            headline: 'Nota média: 7,2',
+          },
+          {
+            ...mockRegionData[1],
+            id: 'region-4',
+            name: 'Região Leste',
+            isManagedRegion: false,
+          },
+        ]}
+        apiKey={mockApiKey}
+        title="Acessos por município"
+      />
+    );
+
+    const map = screen.getByRole('group', {
+      name: 'Acessos por município: mapa; dados na tabela a seguir',
+    });
+    const table = screen.getByRole('table', {
+      name: 'Dados do mapa: Acessos por município',
+    });
+    expect(map).toHaveAttribute('aria-describedby', table.id);
+    expect(
+      within(table)
+        .getAllByRole('columnheader')
+        .map((header) => header.textContent)
+    ).toEqual(['Município', 'NRE', 'Faixa', 'Detalhes']);
+
+    const rowTexts = within(table)
+      .getAllByRole('row')
+      .slice(1)
+      .map((row) =>
+        Array.from(row.children)
+          .map((cell) => cell.textContent)
+          .join(' | ')
+      );
+    expect(rowTexts).toEqual([
+      'Região Norte | NRE Norte | Destaque (75% com acesso) | 80%; Acessos: 1.500',
+      'Região Sul | — | Abaixo da média (25 até 49% com acesso) | 30%; 30 com acesso / 70 sem acessos',
+      'Região Oeste | — | Abaixo da média (25 até 49% com acesso) | Nota média: 7,2; Acessos: 500',
+      'Região Leste | — | Fora da sua área de gestão | —',
+    ]);
+  });
+
+  it('omits the NRE column when no region has a group', () => {
+    render(<ChoroplethMap data={mockRegionData} apiKey={mockApiKey} />);
+
+    expect(
+      within(screen.getByRole('table'))
+        .getAllByRole('columnheader')
+        .map((header) => header.textContent)
+    ).toEqual(['Município', 'Faixa', 'Detalhes']);
+  });
+
+  it('hides the legend swatches from assistive technologies', () => {
+    render(<ChoroplethMap data={[]} apiKey={mockApiKey} />);
+
+    const legendButton = screen.getByRole('button', {
+      name: 'Destaque (75% com acesso)',
+    });
+    expect(legendButton.firstElementChild).toHaveAttribute(
+      'aria-hidden',
+      'true'
+    );
   });
 
   it('shows loading skeleton when Google Maps is not loaded', () => {
@@ -1053,6 +1155,10 @@ describe('ChoroplethMap animations', () => {
     await renderAndHoverRegion();
 
     expect(screen.getByText(/Acessos: 200/)).toBeInTheDocument();
+    // The balloon repeats the sr-only table, so it is hidden from AT
+    expect(
+      screen.getByText(/Acessos: 200/).closest('[aria-hidden="true"]')
+    ).not.toBeNull();
   });
 
   it('shows a custom countLabel in the region tooltip', async () => {

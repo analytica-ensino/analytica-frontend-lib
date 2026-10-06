@@ -172,6 +172,7 @@ jest.mock('../ProgressBar/ProgressBar', () => {
       value: number;
       max: number;
       label: string;
+      accessibleLabel?: string;
       showHitCount: boolean;
       labelClassName: string;
       percentageClassName: string;
@@ -185,6 +186,7 @@ jest.mock('../ProgressBar/ProgressBar', () => {
         value,
         max,
         label,
+        accessibleLabel,
         showHitCount,
         labelClassName,
         percentageClassName,
@@ -201,6 +203,7 @@ jest.mock('../ProgressBar/ProgressBar', () => {
         data-value={value}
         data-max={max}
         data-label={label}
+        data-accessible-label={accessibleLabel}
         data-show-hit-count={showHitCount}
         className={className}
         {...props}
@@ -288,7 +291,10 @@ describe('Quiz', () => {
 
       render(<QuizHeaderResult />);
 
-      expect(screen.getByText('🎉 Parabéns!!')).toBeInTheDocument();
+      expect(screen.getByText('Parabéns!!')).toBeInTheDocument();
+      // Emoji decorativo fora da leitura; o container anuncia a mudança.
+      expect(screen.getByText('🎉')).toHaveAttribute('aria-hidden', 'true');
+      expect(screen.getByRole('status')).toHaveTextContent('Parabéns!!');
     });
 
     it('should show failure message when answer is incorrect', () => {
@@ -430,7 +436,7 @@ describe('Quiz', () => {
 
       const { rerender } = render(<QuizHeaderResult />);
 
-      expect(screen.getByText('🎉 Parabéns!!')).toBeInTheDocument();
+      expect(screen.getByText('Parabéns!!')).toBeInTheDocument();
 
       // Change to different question
       mockGetCurrentQuestion.mockReturnValue(mockQuestion2);
@@ -456,7 +462,7 @@ describe('Quiz', () => {
 
       const { rerender, container } = render(<QuizHeaderResult />);
 
-      expect(screen.getByText('🎉 Parabéns!!')).toBeInTheDocument();
+      expect(screen.getByText('Parabéns!!')).toBeInTheDocument();
       let headerElement = container.firstChild as HTMLElement;
       expect(headerElement).toHaveClass('bg-success-background');
 
@@ -672,7 +678,7 @@ describe('Quiz', () => {
       expect(headerElement.tagName).toBe('DIV');
 
       const titleElement = screen.getByText('Resultado');
-      expect(titleElement.tagName).toBe('P');
+      expect(titleElement.tagName).toBe('H1');
     });
 
     it('should handle empty quiz type', () => {
@@ -1080,7 +1086,7 @@ describe('Quiz', () => {
 
       render(<QuizResultTitle />);
 
-      const titleElement = screen.getByRole('paragraph');
+      const titleElement = screen.getByRole('heading', { level: 2 });
       expect(titleElement).toHaveTextContent('');
       expect(titleElement).toBeInTheDocument();
     });
@@ -1090,7 +1096,7 @@ describe('Quiz', () => {
 
       render(<QuizResultTitle />);
 
-      const titleElement = screen.getByRole('paragraph');
+      const titleElement = screen.getByRole('heading', { level: 2 });
       expect(titleElement).toHaveTextContent('');
       expect(titleElement).toBeInTheDocument();
     });
@@ -1100,7 +1106,7 @@ describe('Quiz', () => {
 
       render(<QuizResultTitle />);
 
-      const titleElement = screen.getByRole('paragraph');
+      const titleElement = screen.getByRole('heading', { level: 2 });
       expect(titleElement).toHaveTextContent('');
       expect(titleElement).toBeInTheDocument();
     });
@@ -1131,11 +1137,11 @@ describe('Quiz', () => {
     });
 
     it('should forward ref correctly', () => {
-      const ref = React.createRef<HTMLParagraphElement>();
+      const ref = React.createRef<HTMLHeadingElement>();
 
       render(<QuizResultTitle ref={ref} />);
 
-      expect(ref.current).toBeInstanceOf(HTMLParagraphElement);
+      expect(ref.current).toBeInstanceOf(HTMLHeadingElement);
       expect(ref.current).toHaveClass('pt-6', 'pb-4');
     });
 
@@ -1152,11 +1158,11 @@ describe('Quiz', () => {
       expect(titleElement).toHaveAttribute('aria-label', 'Quiz result title');
     });
 
-    it('should maintain semantic structure as paragraph', () => {
+    it('should render as a level 2 heading', () => {
       const { container } = render(<QuizResultTitle />);
       const titleElement = container.firstChild as HTMLElement;
 
-      expect(titleElement.tagName).toBe('P');
+      expect(titleElement.tagName).toBe('H2');
     });
 
     it('should handle long quiz title', () => {
@@ -1469,6 +1475,55 @@ describe('Quiz', () => {
         expect(bar).toHaveAttribute('data-variant', 'green');
         expect(bar).toHaveAttribute('data-show-hit-count', 'true');
       }
+    });
+
+    it('should name each difficulty bar with a full sentence', () => {
+      mockGetTotalQuestions.mockReturnValue(3);
+      mockGetQuestionResult.mockReturnValue({
+        answers: [
+          {
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+          },
+          {
+            answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+          },
+          {
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+          },
+        ],
+      });
+      mockGetQuestionResultStatistics.mockReturnValue({ correctAnswers: 2 });
+
+      render(<QuizResultPerformance />);
+
+      const labels = screen
+        .getAllByTestId('progress-bar')
+        .map((bar) => bar.getAttribute('data-accessible-label'));
+      expect(labels).toEqual([
+        'Questões fáceis: 1 de 2 corretas.',
+        'Questões médias: 1 de 1 corretas.',
+        'Questões difíceis: nenhuma questão.',
+      ]);
+    });
+
+    it('should announce "nenhuma questão" for every bar when there are no answers', () => {
+      mockGetTotalQuestions.mockReturnValue(0);
+      mockGetQuestionResult.mockReturnValue(null);
+      mockGetQuestionResultStatistics.mockReturnValue(null);
+
+      render(<QuizResultPerformance />);
+
+      const labels = screen
+        .getAllByTestId('progress-bar')
+        .map((bar) => bar.getAttribute('data-accessible-label'));
+      expect(labels).toEqual([
+        'Questões fáceis: nenhuma questão.',
+        'Questões médias: nenhuma questão.',
+        'Questões difíceis: nenhuma questão.',
+      ]);
     });
 
     it('should round percentage correctly', () => {
@@ -2027,7 +2082,12 @@ describe('Quiz', () => {
 
       render(<QuizListResult />);
 
-      expect(screen.getByText('Componentes curriculares')).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', {
+          level: 2,
+          name: 'Componentes curriculares',
+        })
+      ).toBeInTheDocument();
       expect(screen.getByTestId('card-results')).toBeInTheDocument();
       expect(screen.getByTestId('card-results-header')).toHaveTextContent(
         'Matemática'
@@ -2737,7 +2797,7 @@ describe('Quiz', () => {
 
       // Should have proper heading structure
       const subjectTitle = screen.getByText('Matemática');
-      expect(subjectTitle.tagName).toBe('P');
+      expect(subjectTitle.tagName).toBe('H1');
       expect(subjectTitle).toHaveClass(
         'text-text-950',
         'font-bold',
@@ -2745,7 +2805,7 @@ describe('Quiz', () => {
       );
 
       const sectionTitle = screen.getByText('Resultado das questões');
-      expect(sectionTitle.tagName).toBe('P');
+      expect(sectionTitle.tagName).toBe('H2');
       expect(sectionTitle).toHaveClass(
         'pt-6',
         'pb-4',

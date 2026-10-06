@@ -1,5 +1,12 @@
 /* global google */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
 import type { Feature, MultiPolygon, Polygon } from 'geojson';
 import { cn } from '../../utils/utils';
@@ -7,6 +14,7 @@ import { computeNREBoundariesAsync } from './nreBoundaries';
 import { useTheme } from '../../hooks/useTheme';
 import Text from '../Text/Text';
 import Alert from '../Alert/Alert';
+import { ChartDataTable } from '../shared/ChartDataTable';
 import type {
   AccessBreakdown,
   ChoroplethBreakdownLabels,
@@ -207,6 +215,50 @@ const defaultCenter = {
 };
 
 /**
+ * Detail lines of a region, shared by the hover tooltip and the sr-only data
+ * table so both always say the same thing. The headline is not included.
+ *
+ * @param region - Region to describe
+ * @param activeProfile - Profile whose breakdown line to show, if only one
+ * @param breakdownLabels - Wording of both sides of a split
+ * @param countLabel - Caption of the bare count
+ * @returns One string per detail line
+ */
+const getRegionDetailLines = (
+  region: RegionData,
+  activeProfile: keyof AccessBreakdown | undefined,
+  breakdownLabels: ChoroplethBreakdownLabels,
+  countLabel: string
+): string[] => {
+  if (region.participation) {
+    const { withAction, total } = region.participation;
+    // The people left over are the other side of the same population the colour
+    // was decided from — never a second query that could disagree with it.
+    const withoutAction = Math.max(0, total - withAction);
+    return [
+      `${withAction.toLocaleString('pt-BR')} ${breakdownLabels.withAccess} / ` +
+        `${withoutAction.toLocaleString('pt-BR')} ${breakdownLabels.withoutAccess}`,
+    ];
+  }
+
+  if (region.accessBreakdown) {
+    const breakdown = region.accessBreakdown;
+    return TOOLTIP_PROFILE_LINES.filter(
+      (line) => !activeProfile || line.key === activeProfile
+    ).map((line) => {
+      const entry = breakdown[line.key];
+      return (
+        `${line.label}: ${entry.withAccess.toLocaleString('pt-BR')} ` +
+        `${breakdownLabels.withAccess}, ` +
+        `${entry.withoutAccess.toLocaleString('pt-BR')} ${breakdownLabels.withoutAccess}`
+      );
+    });
+  }
+
+  return [`${countLabel}: ${region.accessCount.toLocaleString('pt-BR')}`];
+};
+
+/**
  * Body of the region tooltip.
  *
  * Three shapes, in order of how specific they are: the participation split when
@@ -239,51 +291,19 @@ const RegionTooltipDetails = ({
     </Text>
   ) : null;
 
-  if (region.participation) {
-    const { withAction, total } = region.participation;
-    // The people left over are the other side of the same population the colour
-    // was decided from — never a second query that could disagree with it.
-    const withoutAction = Math.max(0, total - withAction);
-    const line =
-      `${withAction.toLocaleString('pt-BR')} ${breakdownLabels.withAccess} / ` +
-      `${withoutAction.toLocaleString('pt-BR')} ${breakdownLabels.withoutAccess}`;
-    return (
-      <div className="flex flex-col gap-1">
-        {headline}
-        <Text size="md" color="text-text-50">
-          {line}
-        </Text>
-      </div>
-    );
-  }
-
-  if (region.accessBreakdown) {
-    return (
-      <div className="flex flex-col gap-1">
-        {headline}
-        {TOOLTIP_PROFILE_LINES.filter(
-          (line) => !activeProfile || line.key === activeProfile
-        ).map((line) => {
-          const entry = region.accessBreakdown![line.key];
-          return (
-            <Text key={line.key} size="md" color="text-text-50">
-              {line.label}: {entry.withAccess.toLocaleString('pt-BR')}{' '}
-              {breakdownLabels.withAccess},{' '}
-              {entry.withoutAccess.toLocaleString('pt-BR')}{' '}
-              {breakdownLabels.withoutAccess}
-            </Text>
-          );
-        })}
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-1">
       {headline}
-      <Text size="md" color="text-text-50">
-        {countLabel}: {region.accessCount.toLocaleString('pt-BR')}
-      </Text>
+      {getRegionDetailLines(
+        region,
+        activeProfile,
+        breakdownLabels,
+        countLabel
+      ).map((line) => (
+        <Text key={line} size="md" color="text-text-50">
+          {line}
+        </Text>
+      ))}
     </div>
   );
 };
@@ -323,6 +343,7 @@ const LegendItem = ({
         backgroundColor: color,
         border: borderColor ? `1px solid ${borderColor}` : 'none',
       }}
+      aria-hidden="true"
     />
     <Text as="span" size="sm" weight="medium" color="text-text-600">
       {label}
@@ -335,9 +356,12 @@ const LegendItem = ({
  */
 const LoadingSkeleton = () => (
   <div className="w-full h-full flex items-center justify-center bg-background-50 rounded-lg animate-pulse">
-    <Text size="sm" color="text-text-400">
-      Carregando mapa...
-    </Text>
+    {/* `<output>` é a região viva nativa (role="status"). */}
+    <output>
+      <Text as="span" size="sm" color="text-text-400">
+        Carregando mapa...
+      </Text>
+    </output>
   </div>
 );
 
@@ -486,6 +510,43 @@ const ChoroplethMap = ({
     () => getColorClasses(mergedLegendLabels),
     [isDark, mergedLegendLabels]
   );
+
+  const tableId = useId();
+  const hasGroups = data.some((region) => region.groupName);
+
+  // O mapa é desenhado pelo Google Maps em canvas: sem esta tabela o leitor de
+  // tela não tem acesso a nenhuma região. Ela repete, por município, a faixa
+  // da legenda e o mesmo texto do balão de hover.
+  const tableColumns = [
+    'Município',
+    ...(hasGroups ? ['NRE'] : []),
+    'Faixa',
+    'Detalhes',
+  ];
+  const tableRows = data.map((region) => {
+    const isManaged = region.isManagedRegion !== false;
+    const details = isManaged
+      ? [
+          ...(region.headline
+            ? [region.headline]
+            : [`${Math.round(region.value * 100)}%`]),
+          ...getRegionDetailLines(
+            region,
+            activeProfile,
+            mergedBreakdownLabels,
+            countLabel
+          ),
+        ].join('; ')
+      : '—';
+    return [
+      region.name,
+      ...(hasGroups ? [region.groupName ?? '—'] : []),
+      isManaged
+        ? getColorClass(region.value, colorClasses).label
+        : 'Fora da sua área de gestão',
+      details,
+    ];
+  });
 
   const mapOptions: google.maps.MapOptions = useMemo(() => {
     const bgColor = getCssVar('--color-background-50', '#F6F6F6');
@@ -1011,7 +1072,19 @@ const ChoroplethMap = ({
       </div>
 
       {/* Map Container */}
-      <div className="bg-background-50 rounded-lg h-[415px] relative overflow-hidden">
+      {/* `group` e não `img`: os botões de zoom do Google Maps continuam
+          focáveis aqui dentro, e `img` os tornaria anônimos para o leitor de
+          tela. Os dados do mapa vão na tabela sr-only logo abaixo. */}
+      <div
+        className="bg-background-50 rounded-lg h-[415px] relative overflow-hidden"
+        {...(loading || !isLoaded
+          ? {}
+          : {
+              role: 'group',
+              'aria-label': `${title}: mapa; dados na tabela a seguir`,
+              'aria-describedby': tableId,
+            })}
+      >
         {loading || !isLoaded ? (
           <LoadingSkeleton />
         ) : (
@@ -1026,8 +1099,10 @@ const ChoroplethMap = ({
         )}
 
         {/* Tooltip */}
+        {/* O balão só repete o que a tabela sr-only já diz por município. */}
         {hoveredRegion && infoPosition && (
           <div
+            aria-hidden="true"
             className="fixed z-50 flex flex-col gap-2 bg-background-900 shadow-hard-shadow-2 rounded px-3 py-1 pointer-events-none"
             style={{
               left: Math.min(infoPosition.x + 10, window.innerWidth - 460),
@@ -1051,6 +1126,15 @@ const ChoroplethMap = ({
           </div>
         )}
       </div>
+
+      {!loading && isLoaded && (
+        <ChartDataTable
+          id={tableId}
+          caption={`Dados do mapa: ${title}`}
+          columns={tableColumns}
+          rows={tableRows}
+        />
+      )}
 
       {/* Info alert below the map, inside the card */}
       {infoText && (

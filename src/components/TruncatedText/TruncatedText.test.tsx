@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { TruncatedText } from './TruncatedText';
 
 /**
@@ -94,5 +95,82 @@ describe('TruncatedText', () => {
       <TruncatedText wrapperClassName="custom-wrapper">Truncado</TruncatedText>
     );
     expect(container.querySelector('.custom-wrapper')).toBeInTheDocument();
+  });
+});
+
+describe('TruncatedText — foco só quando cortado', () => {
+  const setSizes = (scrollWidth: number, clientWidth: number) => {
+    jest
+      .spyOn(HTMLElement.prototype, 'scrollWidth', 'get')
+      .mockReturnValue(scrollWidth);
+    jest
+      .spyOn(HTMLElement.prototype, 'clientWidth', 'get')
+      .mockReturnValue(clientWidth);
+  };
+
+  afterEach(() => jest.restoreAllMocks());
+
+  it('fica fora da ordem do Tab quando o texto cabe', () => {
+    setSizes(100, 100);
+    render(<TruncatedText>História</TruncatedText>);
+
+    expect(screen.getByText('História')).not.toHaveAttribute('tabindex');
+  });
+
+  it('entra na ordem do Tab quando o texto está cortado', () => {
+    setSizes(300, 100);
+    render(
+      <TruncatedText>Linguagens, Códigos e suas Tecnologias</TruncatedText>
+    );
+
+    expect(
+      screen.getByText('Linguagens, Códigos e suas Tecnologias')
+    ).toHaveAttribute('tabindex', '0');
+  });
+
+  it('não vira parada de foco sem conteúdo de tooltip', () => {
+    setSizes(300, 100);
+    render(
+      <TruncatedText>
+        <b>sem texto</b>
+      </TruncatedText>
+    );
+
+    expect(screen.getByText('sem texto').parentElement).not.toHaveAttribute(
+      'tabindex'
+    );
+  });
+
+  it('remeasures when the element resizes', () => {
+    const observe = jest.fn();
+    const disconnect = jest.fn();
+    let callback: () => void = () => undefined;
+    const original = globalThis.ResizeObserver;
+    globalThis.ResizeObserver = jest.fn((cb: () => void) => {
+      callback = cb;
+      return { observe, disconnect, unobserve: jest.fn() };
+    }) as unknown as typeof ResizeObserver;
+
+    setSizes(100, 100);
+    const { unmount } = render(<TruncatedText>Texto</TruncatedText>);
+    expect(observe).toHaveBeenCalled();
+    expect(screen.getByText('Texto')).not.toHaveAttribute('tabindex');
+
+    setSizes(300, 100);
+    act(() => callback());
+    expect(screen.getByText('Texto')).toHaveAttribute('tabindex', '0');
+
+    unmount();
+    expect(disconnect).toHaveBeenCalled();
+    globalThis.ResizeObserver = original;
+  });
+
+  it('não quebra quando o elemento `as` não repassa a ref', () => {
+    const Plain = ({ children }: { children?: ReactNode }) => (
+      <em>{children}</em>
+    );
+    render(<TruncatedText as={Plain}>Sem ref</TruncatedText>);
+
+    expect(screen.getByText('Sem ref')).not.toHaveAttribute('tabindex');
   });
 });

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { UnitExamDataSection } from './UnitExamDataSection';
 import type {
@@ -6,6 +6,17 @@ import type {
   EnemMomentSectionState,
   EnemMomentSummary,
 } from './types';
+
+/** Label and value of each bar, read from the chart's sr-only data table. */
+const chartRows = () =>
+  within(screen.getByRole('table', { name: /^Dados do gráfico/ }))
+    .getAllByRole('row')
+    .slice(1)
+    .map((row) =>
+      Array.from(row.children)
+        .map((cell) => cell.textContent)
+        .join(': ')
+    );
 
 const summary = {
   totalStudents: 420,
@@ -71,11 +82,10 @@ describe('UnitExamDataSection', () => {
     renderSection();
 
     expect(heading3('Estudantes por faixa de nota')).toBeInTheDocument();
-    expect(
-      screen
-        .getAllByTestId(/^bar-/)
-        .map((bar) => bar.getAttribute('aria-label'))
-    ).toEqual(['0 a 5: 100', '5 a 10: 200']);
+    expect(chartRows()).toEqual([
+      '0 a 5: Média de 0 a 5: 100 estudantes',
+      '5 a 10: Média de 5 a 10: 200 estudantes',
+    ]);
     expect(screen.getByTestId('bar-0 a 5')).toHaveClass('bg-info-500');
     expect(screen.getAllByText('300 estudantes').length).toBeGreaterThan(0);
     expect(heading3('Escolas por faixa de média')).not.toBeInTheDocument();

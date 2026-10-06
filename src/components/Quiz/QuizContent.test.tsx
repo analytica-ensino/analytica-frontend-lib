@@ -415,6 +415,14 @@ describe('QuizContent', () => {
       expect(screen.getByText('Alternativas')).toBeInTheDocument();
     });
 
+    it('should render subtitle as a level 3 heading', () => {
+      render(<QuizSubTitle subTitle="Alternativas" />);
+
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Alternativas' })
+      ).toHaveClass('font-bold', 'text-lg', 'text-text-950');
+    });
+
     it('should render different subtitles', () => {
       const { rerender } = render(<QuizSubTitle subTitle="Questão 1" />);
 
@@ -1713,6 +1721,10 @@ describe('QuizContent', () => {
 
       // Should show correct answer for incorrect options
       expect(screen.getAllByText(/Resposta correta: F/)).toHaveLength(3);
+      // Separador "|" só visual
+      for (const separator of screen.getAllByText('|')) {
+        expect(separator).toHaveAttribute('aria-hidden', 'true');
+      }
     });
 
     it('should not show correct answer text for correct option in result variant', () => {
@@ -2554,6 +2566,17 @@ describe('QuizContent', () => {
 
       expect(successBadges.length).toBe(2);
       expect(errorBadges.length).toBe(2);
+
+      // Resultado em texto para o leitor de tela (não só cor/ícone)
+      expect(screen.getAllByText('— correta')).toHaveLength(2);
+      expect(screen.getAllByText('— incorreta')).toHaveLength(2);
+      for (const srText of screen.getAllByText(/— (in)?correta/)) {
+        expect(srText).toHaveClass('sr-only');
+      }
+      // Gabarito da lacuna com prefixo acessível
+      const expectedPrefixes = screen.getAllByText('Resposta correta:');
+      expect(expectedPrefixes.length).toBeGreaterThan(0);
+      expect(expectedPrefixes[0]).toHaveClass('sr-only');
     });
   });
 

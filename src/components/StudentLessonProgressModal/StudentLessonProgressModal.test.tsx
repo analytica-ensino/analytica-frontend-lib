@@ -293,11 +293,13 @@ describe('StudentLessonProgressModal', () => {
     it('does not show expand arrow for topics without subtopics', () => {
       render(<StudentLessonProgressModal {...defaultProps} />);
 
-      // "Grandezas físicas" has no subtopics
-      const itemButton = screen
-        .getByText('Grandezas físicas')
-        .closest('button');
-      expect(itemButton).toHaveAttribute('disabled');
+      // "Grandezas físicas" has no subtopics: a plain row, not a disabled button
+      expect(
+        screen.getByText('Grandezas físicas').closest('button')
+      ).toBeNull();
+      expect(
+        screen.getByTestId('lesson-item-topic-2').querySelector('svg')
+      ).toBeNull();
     });
 
     it('does not show expand arrow for subtopics without contents', () => {
@@ -307,11 +309,10 @@ describe('StudentLessonProgressModal', () => {
       const topicButton = screen.getByText('Cinemática').closest('button');
       fireEvent.click(topicButton!);
 
-      // "Movimento uniforme" has no contents
-      const subtopicButton = screen
-        .getByText('Movimento uniforme')
-        .closest('button');
-      expect(subtopicButton).toHaveAttribute('disabled');
+      // "Movimento uniforme" has no contents: a plain row, not a disabled button
+      expect(
+        screen.getByText('Movimento uniforme').closest('button')
+      ).toBeNull();
     });
   });
 
@@ -540,14 +541,13 @@ describe('StudentLessonProgressModal', () => {
         <StudentLessonProgressModal {...defaultProps} data={mockFlatData} />
       );
 
-      // All items are flat (no subtopics), so buttons should be disabled
+      // All items are flat (no subtopics), so none of them is a button
       const lessonItems = ['1', '2', '3'].map((id) =>
         screen.getByTestId(`lesson-item-${id}`)
       );
 
       lessonItems.forEach((item) => {
-        const button = item.querySelector('button');
-        expect(button).toHaveAttribute('disabled');
+        expect(item.querySelector('button')).toBeNull();
       });
     });
   });
@@ -594,6 +594,59 @@ describe('StudentLessonProgressModal', () => {
         screen.queryByTestId('report-detail-download-btn')
       ).not.toBeInTheDocument();
       expect(screen.queryByText('Baixar relatório')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Accessibility', () => {
+    it('announces the loading state as a status', () => {
+      render(
+        <StudentLessonProgressModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={null}
+          loading={true}
+        />
+      );
+
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'Carregando progresso do estudante...'
+      );
+    });
+
+    it('announces the error as an alert', () => {
+      render(
+        <StudentLessonProgressModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={null}
+          error="Falhou"
+        />
+      );
+
+      expect(screen.getByRole('alert')).toHaveTextContent('Falhou');
+    });
+
+    it('renders the lesson progress title as an h3', () => {
+      render(<StudentLessonProgressModal {...defaultProps} />);
+
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Conclusão das aulas' })
+      ).toBeInTheDocument();
+    });
+
+    it('hides the bar inside the toggle and keeps phrasing content only', () => {
+      render(<StudentLessonProgressModal {...defaultProps} />);
+
+      const toggle = screen.getByText('Cinemática').closest('button')!;
+      expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.getByText('Cinemática').tagName).toBe('SPAN');
+      expect(
+        toggle.querySelector('progress')?.closest('[aria-hidden="true"]')
+      ).not.toBeNull();
+      expect(toggle.querySelector('svg')).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
     });
   });
 });

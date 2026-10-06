@@ -65,10 +65,17 @@ function StudentCard({
         backgroundClass
       )}
     >
-      {/* Position badge */}
+      {/* Position badge — a posição vai por extenso num texto sr-only e o
+          número visual fica oculto para não ser lido duas vezes. */}
       <Text
+        as="span"
+        className="sr-only"
+      >{`Posição ${student.position}:`}</Text>
+      <Text
+        as="span"
         size="xs"
         weight="bold"
+        aria-hidden="true"
         className={cn(
           'w-5 h-5 rounded-full flex items-center justify-center text-text',
           BADGE_BACKGROUNDS[variant]
@@ -94,7 +101,11 @@ function StudentCard({
       </div>
 
       {/* Score badge */}
+      <Text as="span" className="sr-only">
+        Média:
+      </Text>
       <Text
+        as="span"
         size="xs"
         weight="bold"
         className={cn(
@@ -127,14 +138,25 @@ export function SimulatedRankingCard({
         {icon}
       </div>
       <div className="flex flex-col gap-2">
-        {students.map((student) => (
-          <StudentCard
-            key={student.userInstitutionId ?? `${variant}-${student.position}`}
-            student={student}
-            variant={variant}
-            scoreType={scoreType}
-          />
-        ))}
+        {/* Lista ordenada: o leitor de tela anuncia o total de estudantes e a
+            posição de cada linha na lista. */}
+        {students.length > 0 && (
+          <ol className="flex flex-col gap-2">
+            {students.map((student) => (
+              <li
+                key={
+                  student.userInstitutionId ?? `${variant}-${student.position}`
+                }
+              >
+                <StudentCard
+                  student={student}
+                  variant={variant}
+                  scoreType={scoreType}
+                />
+              </li>
+            ))}
+          </ol>
+        )}
         {students.length === 0 && (
           <Text size="sm" className="text-text-500 text-center py-4">
             Nenhum estudante encontrado
@@ -183,7 +205,12 @@ export function SimulatedStudentRanking({
         variant="highlight"
         students={highlightStudents}
         icon={
-          <MedalIcon size={20} weight="fill" className="text-warning-500" />
+          <MedalIcon
+            size={20}
+            weight="fill"
+            className="text-warning-500"
+            aria-hidden="true"
+          />
         }
         scoreType={scoreType}
       />
@@ -192,7 +219,12 @@ export function SimulatedStudentRanking({
         variant="attention"
         students={attentionStudents}
         icon={
-          <WarningIcon size={20} weight="fill" className="text-error-500" />
+          <WarningIcon
+            size={20}
+            weight="fill"
+            className="text-error-500"
+            aria-hidden="true"
+          />
         }
         scoreType={scoreType}
       />

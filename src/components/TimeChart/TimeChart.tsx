@@ -1,4 +1,4 @@
-import { useState, type HTMLAttributes, type ReactNode } from 'react';
+import { useId, useState, type HTMLAttributes, type ReactNode } from 'react';
 import Text from '../Text/Text';
 import { Tooltip } from '../Tooltip/Tooltip';
 import { cn } from '../../utils/utils';
@@ -7,6 +7,7 @@ import {
   polarToCartesian,
   describeArc,
 } from '../../utils/chartUtils';
+import { ChartDataTable } from '../shared/ChartDataTable';
 
 export { bgClassToCssVar } from '../../utils/chartUtils';
 import { PROFILE_ROLES } from '../../types/chat';
@@ -234,7 +235,7 @@ const getDayValue = (day: TimeChartDayData, key: string): number =>
 
 const LegendItem = ({ color, label }: { color: string; label: string }) => (
   <div className="flex flex-row items-center gap-2">
-    <div className={cn('w-2 h-2 rounded-full', color)} />
+    <div className={cn('w-2 h-2 rounded-full', color)} aria-hidden="true" />
     <Text size="sm" weight="medium" className="text-text-600">
       {label}
     </Text>
@@ -408,7 +409,6 @@ const StackedBar = ({
                   isFirst && isLast && 'rounded'
                 )}
                 style={{ height: `${segmentHeight}px` }}
-                aria-label={`${cat.label}: ${value}${unitSuffix}`}
               />
             );
           })}
@@ -677,10 +677,24 @@ export const TimeChart = ({
     }
   }
 
+  const barTableId = useId();
+  const pieTableId = useId();
+  const grandTotal = categories.reduce(
+    (sum, cat) => sum + categoryTotals[cat.key],
+    0
+  );
+  /**
+   * Formats a bar value with the unit suffix (e.g. "1,5h").
+   *
+   * @param value - Raw value
+   * @returns The formatted value
+   */
+  const formatValue = (value: number) =>
+    `${value.toLocaleString('pt-BR')}${unitSuffix}`;
+
   return (
     <div
       className={cn('grid grid-cols-1 lg:grid-cols-2 gap-4', className)}
-      aria-label="Gráficos de dados de horas por semana e por categoria"
       {...props}
     >
       {/* Stacked Bar Chart */}
@@ -689,7 +703,14 @@ export const TimeChart = ({
         categories={categories}
         contentGapClassName="gap-8"
       >
-        <div className="flex flex-row min-w-0">
+        {/* Barras empilhadas são divs sem semântica: a área do gráfico vira
+            uma imagem nomeada pelo título e descrita pela tabela sr-only. */}
+        <div
+          role="img"
+          aria-label={barChartTitle}
+          aria-describedby={barTableId}
+          className="flex flex-row min-w-0"
+        >
           <YAxis
             ticks={yAxisTicks}
             chartHeight={chartHeight}
@@ -721,17 +742,42 @@ export const TimeChart = ({
             </div>
           </div>
         </div>
+        <ChartDataTable
+          id={barTableId}
+          caption={`Dados do gráfico: ${barChartTitle}`}
+          columns={['Período', ...categories.map((cat) => cat.label)]}
+          rows={hoursByPeriod.map((day) => [
+            day.label,
+            ...categories.map((cat) => formatValue(getDayValue(day, cat.key))),
+          ])}
+        />
       </ChartCard>
 
       {/* Pie Chart */}
       <ChartCard title={pieChartTitle} categories={categories}>
-        <div className="flex items-center justify-center py-4">
+        {/* O SVG da pizza é aria-hidden: o leitor de tela recebe o nome do
+            gráfico aqui e os percentuais pela tabela sr-only. */}
+        <div
+          role="img"
+          aria-label={pieChartTitle}
+          aria-describedby={pieTableId}
+          className="flex items-center justify-center py-4"
+        >
           <PieChart
             categories={categories}
             totals={categoryTotals}
             size={pieSize}
           />
         </div>
+        <ChartDataTable
+          id={pieTableId}
+          caption={`Dados do gráfico: ${pieChartTitle}`}
+          columns={['Categoria', 'Percentual']}
+          rows={categories.map((cat) => [
+            cat.label,
+            `${grandTotal === 0 ? 0 : Math.round((categoryTotals[cat.key] / grandTotal) * 100)}%`,
+          ])}
+        />
       </ChartCard>
     </div>
   );

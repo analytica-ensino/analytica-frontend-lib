@@ -279,6 +279,12 @@ const createTableColumns = (
       label: 'Resultado',
       sortable: false,
       render: (_value: unknown, row: ActivityStudentTableItem) => {
+        // Todas as linhas têm o mesmo botão: o nome do aluno no nome acessível
+        // diz de quem é cada um fora da tabela. Começa pelo texto visível para
+        // quem usa comando de voz.
+        const forStudent = (action: string) =>
+          `${action} de ${row.studentName}`;
+
         // Presencial mode: "Ver respostas" opens whatever came back, so one
         // delivered sheet — gabarito or redação — is enough to enable it.
         if (isPresencial) {
@@ -294,6 +300,7 @@ const createTableColumns = (
               }
               disabled={!hasResponse}
               className="text-xs"
+              aria-label={forStudent('Ver respostas')}
             >
               Ver respostas
             </Button>
@@ -308,6 +315,7 @@ const createTableColumns = (
               size="small"
               onClick={() => onCorrectActivity(row.studentId)}
               className="text-xs"
+              aria-label={forStudent('Corrigir atividade')}
             >
               Corrigir atividade
             </Button>
@@ -321,6 +329,7 @@ const createTableColumns = (
               size="small"
               onClick={() => onCorrectActivity(row.studentId)}
               className="text-xs"
+              aria-label={forStudent('Ver detalhes')}
             >
               Ver detalhes
             </Button>
@@ -335,7 +344,13 @@ const createTableColumns = (
           row.status === STUDENT_ACTIVITY_STATUS.NAO_ENTREGUE
         ) {
           return (
-            <Button variant="outline" size="small" disabled className="text-xs">
+            <Button
+              variant="outline"
+              size="small"
+              disabled
+              className="text-xs"
+              aria-label={forStudent('Corrigir atividade')}
+            >
               Corrigir atividade
             </Button>
           );
@@ -1226,18 +1241,36 @@ export const ActivityDetails = ({
         )}
       >
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 py-4">
-          <button
-            onClick={handleBack}
-            className="text-text-500 hover:text-text-700 text-sm font-bold underline"
-          >
-            Atividades
-          </button>
-          <CaretRightIcon size={16} className="text-text-500" />
-          <Text className="text-text-950 text-sm font-bold">
-            {data.activity?.title || 'Atividade'}
-          </Text>
-        </div>
+        {/* `nav` + lista: o leitor de tela anuncia a trilha como navegação e
+            diz quantos níveis tem; `aria-current` marca onde o usuário está. */}
+        <nav aria-label="Trilha de navegação" className="py-4">
+          <ol className="flex items-center gap-2">
+            <li>
+              <Button
+                variant="raw"
+                type="button"
+                onClick={handleBack}
+                className="text-text-500 hover:text-text-700 text-sm font-bold underline"
+              >
+                Atividades
+              </Button>
+            </li>
+            <li className="flex items-center gap-2">
+              <CaretRightIcon
+                size={16}
+                className="text-text-500"
+                aria-hidden="true"
+              />
+              <Text
+                as="span"
+                className="text-text-950 text-sm font-bold"
+                aria-current="page"
+              >
+                {data.activity?.title || 'Atividade'}
+              </Text>
+            </li>
+          </ol>
+        </nav>
 
         {/* Activity header card — presencial: title, creation date and the
             printable package download. There is no school/class/subject line
@@ -1245,7 +1278,7 @@ export const ActivityDetails = ({
         {data.activity && isPresencial && (
           <div className="bg-background rounded-xl p-4 flex justify-between items-center gap-4">
             <div className="flex flex-col gap-1">
-              <Text className="text-2xl font-bold text-text-950">
+              <Text as="h1" className="text-2xl font-bold text-text-950">
                 {data.activity.title}
               </Text>
               <Text className="text-sm text-text-500">
@@ -1259,7 +1292,7 @@ export const ActivityDetails = ({
               size="small"
               onClick={handleDownloadPdf}
               disabled={isLoadingQuestions}
-              iconLeft={<DownloadSimpleIcon size={16} />}
+              iconLeft={<DownloadSimpleIcon size={16} aria-hidden="true" />}
               className="bg-primary-950 text-text gap-2 shrink-0"
             >
               Baixar prova
@@ -1272,7 +1305,7 @@ export const ActivityDetails = ({
           <div className="bg-background rounded-xl p-4 flex flex-col gap-2">
             <div className="flex justify-between items-start">
               <div className="flex flex-col gap-2">
-                <Text className="text-2xl font-bold text-text-950">
+                <Text as="h1" className="text-2xl font-bold text-text-950">
                   {data.activity.title}
                 </Text>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -1305,6 +1338,7 @@ export const ActivityDetails = ({
                           'w-[21px] h-[21px] flex items-center justify-center rounded-sm text-text-950 shrink-0',
                           subjectInfo.colorClass
                         )}
+                        aria-hidden="true"
                       >
                         {subjectInfo.icon}
                       </span>
@@ -1331,7 +1365,7 @@ export const ActivityDetails = ({
                     action="primary"
                     onClick={handleViewActivity}
                     disabled={isLoadingQuestions}
-                    iconLeft={<EyeIcon size={16} />}
+                    iconLeft={<EyeIcon size={16} aria-hidden="true" />}
                     className="gap-2"
                   >
                     Ver Atividade
@@ -1340,7 +1374,9 @@ export const ActivityDetails = ({
                     size="small"
                     onClick={handleDownloadPdf}
                     disabled={isLoadingQuestions}
-                    iconLeft={<DownloadSimpleIcon size={16} />}
+                    iconLeft={
+                      <DownloadSimpleIcon size={16} aria-hidden="true" />
+                    }
                     className="bg-primary-950 text-text gap-2"
                   >
                     {isLoadingQuestions ? 'Carregando...' : 'Baixar Atividade'}
@@ -1352,6 +1388,7 @@ export const ActivityDetails = ({
                       size={16}
                       className="text-error-600 shrink-0"
                       weight="fill"
+                      aria-hidden="true"
                     />
                     <Text className="text-error-700 text-xs">
                       {activityQuestionsError}
@@ -1366,7 +1403,7 @@ export const ActivityDetails = ({
         {/* Section title, presencial only: the cards below are about the exam
             as a whole, not about any single student. */}
         {isPresencial && (
-          <Text className="text-lg font-bold text-text-950">
+          <Text as="h2" className="text-lg font-bold text-text-950">
             Resultados da atividade
           </Text>
         )}
@@ -1380,8 +1417,18 @@ export const ActivityDetails = ({
             <>
               {/* Completion percentage */}
               <div className="border border-border-50 rounded-xl py-4 px-0 flex flex-col items-center justify-center gap-2 bg-primary-50">
-                <div className="relative w-[90px] h-[90px]">
-                  <svg className="w-full h-full transform -rotate-90">
+                {/* Anel desenhado à mão: o `role="img"` com rótulo entrega o
+                    valor de uma vez, e o SVG e os textos internos viram só
+                    apresentação (filhos de `img` não são lidos). */}
+                <div
+                  className="relative w-[90px] h-[90px]"
+                  role="img"
+                  aria-label={`${Math.round(data.generalStats.completionPercentage)}% concluído`}
+                >
+                  <svg
+                    className="w-full h-full transform -rotate-90"
+                    aria-hidden="true"
+                  >
                     <circle
                       cx="45"
                       cy="45"
@@ -1415,7 +1462,12 @@ export const ActivityDetails = ({
               {/* Average score */}
               <div className="border border-border-50 rounded-xl py-4 px-3 flex flex-col items-center justify-center gap-1 bg-warning-background">
                 <div className="w-[30px] h-[30px] rounded-2xl flex items-center justify-center bg-warning-300">
-                  <StarIcon size={16} className="text-white" weight="regular" />
+                  <StarIcon
+                    size={16}
+                    className="text-white"
+                    weight="regular"
+                    aria-hidden="true"
+                  />
                 </div>
                 <Text className="text-2xs font-bold uppercase text-center text-warning-600">
                   {getAverageScoreLabel(data.pagination.total)}
@@ -1430,7 +1482,12 @@ export const ActivityDetails = ({
           {/* Most correct questions */}
           <div className="border border-border-50 rounded-xl py-2 px-3 flex flex-col items-center justify-center gap-1 bg-success-200">
             <div className="w-[30px] h-[30px] rounded-2xl flex items-center justify-center bg-indicator-positive">
-              <MedalIcon size={16} className="text-text-950" weight="regular" />
+              <MedalIcon
+                size={16}
+                className="text-text-950"
+                weight="regular"
+                aria-hidden="true"
+              />
             </div>
             <Text className="text-2xs font-bold uppercase text-center text-success-700">
               Questões com mais acertos
@@ -1447,6 +1504,7 @@ export const ActivityDetails = ({
                 size={16}
                 className="text-white"
                 weight="regular"
+                aria-hidden="true"
               />
             </div>
             <Text className="text-2xs font-bold uppercase text-center text-error-700">
@@ -1464,6 +1522,7 @@ export const ActivityDetails = ({
                 size={16}
                 className="text-white"
                 weight="regular"
+                aria-hidden="true"
               />
             </div>
             <Text className="text-2xs font-bold uppercase text-center text-info-700">
@@ -1477,11 +1536,15 @@ export const ActivityDetails = ({
 
         {/* Correction error message */}
         {correctionError && (
-          <div className="w-full bg-error-50 border border-error-200 rounded-xl p-4 flex items-center gap-3">
+          <div
+            className="w-full bg-error-50 border border-error-200 rounded-xl p-4 flex items-center gap-3"
+            role="alert"
+          >
             <WarningCircleIcon
               size={20}
               className="text-error-600"
               weight="fill"
+              aria-hidden="true"
             />
             <Text className="text-error-700 text-sm">{correctionError}</Text>
           </div>
@@ -1490,7 +1553,9 @@ export const ActivityDetails = ({
         {/* Section title, presencial only: separates the per-student results
             from the exam-wide cards above. */}
         {isPresencial && (
-          <Text className="text-lg font-bold text-text-950">Resultados</Text>
+          <Text as="h2" className="text-lg font-bold text-text-950">
+            Resultados
+          </Text>
         )}
 
         {/* Students table */}
@@ -1552,9 +1617,14 @@ export const ActivityDetails = ({
         title="Ver atividade"
         size="xl"
       >
-        <div className="flex flex-col gap-3 max-h-[70vh] overflow-y-auto pr-1">
+        {/* Região nomeada. Sem `tabIndex`: os navegadores atuais já tornam
+            focável pelo teclado um contêiner rolável sem controle focável. */}
+        <section
+          className="flex flex-col gap-3 max-h-[70vh] overflow-y-auto pr-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-950"
+          aria-label="Questões da atividade"
+        >
           <ViewQuestionsModalBody questions={viewQuestions} />
-        </div>
+        </section>
       </Modal>
 
       {/* Hidden PDF content for printing */}

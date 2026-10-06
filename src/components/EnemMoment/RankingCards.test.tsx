@@ -102,7 +102,7 @@ describe('EnemMomentRankingCard', () => {
       screen.getByText('Ana Maria (Curitiba) (Colégio Estadual)')
     ).toBeInTheDocument();
     expect(screen.getByText('Nota 9,0')).toBeInTheDocument();
-    expect(screen.getByLabelText('Posição 3')).toBeInTheDocument();
+    expect(screen.getByText('Posição 3:')).toHaveClass('sr-only');
     expect(screen.queryByText(/Quarto/)).not.toBeInTheDocument();
   });
 

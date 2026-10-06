@@ -135,6 +135,42 @@ describe('TeacherFeedbackSection', () => {
     });
   });
 
+  describe('Accessibility', () => {
+    it('should expose a named region with a level 2 heading', () => {
+      mockGetActivityFeedback.mockReturnValue({
+        teacherFeedback: 'Test feedback',
+        attachment: null,
+      });
+
+      render(<TeacherFeedbackSection />);
+
+      const region = screen.getByRole('region', {
+        name: 'Observação do Professor',
+      });
+      expect(region.tagName).toBe('SECTION');
+      expect(
+        screen.getByRole('heading', {
+          level: 2,
+          name: 'Observação do Professor',
+        })
+      ).toBeInTheDocument();
+    });
+
+    it('should warn that the attachment opens in a new tab and hide the icon', () => {
+      mockGetActivityFeedback.mockReturnValue({
+        teacherFeedback: null,
+        attachment: 'https://example.com/file.pdf',
+      });
+
+      render(<TeacherFeedbackSection />);
+
+      const link = screen.getByRole('link', {
+        name: 'Ver anexo (abre em nova aba)',
+      });
+      expect(link.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    });
+  });
+
   describe('Styling', () => {
     it('should apply custom className', () => {
       mockGetActivityFeedback.mockReturnValue({
@@ -144,9 +180,9 @@ describe('TeacherFeedbackSection', () => {
 
       render(<TeacherFeedbackSection className="custom-class" />);
 
-      const section = screen
-        .getByText('Observação do Professor')
-        .closest('div');
+      const section = screen.getByRole('region', {
+        name: 'Observação do Professor',
+      });
       expect(section).toHaveClass('custom-class');
     });
 
@@ -158,9 +194,9 @@ describe('TeacherFeedbackSection', () => {
 
       render(<TeacherFeedbackSection />);
 
-      const section = screen
-        .getByText('Observação do Professor')
-        .closest('div');
+      const section = screen.getByRole('region', {
+        name: 'Observação do Professor',
+      });
       expect(section).toHaveClass('bg-background');
       expect(section).toHaveClass('border');
       expect(section).toHaveClass('border-border-100');

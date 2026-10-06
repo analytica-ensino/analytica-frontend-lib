@@ -246,6 +246,83 @@ describe('ProgressBar', () => {
     });
   });
 
+  describe('Accessibility of hit count and decorative bars', () => {
+    it('uses "label: valor de max" as default name in stacked layout with hit count', () => {
+      render(
+        <ProgressBar
+          layout="stacked"
+          value={2}
+          max={5}
+          label="Fáceis"
+          showHitCount
+        />
+      );
+      expect(
+        screen.getByRole('progressbar', { name: 'Fáceis: 2 de 5' })
+      ).toBeInTheDocument();
+    });
+
+    it('uses "Progresso: valor de max" in compact layout with hit count and no label', () => {
+      render(<ProgressBar layout="compact" value={3} max={4} showHitCount />);
+      expect(
+        screen.getByRole('progressbar', { name: 'Progresso: 3 de 4' })
+      ).toBeInTheDocument();
+    });
+
+    it('keeps accessibleLabel precedence over hit count default', () => {
+      render(
+        <ProgressBar
+          layout="stacked"
+          value={2}
+          max={5}
+          label="Fáceis"
+          showHitCount
+          accessibleLabel="Questões fáceis: 2 de 5 corretas."
+        />
+      );
+      expect(
+        screen.getByRole('progressbar', {
+          name: 'Questões fáceis: 2 de 5 corretas.',
+        })
+      ).toBeInTheDocument();
+    });
+
+    it('hides the stacked visual header from assistive technologies', () => {
+      render(
+        <ProgressBar
+          layout="stacked"
+          value={2}
+          max={5}
+          label="Fáceis"
+          showHitCount
+        />
+      );
+      const header = screen.getByText('Fáceis').parentElement;
+      expect(header).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it.each(['default', 'stacked', 'compact'] as const)(
+      'hides the progress element when decorative in %s layout',
+      (layout) => {
+        const { container } = render(
+          <ProgressBar layout={layout} value={45} decorative />
+        );
+        expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+        expect(container.querySelector('progress')).toHaveAttribute(
+          'aria-hidden',
+          'true'
+        );
+      }
+    );
+
+    it('does not set aria-hidden on the progress element by default', () => {
+      render(<ProgressBar value={45} />);
+      expect(screen.getByRole('progressbar')).not.toHaveAttribute(
+        'aria-hidden'
+      );
+    });
+  });
+
   describe('CSS classes and styling', () => {
     it('applies additional className to container', () => {
       const { container } = render(

@@ -47,11 +47,13 @@ describe('NoSearchResult', () => {
   });
 
   it('should render image with correct src', () => {
-    render(<NoSearchResult image={mockImage} />);
+    const { container } = render(<NoSearchResult image={mockImage} />);
 
-    const img = screen.getByAltText('No search results');
-    expect(img).toBeInTheDocument();
+    // Decorative: `alt=""` keeps the illustration out of the accessibility tree
+    const img = container.querySelector('img');
     expect(img).toHaveAttribute('src', mockImage);
+    expect(img).toHaveAttribute('alt', '');
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
 
   it('should have correct layout classes', () => {

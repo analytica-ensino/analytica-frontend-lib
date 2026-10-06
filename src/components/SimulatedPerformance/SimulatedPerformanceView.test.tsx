@@ -25,15 +25,24 @@ jest.mock('../TableProvider', () => ({
     headerContent,
     loading,
     data,
+    caption,
+    getRowActionLabel,
   }: {
     headerContent: ReactNode;
     loading: boolean;
     data: unknown[];
+    caption?: string;
+    getRowActionLabel?: (row: unknown) => string;
   }) => (
-    <div data-testid="table-provider">
+    <div data-testid="table-provider" data-caption={caption}>
       {headerContent}
       {loading && <span>Carregando tabela...</span>}
       <span data-testid="table-data-count">{data?.length ?? 0} itens</span>
+      {data?.map((row, index) => (
+        <span key={index} data-testid="row-action-label">
+          {getRowActionLabel?.(row)}
+        </span>
+      ))}
     </div>
   ),
 }));
@@ -586,6 +595,69 @@ describe('SimulatedPerformanceView', () => {
       expect(screen.getByTestId('student-ranking')).toBeInTheDocument();
       expect(screen.getByText('Destaques: 2')).toBeInTheDocument();
       expect(screen.getByText('Atenção: 1')).toBeInTheDocument();
+    });
+  });
+
+  describe('tabelas acessíveis', () => {
+    it('nomeia a tabela de estudantes e a ação de cada linha', () => {
+      render(
+        <SimulatedPerformanceView
+          {...createDefaultProps({
+            simulatedViewTab: SimulatedViewTab.STUDENTS,
+            studentsOverview: {
+              data: {
+                students: {
+                  data: [{ studentId: 's-1', name: 'Ana Lima' }],
+                  page: 1,
+                  limit: 10,
+                  total: 1,
+                },
+              },
+              loading: false,
+              isRefreshing: false,
+              error: null,
+            },
+          } as unknown as Partial<SimulatedPerformanceViewProps>)}
+        />
+      );
+
+      expect(screen.getByTestId('table-provider')).toHaveAttribute(
+        'data-caption',
+        'Desempenho por estudante'
+      );
+      expect(screen.getByTestId('row-action-label')).toHaveTextContent(
+        'Ver desempenho de Ana Lima'
+      );
+    });
+
+    it('nomeia a tabela de habilidades e a ação de cada linha', () => {
+      render(
+        <SimulatedPerformanceView
+          {...createDefaultProps({
+            simulatedViewTab: SimulatedViewTab.SKILLS,
+            isEssaySelected: false,
+            contentsPerformance: {
+              data: {
+                data: [{ contentId: 'c-1', contentName: 'Geometria' }],
+                page: 1,
+                limit: 10,
+                total: 1,
+              },
+              loading: false,
+              isRefreshing: false,
+              error: null,
+            },
+          } as unknown as Partial<SimulatedPerformanceViewProps>)}
+        />
+      );
+
+      expect(screen.getByTestId('table-provider')).toHaveAttribute(
+        'data-caption',
+        'Desempenho por habilidade'
+      );
+      expect(screen.getByTestId('row-action-label')).toHaveTextContent(
+        'Ver desempenho da habilidade Geometria'
+      );
     });
   });
 

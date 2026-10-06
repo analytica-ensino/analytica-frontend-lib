@@ -1362,6 +1362,113 @@ describe('SimulationsDetailModal', () => {
   });
 });
 
+describe('SimulationsDetailModal accessibility', () => {
+  /**
+   * Builds an API whose list, detail and note requests can each be overridden.
+   * @param overrides - Per-route responses
+   * @returns The mocked API client
+   */
+  function makeRoutedApi(overrides: {
+    list?: () => Promise<unknown>;
+    detail?: () => Promise<unknown>;
+    note?: () => Promise<unknown>;
+  }): BaseApiClient {
+    const fallback = makeApi();
+    return {
+      ...fallback,
+      get: jest.fn((url: string) => {
+        if (url.endsWith('/note') && overrides.note) return overrides.note();
+        if (/\/students\/[^/]+\/[^/]+$/.test(url) && overrides.detail) {
+          return overrides.detail();
+        }
+        if (/\/students\/[^/]+$/.test(url) && overrides.list) {
+          return overrides.list();
+        }
+        return (fallback.get as jest.Mock)(url);
+      }),
+    } as unknown as BaseApiClient;
+  }
+
+  it('exposes the scroll area as a named section region', () => {
+    render(
+      <SimulationsDetailModal
+        api={makeRoutedApi({ list: () => new Promise(() => undefined) })}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+
+    const region = screen.getByRole('region', {
+      name: 'Simulados de Ana Costa',
+    });
+    expect(region.tagName).toBe('SECTION');
+    expect(region).not.toHaveAttribute('tabindex');
+  });
+
+  it('announces a list failure as an alert', async () => {
+    render(
+      <SimulationsDetailModal
+        api={makeRoutedApi({ list: () => Promise.reject(new Error('x')) })}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Erro ao carregar os simulados do estudante'
+    );
+  });
+
+  it('announces the detail failure of an expanded simulado', async () => {
+    let rejectDetail: (reason: Error) => void = () => undefined;
+    render(
+      <SimulationsDetailModal
+        api={makeRoutedApi({
+          detail: () =>
+            new Promise((_resolve, reject) => {
+              rejectDetail = reject;
+            }),
+        })}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+    await waitFor(() => expect(rejectDetail).toBeDefined());
+    rejectDetail(new Error('x'));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Erro ao carregar as respostas'
+    );
+  });
+
+  it('announces the observation failure', async () => {
+    let rejectNote: (reason: Error) => void = () => undefined;
+    render(
+      <SimulationsDetailModal
+        api={makeRoutedApi({
+          note: () =>
+            new Promise((_resolve, reject) => {
+              rejectNote = reject;
+            }),
+        })}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+    rejectNote(new Error('x'));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Erro ao carregar a observação'
+    );
+  });
+});
+
 describe('SimulationQuestionItem', () => {
   const question = {
     ...detailPayload.data.questions[0],

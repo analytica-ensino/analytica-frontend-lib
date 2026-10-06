@@ -245,6 +245,58 @@ const getEnabledMenuItems = (container: Element): HTMLElement[] =>
     (el): el is HTMLElement => el instanceof HTMLElement
   );
 
+/**
+ * Where Tab can land inside a popup that keeps the focus. Items carry
+ * tabindex="-1" (roving tabindex), so they are listed on their own.
+ */
+const TAB_STOP_SELECTOR = [
+  ENABLED_MENUITEM_SELECTOR,
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled]):not([type="hidden"])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(', ');
+
+/**
+ * Closest popup an element belongs to. A dialog opened from inside the menu
+ * (Aparência) is rendered within the content but runs its own Tab cycle.
+ */
+const OWNING_POPUP_SELECTOR =
+  'dialog, [role="dialog"], [data-dropdown-content="true"]';
+
+const getTabStops = (content: Element): HTMLElement[] =>
+  Array.from(content.querySelectorAll(TAB_STOP_SELECTOR)).filter(
+    (el): el is HTMLElement =>
+      el instanceof HTMLElement && el.closest(OWNING_POPUP_SELECTOR) === content
+  );
+
+/**
+ * Cycle Tab/Shift+Tab through the stops of a popup that traps the focus, so
+ * the keyboard only leaves it through Escape (or a click outside).
+ */
+const trapTabKey = (event: globalThis.KeyboardEvent, content: Element) => {
+  const active = document.activeElement;
+  if (active?.closest(OWNING_POPUP_SELECTOR) !== content) return;
+
+  const stops = getTabStops(content);
+  if (stops.length === 0) return;
+
+  event.preventDefault();
+
+  const currentIndex = stops.indexOf(active as HTMLElement);
+  let nextIndex;
+  if (currentIndex === -1) {
+    nextIndex = event.shiftKey ? stops.length - 1 : 0;
+  } else {
+    const step = event.shiftKey ? -1 : 1;
+    nextIndex = (currentIndex + step + stops.length) % stops.length;
+  }
+
+  stops[nextIndex]?.focus();
+};
+
 /** Input types where the arrow keys already mean something to the field. */
 const TEXT_INPUT_TYPES = new Set(['text', 'search', 'email', 'tel', 'url']);
 
@@ -412,6 +464,11 @@ const DropdownMenu = ({
       setOpen(false);
       store.getState().triggerElement?.focus();
     } else if (event.key === 'Tab') {
+      const content = getOpenContent();
+      if (content?.matches('[data-trap-focus="true"]')) {
+        trapTabKey(event, content);
+        return;
+      }
       // Items use a roving tabindex, so Tab leaves the menu: close it and
       // continue the tab sequence from the trigger.
       const active = document.activeElement;
@@ -645,6 +702,13 @@ const DropdownMenuContent = forwardRef<
      * announced as an empty menu.
      */
     role?: DropdownPopupRole;
+    /**
+     * Keep Tab/Shift+Tab cycling inside the popup; only Escape or a click
+     * outside leaves it. On by default for the profile variants, whose mix of
+     * items and buttons reads as one panel — the `menu` variant follows the
+     * menu pattern, where Tab closes it.
+     */
+    trapFocus?: boolean;
   }
 >(
   (
@@ -660,6 +724,7 @@ const DropdownMenuContent = forwardRef<
       triggerRef,
       maxHeight = DEFAULT_PORTAL_MAX_HEIGHT,
       role = 'menu',
+      trapFocus = variant !== 'menu',
       id: idProp,
       ...props
     },
@@ -764,6 +829,7 @@ const DropdownMenuContent = forwardRef<
         aria-label={MENUCONTENT_VARIANT_LABELS[variant]}
         data-dropdown-content="true"
         data-open={open}
+        data-trap-focus={trapFocus || undefined}
         className={`
         z-50 min-w-[210px] overflow-hidden outline-none
         ${open ? 'animate-in fade-in-0 zoom-in-95' : 'animate-out fade-out-0 zoom-out-95'}

@@ -79,7 +79,12 @@ export const CorrectionSourceTag = ({
         action="info"
         size="small"
         className={className}
-        iconLeft={<CircleNotchIcon className="animate-spin" />}
+        // role="status": a correção por IA é assíncrona; quando o veredito
+        // chega o texto muda e o leitor de tela anuncia sem mover o foco.
+        role="status"
+        iconLeft={
+          <CircleNotchIcon className="animate-spin" aria-hidden="true" />
+        }
       >
         Corrigindo com IA
       </Badge>
@@ -95,7 +100,8 @@ export const CorrectionSourceTag = ({
       action={tag.action}
       size="small"
       className={className}
-      iconLeft={<Icon />}
+      role="status"
+      iconLeft={<Icon aria-hidden="true" />}
     >
       {tag.label}
     </Badge>

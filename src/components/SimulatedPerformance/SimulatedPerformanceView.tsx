@@ -229,10 +229,11 @@ export function SimulatedPerformanceView({
         defaultValue={SimulatedViewTab.STUDENTS}
         value={simulatedViewTab}
         variant="breadcrumb"
+        semantics="tabs"
         className="px-0!"
         onValueChange={handleViewTabChange}
       >
-        <MenuContent className="px-0!">
+        <MenuContent className="px-0!" aria-label="Visões de desempenho">
           <MenuItem variant="menu2" value={SimulatedViewTab.STUDENTS}>
             Desempenho por estudante
           </MenuItem>
@@ -289,6 +290,10 @@ export function SimulatedPerformanceView({
                 enablePagination
                 enableRowClick
                 onRowClick={handleStudentRowClick}
+                getRowActionLabel={(student) =>
+                  `Ver desempenho de ${student.name}`
+                }
+                caption="Desempenho por estudante"
                 onParamsChange={handleStudentsParamsChange}
                 rowKey="studentId"
                 paginationConfig={{
@@ -355,6 +360,10 @@ export function SimulatedPerformanceView({
               enablePagination
               enableRowClick
               onRowClick={handleContentRowClick}
+              getRowActionLabel={(content) =>
+                `Ver desempenho da habilidade ${content.contentName}`
+              }
+              caption="Desempenho por habilidade"
               onParamsChange={handleContentsParamsChange}
               rowKey="contentId"
               paginationConfig={{

@@ -205,6 +205,7 @@ describe('SimulatedStudentSimulationsModal', () => {
     renderModal({ loading: false, data: null, error: 'Falhou' });
 
     expect(screen.getByText('Falhou')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('Falhou');
     expect(screen.queryByText('Dados de simulados')).not.toBeInTheDocument();
   });
 

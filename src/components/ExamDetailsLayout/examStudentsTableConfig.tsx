@@ -117,6 +117,14 @@ export const createExamStudentsTableColumns = (
           action="primary"
           size="small"
           disabled={isLoading}
+          // Todas as linhas têm o mesmo botão: o nome do aluno no nome
+          // acessível diz de quem é cada um fora da tabela. Começa pelo texto
+          // visível para quem usa comando de voz.
+          aria-label={
+            isLoading
+              ? `Carregando gabarito de ${row.studentName}`
+              : `Baixar gabarito de ${row.studentName}`
+          }
           onClick={(e: MouseEvent<HTMLButtonElement>) => {
             e.stopPropagation();
             onDownloadAnswerSheet(row.studentId);
@@ -140,6 +148,7 @@ export const createExamStudentsTableColumns = (
           action="primary"
           size="small"
           disabled={!hasResponse}
+          aria-label={`Ver respostas de ${row.studentName}`}
           onClick={(e: MouseEvent<HTMLButtonElement>) => {
             e.stopPropagation();
             onViewAnswers(row.studentId);

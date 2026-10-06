@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Tooltip from './Tooltip';
 
@@ -313,6 +313,115 @@ describe('Tooltip', () => {
       expect(screen.getByText('Nested')).toBeInTheDocument();
       expect(screen.getByText('Content')).toBeInTheDocument();
       expect(screen.getByRole('tooltip')).toBeInTheDocument();
+    });
+  });
+
+  describe('Acessibilidade — descrição e Escape', () => {
+    it('liga o gatilho único ao tooltip por aria-describedby (modo CSS)', () => {
+      render(
+        <Tooltip content="Ajuda">
+          <button>Info</button>
+        </Tooltip>
+      );
+
+      expect(
+        screen.getByRole('button', { name: 'Info' })
+      ).toHaveAccessibleDescription('Ajuda');
+    });
+
+    it('soma a descrição do consumidor à do tooltip', () => {
+      render(
+        <>
+          <span id="extra">Extra</span>
+          <Tooltip content="Ajuda">
+            <button aria-describedby="extra">Info</button>
+          </Tooltip>
+        </>
+      );
+
+      const button = screen.getByRole('button', { name: 'Info' });
+      const ids = button.getAttribute('aria-describedby')!.split(' ');
+      expect(ids[0]).toBe('extra');
+      expect(ids[1]).toBe(screen.getByRole('tooltip').id);
+    });
+
+    it('descreve o wrapper quando há vários filhos', () => {
+      const { container } = render(
+        <Tooltip content="Ajuda">
+          texto <strong>solto</strong>
+        </Tooltip>
+      );
+
+      expect(container.firstChild).toHaveAttribute(
+        'aria-describedby',
+        screen.getByRole('tooltip').id
+      );
+    });
+
+    it('usa ids únicos por instância', () => {
+      render(
+        <>
+          <Tooltip content="A">
+            <button>A</button>
+          </Tooltip>
+          <Tooltip content="B">
+            <button>B</button>
+          </Tooltip>
+        </>
+      );
+
+      const [first, second] = screen.getAllByRole('tooltip');
+      expect(first.id).not.toBe(second.id);
+    });
+
+    it('Escape esconde o tooltip CSS até o foco/ponteiro sair', () => {
+      const { container } = render(
+        <Tooltip content="Ajuda">
+          <button>Info</button>
+        </Tooltip>
+      );
+      const wrapper = container.firstChild as HTMLElement;
+      const tooltip = screen.getByRole('tooltip');
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(tooltip).not.toHaveClass('!invisible');
+
+      fireEvent.mouseEnter(wrapper);
+      fireEvent.keyDown(document, { key: 'a' });
+      expect(tooltip).not.toHaveClass('!invisible');
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(tooltip).toHaveClass('!opacity-0', '!invisible');
+
+      fireEvent.mouseLeave(wrapper);
+      expect(tooltip).not.toHaveClass('!invisible');
+
+      fireEvent.focusIn(wrapper);
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(tooltip).toHaveClass('!invisible');
+      fireEvent.focusOut(wrapper);
+      expect(tooltip).not.toHaveClass('!invisible');
+    });
+
+    it('Escape fecha o tooltip em portal e usa id único', () => {
+      render(
+        <Tooltip content="Ajuda" usePortal>
+          <button>Info</button>
+        </Tooltip>
+      );
+      const trigger = screen.getByText('Info').parentElement!;
+
+      fireEvent.mouseEnter(trigger);
+      const tooltip = screen.getByRole('tooltip');
+      expect(tooltip.id).not.toBe('tooltip-portal');
+      expect(trigger).toHaveAttribute('aria-describedby', tooltip.id);
+
+      fireEvent.keyDown(document, { key: 'Enter' });
+      expect(screen.getByRole('tooltip')).toBeInTheDocument();
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+      expect(trigger).not.toHaveAttribute('aria-describedby');
     });
   });
 });

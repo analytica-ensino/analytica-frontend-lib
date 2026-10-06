@@ -38,7 +38,7 @@ describe('TablePagination', () => {
       );
 
       expect(screen.getByText(/41 - 50 de 100 escolas/)).toBeInTheDocument();
-      expect(screen.getByLabelText('Items por página')).toBeInTheDocument();
+      expect(screen.getByLabelText('Itens por página')).toBeInTheDocument();
     });
 
     it('should render with custom className', () => {
@@ -236,7 +236,7 @@ describe('TablePagination', () => {
       render(<TablePagination {...defaultProps} />);
 
       expect(
-        screen.queryByLabelText('Items por página')
+        screen.queryByLabelText('Itens por página')
       ).not.toBeInTheDocument();
     });
 
@@ -249,7 +249,7 @@ describe('TablePagination', () => {
         />
       );
 
-      expect(screen.getByLabelText('Items por página')).toBeInTheDocument();
+      expect(screen.getByLabelText('Itens por página')).toBeInTheDocument();
     });
 
     it('should render with default options', () => {
@@ -261,7 +261,7 @@ describe('TablePagination', () => {
         />
       );
 
-      const select = screen.getByLabelText('Items por página');
+      const select = screen.getByLabelText('Itens por página');
       const options = within(select).getAllByRole('option');
       expect(options).toHaveLength(4);
       expect(options[0]).toHaveTextContent('10 itens');
@@ -280,7 +280,7 @@ describe('TablePagination', () => {
         />
       );
 
-      const select = screen.getByLabelText('Items por página');
+      const select = screen.getByLabelText('Itens por página');
       const options = within(select).getAllByRole('option');
       expect(options).toHaveLength(3);
       expect(options[0]).toHaveTextContent('5 itens');
@@ -298,7 +298,7 @@ describe('TablePagination', () => {
         />
       );
 
-      const select = screen.getByLabelText('Items por página');
+      const select = screen.getByLabelText('Itens por página');
       expect(select).toHaveValue('20');
     });
 
@@ -311,7 +311,7 @@ describe('TablePagination', () => {
         />
       );
 
-      const select = screen.getByLabelText('Items por página');
+      const select = screen.getByLabelText('Itens por página');
       fireEvent.change(select, { target: { value: '50' } });
 
       expect(onItemsPerPageChange).toHaveBeenCalledTimes(1);
@@ -362,5 +362,58 @@ describe('TablePagination', () => {
       expect(paginationDiv).toHaveAttribute('data-testid', 'pagination');
       expect(paginationDiv).toHaveAttribute('aria-label', 'Table pagination');
     });
+  });
+});
+
+describe('TablePagination — acessibilidade', () => {
+  const props = {
+    totalItems: 30,
+    currentPage: 1,
+    totalPages: 3,
+    itemsPerPage: 10,
+    onPageChange: jest.fn(),
+  };
+
+  it('é um landmark de navegação nomeado "Paginação"', () => {
+    render(<TablePagination {...props} />);
+
+    expect(
+      screen.getByRole('navigation', { name: 'Paginação' })
+    ).toBeInTheDocument();
+  });
+
+  it('anuncia a página atual numa região viva', () => {
+    render(<TablePagination {...props} currentPage={2} />);
+
+    expect(screen.getByText('Página 2 de 3')).toHaveAttribute(
+      'aria-live',
+      'polite'
+    );
+  });
+
+  it('nomeia o seletor como "Itens por página"', () => {
+    render(<TablePagination {...props} onItemsPerPageChange={jest.fn()} />);
+
+    expect(
+      screen.getByRole('combobox', { name: 'Itens por página' })
+    ).toBeInTheDocument();
+  });
+
+  it('desabilita "Próxima" quando não há páginas', () => {
+    const onPageChange = jest.fn();
+    render(
+      <TablePagination
+        {...props}
+        totalItems={0}
+        totalPages={0}
+        onPageChange={onPageChange}
+      />
+    );
+
+    const next = screen.getByRole('button', { name: 'Próxima página' });
+    expect(next).toBeDisabled();
+    expect(next).toHaveAttribute('type', 'button');
+    fireEvent.click(next);
+    expect(onPageChange).not.toHaveBeenCalled();
   });
 });

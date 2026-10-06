@@ -78,7 +78,7 @@ describe('BasePageLayout - table state survives new filter options', () => {
       />
     );
 
-    fireEvent.change(screen.getByLabelText('Items por página'), {
+    fireEvent.change(screen.getByLabelText('Itens por página'), {
       target: { value: '100' },
     });
 

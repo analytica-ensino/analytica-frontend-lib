@@ -76,7 +76,9 @@ describe('SimulationsPage', () => {
   it('renders the heading and the student row from the API', async () => {
     render(<SimulationsPage api={makeApi()} />);
 
-    expect(screen.getByText('Simulados')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Simulados' })
+    ).toBeInTheDocument();
     expect(
       screen.getByText(
         'Veja o resultado de todos os simulados realizados por cada estudante'
@@ -87,6 +89,9 @@ describe('SimulationsPage', () => {
       expect(screen.getByText('Ana Costa')).toBeInTheDocument()
     );
     expect(screen.getByText('40')).toBeInTheDocument();
+    expect(
+      screen.getByRole('columnheader', { name: 'Ações' })
+    ).toBeInTheDocument();
   });
 
   it('shows the school year column, falling back to "-" without a class', async () => {
@@ -106,11 +111,10 @@ describe('SimulationsPage', () => {
   it('opens the detail modal when clicking "Ver simulados"', async () => {
     render(<SimulationsPage api={makeApi()} />);
 
-    // Uma linha por estudante, então há um botão por linha: o da Ana é o primeiro.
-    const buttons = await screen.findAllByRole('button', {
-      name: 'Ver simulados',
-    });
-    fireEvent.click(buttons[0]);
+    // Um botão por linha, nomeado com o estudante.
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Ver simulados de Ana Costa' })
+    );
 
     await waitFor(() =>
       expect(screen.getByText('Dados de simulados')).toBeInTheDocument()

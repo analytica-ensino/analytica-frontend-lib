@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import Text from '../Text/Text';
 import Badge from '../Badge/Badge';
 import Button from '../Button/Button';
@@ -8,6 +8,7 @@ import {
   GridLines,
   calculateYAxisTicks,
 } from '../shared/ChartComponents';
+import { ChartDataTable } from '../shared/ChartDataTable';
 import {
   TableProvider,
   type ColumnConfig,
@@ -64,6 +65,7 @@ function DailyChart({
   moments,
 }: Readonly<{ days: EnemMomentDay[]; moments: EnemMomentMoment[] }>) {
   const momentOf = useMomentLookup(moments);
+  const tableId = useId();
 
   const totalsByExam = new Map<string, number>();
   for (const day of days) {
@@ -102,9 +104,11 @@ function DailyChart({
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         {legend.map((moment) => (
           <div key={moment.examId} className="flex items-center gap-2">
-            <span
+            <Text
+              as="span"
               className="w-2 h-2 rounded-full shrink-0"
               style={{ backgroundColor: momentOf(moment.examId).color }}
+              aria-hidden="true"
             />
             <Text size="sm" weight="medium" className="text-text-950">
               {moment.label}
@@ -116,7 +120,14 @@ function DailyChart({
         ))}
       </div>
 
-      <div className="flex flex-row min-w-0">
+      {/* As barras empilhadas são divs sem semântica: a área do gráfico vira
+          uma imagem nomeada e descrita pela tabela sr-only com os dados. */}
+      <div
+        role="img"
+        aria-label="Simulados realizados por dia"
+        aria-describedby={tableId}
+        className="flex flex-row min-w-0"
+      >
         <YAxis ticks={ticks} chartHeight={CHART_HEIGHT} />
         <div className="flex-1 min-w-0 relative">
           <GridLines ticks={ticks} chartHeight={CHART_HEIGHT} />
@@ -128,7 +139,6 @@ function DailyChart({
               >
                 <div
                   data-testid={`day-bar-${day.day}`}
-                  aria-label={`${shortDate(day.day)}: ${simulados(day.participations)}`}
                   className="w-full max-w-8 flex flex-col-reverse rounded-md overflow-hidden"
                   style={{ height: CHART_HEIGHT }}
                 >
@@ -177,6 +187,21 @@ function DailyChart({
           </div>
         </div>
       </div>
+      <ChartDataTable
+        id={tableId}
+        caption="Dados do gráfico: Simulados realizados por dia"
+        columns={['Dia', ...legend.map((moment) => moment.label), 'Total']}
+        rows={days.map((day) => [
+          shortDate(day.day),
+          ...legend.map((moment) =>
+            simulados(
+              day.byExam.find((exam) => exam.examId === moment.examId)
+                ?.participations ?? 0
+            )
+          ),
+          simulados(day.participations),
+        ])}
+      />
     </div>
   );
 }

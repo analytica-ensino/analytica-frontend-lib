@@ -260,6 +260,11 @@ describe('examStudentsTableConfig', () => {
         render(<>{downloadColumn?.render?.(undefined, mockStudent, 0)}</>);
 
         expect(screen.getByText('Baixar gabarito')).toBeInTheDocument();
+        expect(
+          screen.getByRole('button', {
+            name: `Baixar gabarito de ${mockStudent.studentName}`,
+          })
+        ).toBeInTheDocument();
       });
 
       it('calls onDownloadAnswerSheet when clicked', () => {
@@ -291,6 +296,11 @@ describe('examStudentsTableConfig', () => {
         render(<>{downloadColumn?.render?.(undefined, mockStudent, 0)}</>);
 
         expect(screen.getByText('Carregando...')).toBeInTheDocument();
+        expect(
+          screen.getByRole('button', {
+            name: `Carregando gabarito de ${mockStudent.studentName}`,
+          })
+        ).toBeInTheDocument();
       });
 
       it('disables button when loading', () => {
@@ -350,6 +360,11 @@ describe('examStudentsTableConfig', () => {
         render(<>{viewColumn?.render?.(undefined, mockStudent, 0)}</>);
 
         expect(screen.getByText('Ver respostas')).toBeInTheDocument();
+        expect(
+          screen.getByRole('button', {
+            name: `Ver respostas de ${mockStudent.studentName}`,
+          })
+        ).toBeInTheDocument();
       });
 
       it('enables button when status is ANSWER_SHEET_RECEIVED', () => {

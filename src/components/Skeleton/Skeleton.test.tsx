@@ -345,3 +345,33 @@ describe('SkeletonTable', () => {
     expect(ref).toHaveBeenCalled();
   });
 });
+
+describe('Skeleton accessibility', () => {
+  it('hides an empty skeleton from assistive technologies', () => {
+    render(<Skeleton data-testid="sk" />);
+    expect(screen.getByTestId('sk')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('keeps a skeleton with children accessible', () => {
+    render(
+      <Skeleton data-testid="sk">
+        <span>conteúdo</span>
+      </Skeleton>
+    );
+    expect(screen.getByTestId('sk')).not.toHaveAttribute('aria-hidden');
+  });
+
+  it('hides multi-line text skeletons', () => {
+    render(<SkeletonText lines={3} data-testid="sk" />);
+    expect(screen.getByTestId('sk')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('announces SkeletonCard as a busy loading status', () => {
+    render(<SkeletonCard />);
+    const status = screen.getByRole('status');
+    expect(status.tagName).toBe('OUTPUT');
+    expect(status).toHaveTextContent('Carregando…');
+    expect(status).toHaveClass('sr-only');
+    expect(status.parentElement).toHaveAttribute('aria-busy', 'true');
+  });
+});

@@ -121,9 +121,11 @@ const EmptyState = ({
       {image && (
         <div className="w-full max-w-[170px] max-h-[150px] flex items-center justify-center">
           {typeof image === 'string' ? (
+            // Ilustração decorativa: repetir o título no `alt` faria o leitor
+            // de tela anunciá-lo duas vezes seguidas.
             <img
               src={image}
-              alt={displayTitle}
+              alt=""
               className="w-full h-full max-w-[170px] max-h-[150px]"
             />
           ) : (

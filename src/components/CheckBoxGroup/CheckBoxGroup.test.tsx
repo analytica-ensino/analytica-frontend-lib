@@ -354,6 +354,33 @@ describe('CheckboxGroup', () => {
   });
 
   describe('Master Checkbox (Select All)', () => {
+    it('fica fora do botão do acordeão e tem nome próprio', async () => {
+      const user = userEvent.setup();
+      const onCategoriesChange = jest.fn();
+      render(
+        <CheckboxGroup
+          categories={mockCategories}
+          onCategoriesChange={onCategoriesChange}
+        />
+      );
+
+      const master = screen.getByRole('checkbox', {
+        name: 'Selecionar todos em Category',
+      });
+      const trigger = screen.getByRole('button');
+      expect(trigger).not.toContainElement(master);
+      expect(trigger.querySelector('input')).toBeNull();
+
+      await user.click(master);
+
+      expect(onCategoriesChange).toHaveBeenCalledWith([
+        {
+          ...mockCategories[0],
+          selectedIds: ['item-1', 'item-2', 'item-3'],
+        },
+      ]);
+    });
+
     it('selects all items when master checkbox is clicked', async () => {
       const user = userEvent.setup();
       const onCategoriesChange = jest.fn();

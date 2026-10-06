@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useId, useMemo, useState, type ReactNode } from 'react';
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 import { CaretUpIcon } from '@phosphor-icons/react/dist/csr/CaretUp';
 import Text from '../Text/Text';
@@ -129,6 +129,7 @@ export interface QuestionsBarsProps {
  */
 export function QuestionsBars({ values, aside }: QuestionsBarsProps) {
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+  const legendId = useId();
 
   const ticks = calculateYAxisTicks(values.total);
   const chartMax = ticks[0];
@@ -136,7 +137,15 @@ export function QuestionsBars({ values, aside }: QuestionsBarsProps) {
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
       {/* Chart */}
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
+      {/* As barras são divs sem semântica e os cartões de legenda ao lado já
+          trazem cada número por extenso: o gráfico vira uma imagem nomeada e
+          descrita pelos próprios cartões, sem repetir os dados numa tabela. */}
+      <div
+        role="img"
+        aria-label="Gráfico de barras das questões"
+        aria-describedby={legendId}
+        className="flex min-w-0 flex-1 flex-col gap-2"
+      >
         <div className="flex flex-row">
           {/* Y axis */}
           {/* `min-w-12` e não `w-12`: a largura fixa cortava o rótulo assim
@@ -146,6 +155,7 @@ export function QuestionsBars({ values, aside }: QuestionsBarsProps) {
           <div
             className="flex min-w-12 shrink-0 flex-col items-end justify-between pr-2"
             style={{ height: CHART_HEIGHT }}
+            aria-hidden="true"
           >
             {ticks.map((tick) => (
               <Text
@@ -211,7 +221,6 @@ export function QuestionsBars({ values, aside }: QuestionsBarsProps) {
                         minHeight: value > 0 ? '4px' : '0',
                         opacity: !anyHovered || isHovered ? 1 : 0.5,
                       }}
-                      aria-label={`${bar.label}: ${value}`}
                     />
                   </div>
                 );
@@ -221,7 +230,7 @@ export function QuestionsBars({ values, aside }: QuestionsBarsProps) {
         </div>
 
         {/* X axis labels, aligned to the bars (ml-12 matches the Y axis width) */}
-        <div className="ml-12 flex flex-row gap-4">
+        <div className="ml-12 flex flex-row gap-4" aria-hidden="true">
           {BARS.map((bar) => (
             <div key={bar.key} className="flex flex-1 justify-center">
               <Text size="md" className="text-text-700">
@@ -237,6 +246,7 @@ export function QuestionsBars({ values, aside }: QuestionsBarsProps) {
       {/* Legend cards, and whatever the caller adds under them */}
       <div className="flex flex-1 flex-col justify-center gap-2">
         <div
+          id={legendId}
           data-testid="questions-legend"
           className="grid grid-cols-1 gap-2 sm:grid-cols-2"
         >
@@ -296,7 +306,9 @@ export function RateCell({
       <Text size="xs" weight="bold" className="text-success-500">
         {formatRate(rate)}
       </Text>
-      <ProgressBar value={rate} variant="green" size="small" />
+      {/* O percentual já está escrito acima: a barra é só reforço visual e
+          não deve ser lida de novo pelo leitor de tela. */}
+      <ProgressBar value={rate} variant="green" size="small" decorative />
     </div>
   );
 }
@@ -563,7 +575,7 @@ export function QuestionsPerformanceCard({
             onValueChange={setTopicId}
             className="w-[380px] max-w-full"
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full" aria-label="Selecionar tema">
               <SelectValue placeholder="Todos os temas" />
             </SelectTrigger>
             <SelectContent>

@@ -500,7 +500,7 @@ describe('StudentPerformanceDetailsModal', () => {
 
     /** Escolhe um formato e confirma no rodapé do seletor. */
     const chooseFormatAndConfirm = (format: 'PDF' | 'Excel') => {
-      fireEvent.click(screen.getByRole('button', { name: format }));
+      fireEvent.click(screen.getByRole('radio', { name: format }));
       fireEvent.click(screen.getByRole('button', { name: 'Baixar' }));
     };
 
@@ -540,8 +540,8 @@ describe('StudentPerformanceDetailsModal', () => {
 
       openFormatChooser();
 
-      expect(screen.getByRole('button', { name: 'PDF' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Excel' })).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: 'PDF' })).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: 'Excel' })).toBeInTheDocument();
     });
 
     it('imprime o modal no caminho PDF, com o nome do arquivo do dia, e NÃO gera Excel', () => {

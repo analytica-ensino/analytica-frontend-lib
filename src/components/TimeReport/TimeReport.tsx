@@ -155,12 +155,28 @@ const TREND_CONFIG = {
   up: {
     colorClass: 'text-success-500',
     Icon: TrendUpIcon,
+    srPrefix: 'aumento de',
   },
   down: {
     colorClass: 'text-error-500',
     Icon: TrendDownIcon,
+    srPrefix: 'queda de',
   },
 } as const;
+
+/**
+ * Builds the screen reader sentence of a trend (e.g. "aumento de 10% em
+ * relação ao período anterior"), dropping the visual sign of the value.
+ *
+ * @param trendValue - Visual trend value (e.g. "+10%", "-5%")
+ * @param trendDirection - Trend direction
+ * @returns The sentence announced by assistive technologies
+ */
+const getTrendAccessibleText = (
+  trendValue: string,
+  trendDirection: TimeCardTrend
+): string =>
+  `${TREND_CONFIG[trendDirection].srPrefix} ${trendValue.replace(/^[+-]/, '')} em relação ao período anterior`;
 
 /**
  * TimeCard component - displays a single time statistic
@@ -180,7 +196,13 @@ export const TimeCard = ({ data, className, ...props }: TimeCardProps) => {
     >
       {/* Icon + Label */}
       <div className="flex flex-row items-center gap-2">
-        <span className="text-text-600 [&>svg]:w-4 [&>svg]:h-4">{icon}</span>
+        <Text
+          as="span"
+          className="text-text-600 [&>svg]:w-4 [&>svg]:h-4"
+          aria-hidden="true"
+        >
+          {icon}
+        </Text>
         <Text
           weight="bold"
           className="text-text-600 uppercase text-[8px] leading-[100%]"
@@ -218,17 +240,23 @@ export const TimeCard = ({ data, className, ...props }: TimeCardProps) => {
           )}
           data-testid={`trend-${data.id}`}
         >
+          {/* Seta e sinal só dizem a direção pela cor/forma: o leitor de
+              tela recebe a frase completa no texto sr-only. */}
           {(() => {
             const TrendIcon = TREND_CONFIG[trendDirection].Icon;
-            return <TrendIcon size={16} weight="bold" />;
+            return <TrendIcon size={16} weight="bold" aria-hidden="true" />;
           })()}
           <Text
             size="xs"
             weight="bold"
             color="inherit"
             className="leading-[100%] uppercase"
+            aria-hidden="true"
           >
             {trendValue}
+          </Text>
+          <Text as="span" className="sr-only">
+            {getTrendAccessibleText(trendValue, trendDirection)}
           </Text>
         </div>
       )}

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import {
   SimulatedRankingCard,
@@ -83,6 +83,43 @@ describe('SimulatedStudentRanking', () => {
     );
 
     expect(screen.getByText('Nenhum estudante encontrado')).toBeInTheDocument();
+    expect(screen.queryByRole('list')).not.toBeInTheDocument();
+  });
+
+  it('renders each card as an ordered list with the position spelled out', () => {
+    render(
+      <SimulatedStudentRanking
+        highlightStudents={highlightStudents}
+        attentionStudents={attentionStudents}
+      />
+    );
+
+    const lists = screen.getAllByRole('list');
+    expect(lists).toHaveLength(2);
+    expect(lists[0].tagName).toBe('OL');
+    const items = within(lists[0]).getAllByRole('listitem');
+    expect(items).toHaveLength(2);
+    expect(within(items[0]).getByText('Posição 1:')).toHaveClass('sr-only');
+    expect(within(items[0]).getByText('1')).toHaveAttribute(
+      'aria-hidden',
+      'true'
+    );
+    expect(within(items[0]).getByText('Média:')).toHaveClass('sr-only');
+  });
+
+  it('uses the userInstitutionId as the row key when present', () => {
+    render(
+      <SimulatedRankingCard
+        title="Com id"
+        variant="attention"
+        students={[
+          { position: 1, name: 'Bia', average: 50, userInstitutionId: 'ui-1' },
+        ]}
+        icon={null}
+      />
+    );
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
   });
 });
 

@@ -93,6 +93,28 @@ describe('TimeCard', () => {
     expect(screen.getByText('-10%')).toBeInTheDocument();
   });
 
+  it('announces the trend as a sentence and hides the visual sign and icon', () => {
+    render(<TimeCard data={mockPlatformCard} />);
+
+    expect(
+      screen.getByText('aumento de 10% em relação ao período anterior')
+    ).toHaveClass('sr-only');
+    expect(screen.getByText('+10%')).toHaveAttribute('aria-hidden', 'true');
+    // Card icon wrapper is decorative
+    expect(screen.getByTestId('mock-icon').parentElement).toHaveAttribute(
+      'aria-hidden',
+      'true'
+    );
+  });
+
+  it('announces a downward trend as "queda de"', () => {
+    render(<TimeCard data={mockLessonsCard} />);
+
+    expect(
+      screen.getByText('queda de 10% em relação ao período anterior')
+    ).toBeInTheDocument();
+  });
+
   it('renders up trend with correct styling', () => {
     render(<TimeCard data={mockPlatformCard} />);
 

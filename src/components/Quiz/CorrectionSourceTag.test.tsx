@@ -11,6 +11,9 @@ describe('CorrectionSourceTag', () => {
     render(<CorrectionSourceTag correctionSource={source} />);
 
     expect(screen.getByText(label)).toBeInTheDocument();
+    const status = screen.getByRole('status');
+    expect(status).toHaveTextContent(label);
+    expect(status.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
   });
 
   it('announces the correction is under way while the AI has not finished', () => {
@@ -19,6 +22,21 @@ describe('CorrectionSourceTag', () => {
     );
 
     expect(screen.getByText('Corrigindo com IA')).toBeInTheDocument();
+    const status = screen.getByRole('status');
+    expect(status.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('keeps the same live region when the AI verdict lands', () => {
+    const { rerender } = render(
+      <CorrectionSourceTag aiCorrectionStatus={AI_CORRECTION_STATUS.PENDING} />
+    );
+    const pendingStatus = screen.getByRole('status');
+
+    rerender(<CorrectionSourceTag correctionSource={CORRECTION_SOURCE.IA} />);
+
+    // Mesmo nó: a troca de texto é anunciada pela região viva.
+    expect(screen.getByRole('status')).toBe(pendingStatus);
+    expect(pendingStatus).toHaveTextContent('Corrigido por IA');
   });
 
   it('prefers the settled source over the pending state', () => {

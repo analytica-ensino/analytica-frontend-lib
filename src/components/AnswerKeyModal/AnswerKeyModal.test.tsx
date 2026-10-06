@@ -64,15 +64,27 @@ describe('AnswerKeyModal', () => {
   // "incorreta" esconderia a bolha que a leitura óptica não reconheceu, que é
   // o que o aluno abre este modal para descobrir.
   it.each([
-    ['correta', ANSWER_STATUS.RESPOSTA_CORRETA, 'Questão 1: correta'],
-    ['incorreta', ANSWER_STATUS.RESPOSTA_INCORRETA, 'Questão 1: incorreta'],
-    ['em branco', ANSWER_STATUS.NAO_RESPONDIDO, 'Questão 1: em branco'],
+    [
+      'correta',
+      ANSWER_STATUS.RESPOSTA_CORRETA,
+      'Questão 1: marcou A — Correta',
+    ],
+    [
+      'incorreta',
+      ANSWER_STATUS.RESPOSTA_INCORRETA,
+      'Questão 1: marcou A — Incorreta',
+    ],
+    [
+      'em branco',
+      ANSWER_STATUS.NAO_RESPONDIDO,
+      'Questão 1: marcou A — Em branco',
+    ],
     [
       'pendente',
       ANSWER_STATUS.PENDENTE_AVALIACAO,
-      'Questão 1: aguardando correção',
+      'Questão 1: marcou A — Aguardando correção',
     ],
-  ])('marks a question as %s', (_label, status, expectedLabel) => {
+  ])('marks a question as %s', (_label, status, expectedText) => {
     render(
       <AnswerKeyModal
         answers={[makeAnswer('q1', 0, status)]}
@@ -80,7 +92,43 @@ describe('AnswerKeyModal', () => {
       />
     );
 
-    expect(screen.getByLabelText(expectedLabel)).toBeInTheDocument();
+    expect(screen.getByText(expectedText)).toHaveClass('sr-only');
+  });
+
+  it('says the student did not answer when nothing was marked', () => {
+    render(
+      <AnswerKeyModal
+        answers={[
+          makeAnswer('q1', -1, ANSWER_STATUS.NAO_RESPONDIDO),
+          makeAnswer('q2', -1, ANSWER_STATUS.RESPOSTA_INCORRETA),
+        ]}
+        onClose={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText('Questão 1: não respondeu')).toHaveClass('sr-only');
+    expect(
+      screen.getByText('Questão 2: não respondeu — Incorreta')
+    ).toBeInTheDocument();
+  });
+
+  it('hides the visual number, bubbles and icon from assistive technologies', () => {
+    const { baseElement } = render(
+      <AnswerKeyModal
+        answers={[makeAnswer('q1', 1, ANSWER_STATUS.RESPOSTA_CORRETA)]}
+        onClose={jest.fn()}
+      />
+    );
+
+    const row = baseElement.querySelector('li') as HTMLElement;
+    expect(screen.getByText('1')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByText('B').parentElement).toHaveAttribute(
+      'aria-hidden',
+      'true'
+    );
+    const icon = row.querySelector('svg') as SVGElement;
+    expect(icon).toHaveAttribute('aria-hidden', 'true');
+    expect(icon).not.toHaveAttribute('aria-label');
   });
 
   it('draws the five alternatives of every question', () => {
@@ -127,7 +175,7 @@ describe('AnswerKeyModal', () => {
 
     expect(screen.getByText('C').className).not.toContain('bg-error-200');
     expect(screen.getByText('C').className).not.toContain('bg-success-200');
-    expect(screen.queryByLabelText('Questão 1: incorreta')).toBeNull();
+    expect(screen.queryByText(/Incorreta/)).toBeNull();
   });
 
   // Questão em branco: nenhuma bolha preenchida, e a linha segue aparecendo.
@@ -157,6 +205,8 @@ describe('AnswerKeyModal', () => {
       />
     );
 
-    expect(screen.getByLabelText('Questão 1: em branco')).toBeInTheDocument();
+    expect(
+      screen.getByText('Questão 1: marcou B — Em branco')
+    ).toBeInTheDocument();
   });
 });

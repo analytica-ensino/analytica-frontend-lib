@@ -21,6 +21,23 @@ export interface ColumnFilterMenuProps {
 }
 
 /**
+ * Builds the trigger's accessible name, including how many values are active.
+ *
+ * @param columnLabel - Plain-text column name
+ * @param selectedCount - Number of selected values
+ * @returns e.g. "Filtrar por Status, 2 selecionados"
+ */
+export const getTriggerLabel = (
+  columnLabel: string,
+  selectedCount: number
+): string => {
+  const base = `Filtrar por ${columnLabel}`;
+  if (selectedCount === 0) return base;
+  const suffix = selectedCount === 1 ? 'selecionado' : 'selecionados';
+  return `${base}, ${selectedCount} ${suffix}`;
+};
+
+/**
  * The filter dropdown that lives inside a column header.
  *
  * Renders the `DropdownMenu` primitives directly (rather than wrapping them in
@@ -80,7 +97,9 @@ const ColumnFilterMenu = ({
       <DropdownMenu>
         <DropdownMenuTrigger
           ref={triggerRef}
-          aria-label={`Filtrar por ${columnLabel}`}
+          // O estado do filtro só aparecia no ícone preenchido; o nome passa a
+          // dizer quantas opções estão ativas.
+          aria-label={getTriggerLabel(columnLabel, value.length)}
           className={cn(
             'flex items-center rounded-sm cursor-pointer hover:opacity-70',
             hasFilter ? 'text-primary-600' : 'text-text-600'
@@ -137,6 +156,8 @@ const ColumnFilterMenu = ({
 
           <DropdownMenuItem
             onClick={() => onChange([])}
+            role="menuitemcheckbox"
+            aria-checked={!hasFilter}
             className={cn(!hasFilter && 'font-bold')}
           >
             {allLabel}
@@ -167,6 +188,11 @@ const ColumnFilterMenu = ({
                   key={option.value}
                   preventClose={multiple}
                   onClick={() => toggle(option.value)}
+                  // A seleção era só negrito + ícone de check (oculto do
+                  // leitor). Com o papel de item marcável, `aria-checked`
+                  // anuncia "marcado"/"não marcado".
+                  role="menuitemcheckbox"
+                  aria-checked={selected}
                   iconRight={
                     selected ? (
                       <CheckIcon size={16} weight="bold" aria-hidden="true" />

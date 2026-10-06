@@ -1,6 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import CorrectActivityModal from './CorrectActivityModal';
+import CorrectActivityModal, {
+  getAttachmentLinkLabel,
+} from './CorrectActivityModal';
 import type { StudentActivityCorrectionData } from '../../utils/studentActivityCorrection';
 import {
   QUESTION_TYPE,
@@ -2643,6 +2645,152 @@ describe('CorrectActivityModal', () => {
       ).toBeInTheDocument();
 
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe('Accessibility', () => {
+    const essayData: StudentActivityCorrectionData = {
+      studentId: 'student-123',
+      studentName: 'João Silva',
+      score: null,
+      correctCount: 0,
+      incorrectCount: 0,
+      blankCount: 1,
+      questions: [
+        {
+          question: createQuestion(
+            'q1',
+            'Explique o ciclo da água.',
+            QUESTION_TYPE.DISSERTATIVA
+          ),
+          result: createQuestionResult(
+            'a1',
+            'q1',
+            ANSWER_STATUS.PENDENTE_AVALIACAO,
+            'A água evapora e condensa',
+            [],
+            [],
+            null,
+            'Explique o ciclo da água.',
+            QUESTION_TYPE.DISSERTATIVA
+          ),
+          questionNumber: 1,
+        },
+      ],
+      observation: undefined,
+    };
+
+    it('groups the essay verdict radios in a fieldset named after the question', () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={essayData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+      fireEvent.click(screen.getAllByText('Questão 1')[0].closest('button')!);
+      fireEvent.click(screen.getByRole('button', { name: 'Resposta' }));
+
+      const group = screen.getByRole('group', {
+        name: 'Questão 1 — Resposta está correta?',
+      });
+      expect(group.tagName).toBe('FIELDSET');
+      expect(screen.getByRole('radio', { name: 'Sim' })).toHaveAttribute(
+        'name',
+        'isCorrect-1'
+      );
+      expect(screen.getByRole('radio', { name: 'Não' })).toHaveAttribute(
+        'name',
+        'isCorrect-1'
+      );
+      expect(
+        screen.getByRole('textbox', {
+          name: 'Incluir observação da questão 1',
+        })
+      ).toBeInTheDocument();
+    });
+
+    it('renders the section titles as h3 headings', () => {
+      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Observação' })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Respostas' })
+      ).toBeInTheDocument();
+    });
+
+    it('renders the closed observation title as an h3 heading', () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={{ ...mockData, observation: undefined }}
+          isViewOnly={false}
+        />
+      );
+
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Observação' })
+      ).toBeInTheDocument();
+    });
+
+    it('names the observation textarea after its heading', () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={{ ...mockData, observation: undefined }}
+          isViewOnly={false}
+        />
+      );
+      fireEvent.click(screen.getByText('Incluir'));
+
+      expect(
+        screen.getByRole('textbox', { name: 'Observação' })
+      ).toHaveAttribute(
+        'placeholder',
+        'Escreva uma observação para o estudante'
+      );
+    });
+
+    it('names the saved attachment link with the file name and the new tab warning', () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={{
+            ...mockData,
+            observation: 'Obs',
+            attachment: 'https://example.com/files/meu%20arquivo.pdf?x=1',
+          }}
+          isViewOnly={false}
+        />
+      );
+
+      expect(
+        screen.getByRole('link', {
+          name: 'Anexado: meu arquivo.pdf (abre em nova aba)',
+        })
+      ).toHaveAttribute('target', '_blank');
+
+      fireEvent.click(screen.getByText('Editar'));
+      expect(
+        screen.getByRole('link', {
+          name: 'Anexado: meu arquivo.pdf (abre em nova aba)',
+        })
+      ).toBeInTheDocument();
+    });
+
+    it('builds the attachment link label for edge-case URLs', () => {
+      expect(getAttachmentLinkLabel('https://example.com/')).toBe(
+        'Anexado (abre em nova aba)'
+      );
+      expect(getAttachmentLinkLabel('https://example.com/a%E0.pdf')).toBe(
+        'Anexado: a%E0.pdf (abre em nova aba)'
+      );
+      expect(getAttachmentLinkLabel('arquivo.pdf#p1')).toBe(
+        'Anexado: arquivo.pdf (abre em nova aba)'
+      );
     });
   });
 });

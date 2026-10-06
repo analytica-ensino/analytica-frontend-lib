@@ -98,4 +98,26 @@ describe('SubjectMenuOverflow', () => {
 
     expect(screen.getByText('Todos')).toBeInTheDocument();
   });
+
+  it('announces the strip as a labelled radio group', () => {
+    render(
+      <SubjectMenuOverflow
+        subjects={subjects}
+        selectedSubjectId="s-1"
+        onSubjectChange={jest.fn()}
+      />
+    );
+
+    expect(
+      screen.getByRole('radiogroup', { name: 'Componente curricular' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Arte' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    );
+    expect(screen.getByRole('radio', { name: 'Todos' })).toHaveAttribute(
+      'aria-checked',
+      'false'
+    );
+  });
 });

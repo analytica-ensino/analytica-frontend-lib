@@ -97,7 +97,9 @@ describe('GeneralOverviewSection', () => {
     it('renders loading skeleton', () => {
       render(<GeneralOverviewSection data={null} loading={true} />);
 
-      expect(screen.getByText('Geral')).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Geral' })
+      ).toBeInTheDocument();
     });
 
     it('renders 5 skeleton cards when loading', () => {
@@ -143,7 +145,17 @@ describe('GeneralOverviewSection', () => {
     it('renders title "Geral"', () => {
       render(<GeneralOverviewSection data={createMockData()} />);
 
-      expect(screen.getByText('Geral')).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Geral' })
+      ).toBeInTheDocument();
+    });
+
+    it('names the overall progress bar with the shown score', () => {
+      render(<GeneralOverviewSection data={createMockData()} />);
+
+      expect(
+        screen.getByRole('progressbar', { name: /^Proficiência geral: / })
+      ).toBeInTheDocument();
     });
 
     it('renders description text', () => {
@@ -219,6 +231,10 @@ describe('GeneralOverviewSection', () => {
       // 69.2 should be rounded to 69 (appears twice: overall and Linguagens 68.5 rounded)
       const scores69 = screen.getAllByText('69');
       expect(scores69.length).toBeGreaterThanOrEqual(1);
+      // The bar gets score/10 but announces the score shown, not a percentage
+      expect(
+        screen.getByRole('progressbar', { name: 'Proficiência geral: 69' })
+      ).toBeInTheDocument();
     });
 
     it('renders area scores as TRI', () => {

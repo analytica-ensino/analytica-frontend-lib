@@ -56,6 +56,8 @@ export function SubjectMenuOverflow({
         defaultValue={ALL_SUBJECTS.id}
         value={selectedValue}
         className="max-w-full min-h-fit"
+        semantics="radio"
+        aria-label="Componente curricular"
         onValueChange={(value: string | null) =>
           onSubjectChange(value === ALL_SUBJECTS.id ? null : value)
         }

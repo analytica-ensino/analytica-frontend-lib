@@ -2172,6 +2172,152 @@ describe('DropdownMenu — acessibilidade de teclado e leitor de tela', () => {
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
   });
 
+  describe('menu de perfil: Tab fica dentro do menu', () => {
+    const renderProfileMenu = (
+      contentProps: Partial<
+        React.ComponentProps<typeof DropdownMenuContent>
+      > = {},
+      extra?: React.ReactNode
+    ) =>
+      render(
+        <DropdownMenu>
+          <DropdownMenuTrigger>Perfil</DropdownMenuTrigger>
+          <DropdownMenuContent variant="profile" {...contentProps}>
+            <DropdownMenuItem variant="profile">Meus dados</DropdownMenuItem>
+            <DropdownMenuItem variant="profile" disabled>
+              Indisponível
+            </DropdownMenuItem>
+            <DropdownMenuItem variant="profile">Aparência</DropdownMenuItem>
+            <button type="button">Sair</button>
+            {extra}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+    it.each([['profile'], ['papole']] as const)(
+      'variante %s: Tab percorre itens e botões e volta ao início',
+      (variant) => {
+        renderProfileMenu({ variant });
+        const trigger = screen.getByRole('button', { name: 'Perfil' });
+        fireEvent.click(trigger);
+        screen.getByRole('menuitem', { name: 'Meus dados' }).focus();
+
+        expect(fireEvent.keyDown(document, { key: 'Tab' })).toBe(false);
+        expect(
+          screen.getByRole('menuitem', { name: 'Aparência' })
+        ).toHaveFocus();
+
+        fireEvent.keyDown(document, { key: 'Tab' });
+        expect(screen.getByRole('button', { name: 'Sair' })).toHaveFocus();
+
+        fireEvent.keyDown(document, { key: 'Tab' });
+        expect(
+          screen.getByRole('menuitem', { name: 'Meus dados' })
+        ).toHaveFocus();
+        expect(trigger).toHaveAttribute('aria-expanded', 'true');
+      }
+    );
+
+    it('Shift+Tab percorre ao contrário', () => {
+      renderProfileMenu();
+      fireEvent.click(screen.getByRole('button', { name: 'Perfil' }));
+      screen.getByRole('menuitem', { name: 'Meus dados' }).focus();
+
+      fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+      expect(screen.getByRole('button', { name: 'Sair' })).toHaveFocus();
+
+      fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+      expect(screen.getByRole('menuitem', { name: 'Aparência' })).toHaveFocus();
+    });
+
+    it('com o foco no próprio popup, Tab vai ao primeiro e Shift+Tab ao último', () => {
+      renderProfileMenu();
+      fireEvent.click(screen.getByRole('button', { name: 'Perfil' }));
+      const menu = screen.getByRole('menu', { name: 'Menu de perfil' });
+
+      menu.focus();
+      fireEvent.keyDown(document, { key: 'Tab' });
+      expect(
+        screen.getByRole('menuitem', { name: 'Meus dados' })
+      ).toHaveFocus();
+
+      menu.focus();
+      fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+      expect(screen.getByRole('button', { name: 'Sair' })).toHaveFocus();
+    });
+
+    it('Escape continua sendo a saída: fecha e devolve o foco ao gatilho', () => {
+      renderProfileMenu();
+      const trigger = screen.getByRole('button', { name: 'Perfil' });
+      fireEvent.click(trigger);
+      screen.getByRole('button', { name: 'Sair' }).focus();
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      expect(trigger).toHaveFocus();
+    });
+
+    it('não interfere no Tab de um diálogo aberto a partir do menu', () => {
+      renderProfileMenu(
+        {},
+        <dialog open aria-label="Aparência">
+          <button type="button">Salvar</button>
+        </dialog>
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Perfil' }));
+      const salvar = screen.getByRole('button', { name: 'Salvar' });
+      salvar.focus();
+
+      expect(fireEvent.keyDown(document, { key: 'Tab' })).toBe(true);
+      expect(salvar).toHaveFocus();
+
+      // E o botão do diálogo não entra no ciclo do menu
+      screen.getByRole('button', { name: 'Sair' }).focus();
+      fireEvent.keyDown(document, { key: 'Tab' });
+      expect(
+        screen.getByRole('menuitem', { name: 'Meus dados' })
+      ).toHaveFocus();
+    });
+
+    it('trapFocus={false} devolve o comportamento de menu', () => {
+      renderProfileMenu({ trapFocus: false });
+      const trigger = screen.getByRole('button', { name: 'Perfil' });
+      fireEvent.click(trigger);
+      screen.getByRole('menuitem', { name: 'Meus dados' }).focus();
+
+      expect(fireEvent.keyDown(document, { key: 'Tab' })).toBe(true);
+      expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('a variante menu pode optar pelo trap', () => {
+      renderProfileMenu({ variant: 'menu', trapFocus: true });
+      fireEvent.click(screen.getByRole('button', { name: 'Perfil' }));
+      screen.getByRole('button', { name: 'Sair' }).focus();
+
+      fireEvent.keyDown(document, { key: 'Tab' });
+
+      expect(
+        screen.getByRole('menuitem', { name: 'Meus dados' })
+      ).toHaveFocus();
+    });
+
+    it('sem nada focável dentro, não cancela o Tab', () => {
+      render(
+        <DropdownMenu>
+          <DropdownMenuTrigger>Perfil</DropdownMenuTrigger>
+          <DropdownMenuContent variant="profile">
+            <p>Só texto</p>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Perfil' }));
+      screen.getByRole('menu', { name: 'Menu de perfil' }).focus();
+
+      expect(fireEvent.keyDown(document, { key: 'Tab' })).toBe(true);
+    });
+  });
+
   it('Home e End vão para o primeiro e o último item habilitado', () => {
     renderMenu();
     fireEvent.click(screen.getByRole('button', { name: 'Ações' }));

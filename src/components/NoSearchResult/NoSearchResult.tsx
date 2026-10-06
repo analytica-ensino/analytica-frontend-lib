@@ -43,11 +43,9 @@ const NoSearchResult = ({ image, title, description }: NoSearchResultProps) => {
     <div className="flex flex-col lg:flex-row justify-center items-center gap-6 lg:gap-8 w-full max-w-4xl min-h-96 px-4 lg:px-0">
       {/* Illustration */}
       <div className="w-48 h-48 lg:w-72 lg:h-72 flex-shrink-0 relative max-w-full">
-        <img
-          src={image}
-          alt="No search results"
-          className="w-full h-full object-contain"
-        />
+        {/* Ilustração decorativa: o título logo ao lado já diz o que ela
+            mostra, então `alt=""` evita o leitor de tela repetir (e em inglês). */}
+        <img src={image} alt="" className="w-full h-full object-contain" />
       </div>
 
       {/* Text Content */}

@@ -148,41 +148,83 @@ export function SimulationStatCard({
 }) {
   const classes = STAT_TONE_CLASSES[tone];
   return (
-    <div
+    // `dl`: o rótulo (`dt`) é lido antes do valor (`dd`), formando o par
+    // "Nº de questões corretas: 12" para o leitor de tela.
+    <dl
       className={cn(
         'flex flex-1 flex-col items-center gap-1 rounded-xl border border-border-50 px-3 py-4',
         classes.card
       )}
     >
-      <span
-        className={cn(
-          'flex size-8 shrink-0 items-center justify-center rounded-full',
-          classes.circle,
-          classes.icon
-        )}
-      >
-        {icon}
-      </span>
+      <dt className="flex flex-col items-center gap-1">
+        <Text
+          as="span"
+          aria-hidden="true"
+          className={cn(
+            'flex size-8 shrink-0 items-center justify-center rounded-full',
+            classes.circle,
+            classes.icon
+          )}
+        >
+          {icon}
+        </Text>
+        <Text
+          as="span"
+          weight="bold"
+          className="text-center text-[8px] leading-3 uppercase text-text-800"
+        >
+          {label}
+        </Text>
+      </dt>
       <Text
-        as="span"
-        weight="bold"
-        className="text-center text-[8px] leading-3 uppercase text-text-800"
-      >
-        {label}
-      </Text>
-      <Text
+        as="dd"
         size="xl"
         weight="bold"
         className={cn('text-center', classes.value)}
       >
-        {value}
+        <StatValue value={value} weight="bold" />
       </Text>
-    </div>
+    </dl>
   );
 }
 
 /** What a stat or subtema card shows when there is nothing to measure yet. */
 export const EMPTY_STAT_VALUE = '—';
+
+/**
+ * Renders a card value; the empty dash is hidden from assistive technologies
+ * and replaced by a spoken "sem dados".
+ *
+ * @param props.value - Value to show, possibly {@link EMPTY_STAT_VALUE}
+ * @param props.weight - Font weight of the surrounding text, kept on the dash
+ * @returns The value markup
+ */
+function StatValue({
+  value,
+  weight = 'normal',
+}: {
+  readonly value: string;
+  readonly weight?: 'normal' | 'bold';
+}) {
+  if (value !== EMPTY_STAT_VALUE) return <>{value}</>;
+  // O travessão sozinho é lido como "travessão" (ou nada): o leitor de tela
+  // recebe "sem dados" no lugar. O traço herda tamanho e cor do texto pai.
+  return (
+    <>
+      <Text
+        as="span"
+        weight={weight}
+        aria-hidden="true"
+        className="text-[length:inherit] text-inherit"
+      >
+        {EMPTY_STAT_VALUE}
+      </Text>
+      <Text as="span" className="sr-only">
+        sem dados
+      </Text>
+    </>
+  );
+}
 
 /**
  * The four cards of a cut: grade, correct, incorrect and blank. The grade card
@@ -269,7 +311,7 @@ function ContentCard({
         {label}
       </Text>
       <Text size="md" className="text-center text-text-950">
-        {content?.contentName ?? EMPTY_STAT_VALUE}
+        <StatValue value={content?.contentName ?? EMPTY_STAT_VALUE} />
       </Text>
     </div>
   );
@@ -336,13 +378,22 @@ export function SimulationCardShell({
       triggerClassName="p-4"
       contentClassName="flex flex-col gap-4 pt-0"
       trigger={
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <div className="flex items-center justify-between gap-3">
-            <Text size="lg" weight="bold" className="min-w-0 text-text-950">
+        // Tudo aqui vira o nome do botão do acordeão: só `span` (conteúdo
+        // de frase) dentro do botão, e a barra é decorativa porque o texto
+        // "N de M corretas" já diz o mesmo.
+        <Text as="span" className="flex min-w-0 flex-1 flex-col gap-2">
+          <Text as="span" className="flex items-center justify-between gap-3">
+            <Text
+              as="span"
+              size="lg"
+              weight="bold"
+              className="min-w-0 text-text-950"
+            >
               {title}
             </Text>
             {meta && (
               <Text
+                as="span"
                 size="xs"
                 weight="semibold"
                 className="shrink-0 text-text-600"
@@ -350,20 +401,26 @@ export function SimulationCardShell({
                 {meta}
               </Text>
             )}
-          </div>
-          <div className="flex items-center gap-2">
+          </Text>
+          <Text as="span" className="flex items-center gap-2">
             <ProgressBar
               value={correct}
               max={totalQuestions}
               variant="green"
               size="small"
               className="flex-1"
+              decorative
             />
-            <Text size="xs" weight="medium" className="shrink-0 text-text-950">
+            <Text
+              as="span"
+              size="xs"
+              weight="medium"
+              className="shrink-0 text-text-950"
+            >
               {`${correct} de ${totalQuestions} corretas`}
             </Text>
-          </div>
-        </div>
+          </Text>
+        </Text>
       }
     >
       {children}

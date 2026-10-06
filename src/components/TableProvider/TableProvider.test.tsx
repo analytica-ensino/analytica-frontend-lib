@@ -3,6 +3,7 @@ import '@testing-library/jest-dom';
 import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
+  isEmptyLabel,
   semTetoDeLargura,
   TableProvider,
   type ColumnConfig,
@@ -1887,5 +1888,200 @@ describe('semTetoDeLargura', () => {
     );
     const th = screen.getByText('Componente curricular').closest('th');
     expect(th?.className).not.toContain('max-w-');
+  });
+});
+
+describe('TableProvider — acessibilidade', () => {
+  it('renderiza a legenda oculta quando `caption` é passada', () => {
+    const { container } = render(
+      <TableProvider
+        data={testData}
+        headers={testHeaders}
+        caption="Lista de estudantes"
+      />
+    );
+
+    const caption = container.querySelector('caption');
+    expect(caption).toHaveTextContent('Lista de estudantes');
+    expect(caption).toHaveClass('sr-only');
+    expect(
+      screen.getByRole('table', { name: 'Lista de estudantes' })
+    ).toBeInTheDocument();
+  });
+
+  it('não renderiza legenda sem `caption`', () => {
+    const { container } = render(
+      <TableProvider data={testData} headers={testHeaders} />
+    );
+
+    expect(container.querySelector('caption')).toBeNull();
+  });
+
+  it('mantém a legenda enquanto carrega', () => {
+    render(
+      <TableProvider
+        data={[]}
+        headers={testHeaders}
+        loading
+        caption="Lista de estudantes"
+      />
+    );
+
+    expect(
+      screen.getByRole('table', { name: 'Lista de estudantes' })
+    ).toHaveAttribute('aria-busy', 'true');
+  });
+
+  it('dá nome à busca: o placeholder por padrão, ou searchAriaLabel', () => {
+    const { rerender } = render(
+      <TableProvider
+        data={testData}
+        headers={testHeaders}
+        enableSearch
+        searchPlaceholder="Buscar estudante"
+      />
+    );
+    expect(
+      screen.getByRole('searchbox', { name: 'Buscar estudante' })
+    ).toBeInTheDocument();
+
+    rerender(
+      <TableProvider
+        data={testData}
+        headers={testHeaders}
+        enableSearch
+        searchPlaceholder="Buscar..."
+        searchAriaLabel="Buscar por nome do estudante"
+      />
+    );
+    expect(
+      screen.getByRole('searchbox', { name: 'Buscar por nome do estudante' })
+    ).toBeInTheDocument();
+  });
+
+  it('nomeia a coluna de ações sem título como "Ações"', () => {
+    render(
+      <TableProvider
+        data={testData}
+        headers={[...testHeaders, { key: 'actions', label: '' }]}
+      />
+    );
+
+    expect(
+      screen.getByRole('columnheader', { name: 'Ações' })
+    ).toBeInTheDocument();
+  });
+
+  describe('ação de teclado da linha (getRowActionLabel)', () => {
+    it('renderiza um botão nomeado na primeira célula que chama onRowClick uma vez', async () => {
+      const user = userEvent.setup();
+      const onRowClick = jest.fn();
+      render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          enableRowClick
+          onRowClick={onRowClick}
+          getRowActionLabel={(row) => `Ver detalhes de ${row.name}`}
+        />
+      );
+
+      const button = screen.getByRole('button', {
+        name: 'Ver detalhes de Bob',
+      });
+      expect(button).toHaveAttribute('type', 'button');
+      expect(button).toHaveClass('sr-only');
+      expect(button.closest('td')).toBe(
+        screen.getAllByRole('row')[2].querySelector('td')
+      );
+      // O `<tr>` continua sem papel/tabindex próprios.
+      expect(button.closest('tr')).not.toHaveAttribute('tabindex');
+
+      button.focus();
+      await user.keyboard('{Enter}');
+
+      expect(onRowClick).toHaveBeenCalledTimes(1);
+      expect(onRowClick).toHaveBeenCalledWith(testData[1], 1);
+    });
+
+    it('mantém o clique na linha funcionando para o mouse', () => {
+      const onRowClick = jest.fn();
+      render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          enableRowClick
+          onRowClick={onRowClick}
+          getRowActionLabel={(row) => `Abrir ${row.name}`}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Alice'));
+
+      expect(onRowClick).toHaveBeenCalledTimes(1);
+      expect(onRowClick).toHaveBeenCalledWith(testData[0], 0);
+    });
+
+    it('só renderiza o botão nas linhas clicáveis', () => {
+      render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          enableRowClick
+          onRowClick={jest.fn()}
+          isRowClickable={(row) => row.status === 'active'}
+          getRowActionLabel={(row) => `Abrir ${row.name}`}
+        />
+      );
+
+      expect(
+        screen.getByRole('button', { name: 'Abrir Alice' })
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'Abrir Bob' })
+      ).not.toBeInTheDocument();
+    });
+
+    it('não renderiza botão sem enableRowClick ou sem getRowActionLabel', () => {
+      const { rerender } = render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          onRowClick={jest.fn()}
+          getRowActionLabel={(row) => `Abrir ${row.name}`}
+        />
+      );
+      expect(
+        screen.queryByRole('button', { name: /Abrir/ })
+      ).not.toBeInTheDocument();
+
+      rerender(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          enableRowClick
+          onRowClick={jest.fn()}
+        />
+      );
+      expect(
+        screen.queryByRole('button', { name: /Abrir/ })
+      ).not.toBeInTheDocument();
+    });
+  });
+});
+
+describe('isEmptyLabel', () => {
+  it('reconhece rótulos vazios', () => {
+    expect(isEmptyLabel('')).toBe(true);
+    expect(isEmptyLabel('   ')).toBe(true);
+    expect(isEmptyLabel(null)).toBe(true);
+    expect(isEmptyLabel(undefined)).toBe(true);
+    expect(isEmptyLabel(false)).toBe(true);
+  });
+
+  it('não confunde rótulos de verdade', () => {
+    expect(isEmptyLabel('Nome')).toBe(false);
+    expect(isEmptyLabel(<span>Nome</span>)).toBe(false);
+    expect(isEmptyLabel(0)).toBe(false);
   });
 });
