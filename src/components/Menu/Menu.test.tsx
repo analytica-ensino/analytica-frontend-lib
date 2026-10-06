@@ -757,6 +757,30 @@ describe('MenuOverflow', () => {
     expect(screen.getByTestId('menu-overflow-wrapper')).toBeInTheDocument();
   });
 
+  // O menu de matérias (visão "Aulas" do Desempenho) é um MenuOverflow: ele
+  // monta Menu + MenuContent internamente, então as abas têm de sair com o mesmo
+  // papel e o mesmo estado das outras.
+  it('anuncia os itens como abas, com a selecionada marcada', () => {
+    render(
+      <MenuOverflow defaultValue="mat" value="mat">
+        <MenuItem value="mat" variant="menu-overflow">
+          Matemática
+        </MenuItem>
+        <MenuItem value="port" variant="menu-overflow">
+          Português
+        </MenuItem>
+      </MenuOverflow>
+    );
+
+    expect(
+      screen.getByTestId('menu-overflow-wrapper').querySelector('ul')
+    ).toHaveAttribute('role', 'tablist');
+
+    const [mat, port] = screen.getAllByRole('tab');
+    expect(mat).toHaveAttribute('aria-selected', 'true');
+    expect(port).toHaveAttribute('aria-selected', 'false');
+  });
+
   describe('Scroll Function', () => {
     it('calls scrollBy with positive value when direction is right', () => {
       render(<MenuOverflow defaultValue="item1">{mockChildren}</MenuOverflow>);

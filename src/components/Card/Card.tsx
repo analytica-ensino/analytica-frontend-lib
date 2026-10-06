@@ -589,11 +589,20 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
     const isCaret = actionVariant === 'caret';
 
     /**
-     * O card não tinha nome acessível: no variant `caret` ele é o próprio
-     * controle (CardBase vira `role="button"`) e era anunciado só como "botão";
-     * no variant `button` é um bloco cujo rótulo precisa de `role="group"` para
-     * chegar ao leitor de tela. O rótulo junta o assunto com o estado, que é o
-     * que diferencia um card do outro numa lista deles.
+     * Clicável só quando o card é o próprio controle (`caret`) E há handler.
+     * Antes o handler era passado sempre, então o CardBase virava
+     * `role="button"` focável em dois casos que não navegam: o variant `button`
+     * (quem clica é o "Ver Aula", aninhado dentro) e o card de estado vazio
+     * tipo "Selecione um componente curricular…", sem `onClickButton`.
+     */
+    const isInteractive = isCaret && !!onClickButton;
+
+    /**
+     * O card não tinha nome acessível: como controle era anunciado só "botão",
+     * e como bloco o rótulo precisa de `role="group"` para chegar ao leitor de
+     * tela. O rótulo junta o assunto com o estado, que é o que diferencia um
+     * card do outro numa lista deles — e, por estar aqui, dispensa a leitura do
+     * conteúdo visual, que vai todo em `aria-hidden` abaixo.
      */
     const accessibleLabel = hasProgress
       ? `${header}: ${progress}%${labelProgress.trim() ? ` ${labelProgress.trim()}` : ''}`
@@ -605,21 +614,25 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
         layout="horizontal"
         padding="medium"
         minHeight="none"
-        className={cn(isCaret ? 'cursor-pointer' : '', className)}
-        // Só o variant `caret` navega ao clicar. Passar o handler sempre deixava
-        // o variant `button` focável como `role="button"` sem fazer nada — e com
-        // o "Ver Aula" aninhado dentro, que é interativo dentro de interativo.
-        onClick={isCaret ? () => onClickButton?.(valueButton) : undefined}
-        // Spread condicional, não `role={isCaret ? undefined : 'group'}`: um
-        // `role` explícito como `undefined` ainda chega no spread do CardBase e
-        // apagaria o `role="button"` que ele dá ao card clicável.
-        {...(isCaret ? {} : { role: 'group' })}
+        className={cn(isInteractive ? 'cursor-pointer' : '', className)}
+        onClick={isInteractive ? () => onClickButton?.(valueButton) : undefined}
+        // Spread condicional, não `role={isInteractive ? undefined : 'group'}`:
+        // um `role` explícito como `undefined` ainda chega no spread do CardBase
+        // e apagaria o `role="button"` que ele dá ao card clicável.
+        {...(isInteractive ? {} : { role: 'group' })}
         aria-label={accessibleLabel}
         {...props}
       >
         <div className="w-full flex flex-col justify-between gap-2">
           <div className="flex flex-row justify-between items-center gap-2">
-            <p className="text-lg font-bold text-text-950 truncate flex-1 min-w-0">
+            {/* Título, barra, percentual e caret já estão no `aria-label` do
+                card: sem o aria-hidden o leitor os repetiria depois do nome. O
+                "Ver Aula" fica fora disso — é focável, e nada focável pode
+                viver dentro de subárvore escondida. */}
+            <p
+              aria-hidden="true"
+              className="text-lg font-bold text-text-950 truncate flex-1 min-w-0"
+            >
               {header}
             </p>
             {actionVariant === 'button' && (
@@ -634,13 +647,15 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
             )}
           </div>
 
-          <div className="w-full">
+          <div aria-hidden="true" className="w-full">
             {hasProgress ? (
               <ProgressBar
                 value={progress}
                 label={`${progress}% ${labelProgress}`}
                 // O label visível já começa com o percentual, então o nome
                 // padrão da barra ("85% : 85%") anunciava o número duas vezes.
+                // Hoje a barra está fora da árvore de acessibilidade — quem
+                // carrega o percentual é o rótulo do card.
                 accessibleLabel={`${labelProgress.trim() || 'Progresso'}: ${progress}%`}
                 variant={progressVariant}
               />
@@ -652,6 +667,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
 
         {actionVariant == 'caret' && (
           <CaretRightIcon
+            aria-hidden="true"
             className="size-4.5 text-text-800 cursor-pointer"
             data-testid="caret-icon"
           />

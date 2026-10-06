@@ -755,17 +755,10 @@ describe('CardPerformance', () => {
     expect(screen.getByText('80%')).toBeInTheDocument();
   });
 
-  it('não repete o percentual no nome acessível da barra', () => {
-    render(<CardPerformance {...baseProps} progress={80} />);
-
-    // O label visível da barra já começa com o percentual; o nome padrão sairia
-    // "80% : 80%".
-    expect(
-      screen.getByRole('progressbar', { name: 'Progresso: 80%' })
-    ).toBeInTheDocument();
-  });
-
-  it('usa o labelProgress no nome acessível quando ele existe', () => {
+  // A barra saiu da árvore de acessibilidade: o percentual chega pelo rótulo do
+  // card, e anunciar os dois seria repetição. O `<progress>` segue no DOM, só
+  // escondido do leitor.
+  it('mantém a barra fora da leitura, com o percentual no rótulo do card', () => {
     render(
       <CardPerformance
         {...baseProps}
@@ -774,8 +767,10 @@ describe('CardPerformance', () => {
       />
     );
 
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    expect(screen.getByText('80% de acertos')).toBeInTheDocument();
     expect(
-      screen.getByRole('progressbar', { name: 'de acertos: 80%' })
+      screen.getByRole('group', { name: 'Desempenho de Teste: 80% de acertos' })
     ).toBeInTheDocument();
   });
 
@@ -843,6 +838,7 @@ describe('CardPerformance', () => {
         <CardPerformance
           {...baseProps}
           actionVariant="caret"
+          onClickButton={jest.fn()}
           progress={80}
           labelProgress="de acertos"
         />
@@ -856,7 +852,13 @@ describe('CardPerformance', () => {
     });
 
     it('usa a descrição no nome quando não há progresso', () => {
-      render(<CardPerformance {...baseProps} actionVariant="caret" />);
+      render(
+        <CardPerformance
+          {...baseProps}
+          actionVariant="caret"
+          onClickButton={jest.fn()}
+        />
+      );
 
       expect(
         screen.getByRole('button', {
@@ -877,6 +879,53 @@ describe('CardPerformance', () => {
 
       expect(card).not.toHaveAttribute('tabindex');
       expect(screen.getAllByRole('button')).toHaveLength(1);
+    });
+
+    // Caret sem handler é o card de estado vazio ("Selecione um componente
+    // curricular…"): nada acontece ao clicar, então nada de botão focável.
+    it('não vira botão quando o caret não tem ação', () => {
+      render(
+        <CardPerformance
+          header="Selecione um componente curricular"
+          actionVariant="caret"
+          progress={0}
+        />
+      );
+
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+      const card = screen.getByRole('group', {
+        name: 'Selecione um componente curricular: 0%',
+      });
+      expect(card).not.toHaveAttribute('tabindex');
+    });
+
+    it('esconde do leitor o conteúdo que já está no rótulo', () => {
+      render(
+        <CardPerformance
+          {...baseProps}
+          actionVariant="caret"
+          onClickButton={jest.fn()}
+          progress={80}
+          labelProgress="de acertos"
+        />
+      );
+
+      expect(
+        screen.getByText('Desempenho de Teste').closest('[aria-hidden="true"]')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('80% de acertos').closest('[aria-hidden="true"]')
+      ).toBeInTheDocument();
+      expect(screen.getByTestId('caret-icon')).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
+      // Só o rótulo do card sobra na leitura.
+      expect(
+        screen.getByRole('button', {
+          name: 'Desempenho de Teste: 80% de acertos',
+        })
+      ).toBeInTheDocument();
     });
   });
 });
