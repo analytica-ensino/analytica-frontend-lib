@@ -1,6 +1,5 @@
 import { forwardRef, HTMLAttributes, CSSProperties } from 'react';
 import { cn } from '../../utils/utils';
-import Text from '../Text/Text';
 
 interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
   variant?: 'text' | 'circular' | 'rectangular' | 'rounded';
@@ -138,7 +137,6 @@ const SkeletonCard = forwardRef<HTMLDivElement, SkeletonCardProps>(
       // Anuncia o carregamento uma vez; as formas cinzas ficam ocultas.
       <div
         ref={ref}
-        role="status"
         aria-busy="true"
         className={cn(
           'w-full p-4 bg-background border border-border-200 rounded-lg',
@@ -146,9 +144,8 @@ const SkeletonCard = forwardRef<HTMLDivElement, SkeletonCardProps>(
         )}
         {...props}
       >
-        <Text as="span" className="sr-only">
-          Carregando…
-        </Text>
+        {/* `<output>` é a região viva nativa (role="status"). */}
+        <output className="sr-only">Carregando…</output>
         <div className="flex items-start space-x-3">
           {showAvatar && <SkeletonCircle width={40} height={40} />}
 

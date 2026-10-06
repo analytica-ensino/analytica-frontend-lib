@@ -355,13 +355,13 @@ const LegendItem = ({
  * Loading skeleton component
  */
 const LoadingSkeleton = () => (
-  <div
-    role="status"
-    className="w-full h-full flex items-center justify-center bg-background-50 rounded-lg animate-pulse"
-  >
-    <Text size="sm" color="text-text-400">
-      Carregando mapa...
-    </Text>
+  <div className="w-full h-full flex items-center justify-center bg-background-50 rounded-lg animate-pulse">
+    {/* `<output>` é a região viva nativa (role="status"). */}
+    <output>
+      <Text as="span" size="sm" color="text-text-400">
+        Carregando mapa...
+      </Text>
+    </output>
   </div>
 );
 

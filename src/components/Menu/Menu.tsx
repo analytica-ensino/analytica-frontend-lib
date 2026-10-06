@@ -421,6 +421,116 @@ const getItemTabIndex = (
   return -1;
 };
 
+/**
+ * Cada semântica anuncia a seleção do jeito que o leitor de tela espera:
+ * aba com `aria-selected`, rádio com `aria-checked`. Em `menuitem` nenhum
+ * dos dois é válido, então o estado sai por descrição apontando para os
+ * textos ocultos do Menu — fecha "próximas, item de menu, 1 de 2,
+ * selecionado". Uma descrição do consumidor tem precedência.
+ *
+ * @param semantics - Semantics of the parent menu
+ * @param isSelected - Whether the item is the selected one
+ * @param menuContext - Parent menu context (holds the hidden state text ids)
+ * @param consumerDescribedBy - `aria-describedby` passed by the consumer
+ * @returns Role and state attributes for the item
+ */
+const getItemRoleProps = (
+  semantics: MenuSemantics,
+  isSelected: boolean,
+  menuContext: MenuContextValue | null,
+  consumerDescribedBy: string | undefined
+): HTMLAttributes<HTMLLIElement> => {
+  if (semantics === 'tabs') {
+    return { role: 'tab', 'aria-selected': isSelected };
+  }
+  if (semantics === 'radio') {
+    return { role: 'radio', 'aria-checked': isSelected };
+  }
+  if (!menuContext || consumerDescribedBy !== undefined) {
+    return { role: 'menuitem' };
+  }
+  return {
+    role: 'menuitem',
+    'aria-describedby': isSelected
+      ? menuContext.selectedStateId
+      : menuContext.unselectedStateId,
+  };
+};
+
+interface BreadcrumbItemProps extends HTMLAttributes<HTMLLIElement> {
+  isSelected: boolean;
+  disabled: boolean;
+  separator: boolean;
+  onItemSelect: (e: MouseEvent<HTMLElement>) => void;
+}
+
+/**
+ * Trilha de navegação: o item atual é texto com `aria-current="page"` (não
+ * é uma ação) e os anteriores são botões de verdade. O separador é só
+ * decoração e sai da árvore de acessibilidade.
+ */
+const BreadcrumbItem = forwardRef<HTMLLIElement, BreadcrumbItemProps>(
+  (
+    {
+      isSelected,
+      disabled,
+      separator,
+      onItemSelect,
+      onClick: consumerOnClick,
+      className,
+      children,
+      ...itemProps
+    },
+    ref
+  ) => (
+    <li
+      ref={ref}
+      data-variant="breadcrumb"
+      className={`
+        flex flex-row gap-2 items-center w-fit p-2 rounded-lg font-bold text-xs
+        ${isSelected ? 'text-text-950' : 'text-text-600'}
+        ${className ?? ''}
+      `}
+      {...itemProps}
+    >
+      {isSelected ? (
+        <Text
+          as="span"
+          aria-current="page"
+          className="text-inherit text-xs font-bold"
+        >
+          {children}
+        </Text>
+      ) : (
+        <Button
+          variant="raw"
+          disabled={disabled}
+          // Mesmo contrato de antes: com `onClick` do consumidor só ele
+          // roda (navegação); sem ele, o clique seleciona o item.
+          onClick={(e) =>
+            consumerOnClick
+              ? consumerOnClick(e as unknown as MouseEvent<HTMLLIElement>)
+              : onItemSelect(e)
+          }
+          className="border-b border-b-text-600 hover:border-primary-600 hover:text-primary-600 text-inherit text-xs font-bold cursor-pointer rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info"
+        >
+          {children}
+        </Button>
+      )}
+
+      {separator && (
+        <CaretRightIcon
+          size={16}
+          className="text-text-600"
+          data-testid="separator"
+          aria-hidden="true"
+        />
+      )}
+    </li>
+  )
+);
+BreadcrumbItem.displayName = 'BreadcrumbItem';
+
 const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
   (
     {
@@ -452,79 +562,28 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
 
     const isSelected = selectedValue === value;
 
-    // Trilha de navegação: o item atual é texto com `aria-current="page"` (não
-    // é uma ação) e os anteriores são botões de verdade. O separador é só
-    // decoração e sai da árvore de acessibilidade.
     if (isBreadcrumb && variant === 'breadcrumb') {
-      const { onClick: consumerOnClick, ...itemProps } = props;
       return (
-        <li
+        <BreadcrumbItem
           ref={ref}
-          data-variant="breadcrumb"
-          className={`
-            flex flex-row gap-2 items-center w-fit p-2 rounded-lg font-bold text-xs
-            ${isSelected ? 'text-text-950' : 'text-text-600'}
-            ${className ?? ''}
-          `}
-          {...itemProps}
+          isSelected={isSelected}
+          disabled={disabled}
+          separator={separator}
+          onItemSelect={handleClick}
+          className={className}
+          {...props}
         >
-          {isSelected ? (
-            <Text
-              as="span"
-              aria-current="page"
-              className="text-inherit text-xs font-bold"
-            >
-              {children}
-            </Text>
-          ) : (
-            <Button
-              variant="raw"
-              disabled={disabled}
-              // Mesmo contrato de antes: com `onClick` do consumidor só ele
-              // roda (navegação); sem ele, o clique seleciona o item.
-              onClick={(e) =>
-                consumerOnClick
-                  ? consumerOnClick(e as unknown as MouseEvent<HTMLLIElement>)
-                  : handleClick(e)
-              }
-              className="border-b border-b-text-600 hover:border-primary-600 hover:text-primary-600 text-inherit text-xs font-bold cursor-pointer rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info"
-            >
-              {children}
-            </Button>
-          )}
-
-          {separator && (
-            <CaretRightIcon
-              size={16}
-              className="text-text-600"
-              data-testid="separator"
-              aria-hidden="true"
-            />
-          )}
-        </li>
+          {children}
+        </BreadcrumbItem>
       );
     }
 
-    /**
-     * Cada semântica anuncia a seleção do jeito que o leitor de tela espera:
-     * aba com `aria-selected`, rádio com `aria-checked`. Em `menuitem` nenhum
-     * dos dois é válido, então o estado sai por descrição apontando para os
-     * textos ocultos do Menu — fecha "próximas, item de menu, 1 de 2,
-     * selecionado". Uma descrição do consumidor tem precedência.
-     */
-    let roleProps: HTMLAttributes<HTMLLIElement>;
-    if (semantics === 'tabs') {
-      roleProps = { role: 'tab', 'aria-selected': isSelected };
-    } else if (semantics === 'radio') {
-      roleProps = { role: 'radio', 'aria-checked': isSelected };
-    } else {
-      roleProps = { role: 'menuitem' };
-      if (menuContext && props['aria-describedby'] === undefined) {
-        roleProps['aria-describedby'] = isSelected
-          ? menuContext.selectedStateId
-          : menuContext.unselectedStateId;
-      }
-    }
+    const roleProps = getItemRoleProps(
+      semantics,
+      isSelected,
+      menuContext,
+      props['aria-describedby']
+    );
 
     const isRoving = semantics !== 'menu';
     const isTabStop =

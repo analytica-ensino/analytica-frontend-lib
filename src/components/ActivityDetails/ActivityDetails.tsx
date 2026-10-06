@@ -1617,16 +1617,14 @@ export const ActivityDetails = ({
         title="Ver atividade"
         size="xl"
       >
-        {/* Área rolável focável e nomeada: sem `tabIndex` quem usa só teclado
-            não rola quando o trecho cortado não tem controle focável. */}
-        <div
+        {/* Região nomeada. Sem `tabIndex`: os navegadores atuais já tornam
+            focável pelo teclado um contêiner rolável sem controle focável. */}
+        <section
           className="flex flex-col gap-3 max-h-[70vh] overflow-y-auto pr-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-950"
-          role="region"
           aria-label="Questões da atividade"
-          tabIndex={0}
         >
           <ViewQuestionsModalBody questions={viewQuestions} />
-        </div>
+        </section>
       </Modal>
 
       {/* Hidden PDF content for printing */}

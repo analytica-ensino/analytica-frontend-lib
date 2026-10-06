@@ -225,14 +225,8 @@ const DownloadModal = ({
         )}
 
         {isDownloading ? (
-          <div
-            className="flex flex-row gap-4"
-            data-testid="download-skeleton"
-            role="status"
-          >
-            <Text as="span" className="sr-only">
-              Gerando arquivo…
-            </Text>
+          <div className="flex flex-row gap-4" data-testid="download-skeleton">
+            <output className="sr-only">Gerando arquivo…</output>
             <Skeleton variant="rounded" width="100%" height={80} />
             <Skeleton variant="rounded" width="100%" height={80} />
           </div>

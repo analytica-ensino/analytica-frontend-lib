@@ -369,8 +369,9 @@ describe('Skeleton accessibility', () => {
   it('announces SkeletonCard as a busy loading status', () => {
     render(<SkeletonCard />);
     const status = screen.getByRole('status');
-    expect(status).toHaveAttribute('aria-busy', 'true');
+    expect(status.tagName).toBe('OUTPUT');
     expect(status).toHaveTextContent('Carregando…');
-    expect(screen.getByText('Carregando…')).toHaveClass('sr-only');
+    expect(status).toHaveClass('sr-only');
+    expect(status.parentElement).toHaveAttribute('aria-busy', 'true');
   });
 });

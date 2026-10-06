@@ -4809,14 +4809,14 @@ describe('Acessibilidade dos cards', () => {
       const deleteButton = screen.getByRole('button', {
         name: 'Excluir simulado Simulado Enem #42',
       });
-      expect(deleteButton.parentElement?.closest('[role="button"]')).toBeNull();
+      expect(deleteButton.parentElement?.closest('button')).toBeNull();
       expect(screen.getByTestId('caret-icon')).toHaveAttribute(
         'aria-hidden',
         'true'
       );
     });
 
-    it('navega com Enter e Espaço e ignora outras teclas', () => {
+    it('navega por um botão nativo', () => {
       const onSimulationClick = jest.fn();
       render(
         <CardSimulationHistory
@@ -4826,12 +4826,11 @@ describe('Acessibilidade dos cards', () => {
       );
       const navButton = screen
         .getByText('Simulado Enem #42')
-        .closest('[role="button"]') as HTMLElement;
-      expect(navButton).toHaveAttribute('tabindex', '0');
-      fireEvent.keyDown(navButton, { key: 'Enter' });
-      fireEvent.keyDown(navButton, { key: ' ' });
-      fireEvent.keyDown(navButton, { key: 'Tab' });
-      expect(onSimulationClick).toHaveBeenCalledTimes(2);
+        .closest('button') as HTMLButtonElement;
+      expect(navButton).toHaveAttribute('type', 'button');
+      expect(navButton).not.toHaveAttribute('role');
+      fireEvent.click(navButton);
+      expect(onSimulationClick).toHaveBeenCalledTimes(1);
       expect(onSimulationClick).toHaveBeenCalledWith(simulation);
     });
 
@@ -4839,10 +4838,9 @@ describe('Acessibilidade dos cards', () => {
       render(<CardSimulationHistory data={data} />);
       const navButton = screen
         .getByText('Simulado Enem #42')
-        .closest('[role="button"]') as HTMLElement;
+        .closest('button') as HTMLButtonElement;
       expect(() => {
         fireEvent.click(navButton);
-        fireEvent.keyDown(navButton, { key: 'Enter' });
       }).not.toThrow();
     });
   });

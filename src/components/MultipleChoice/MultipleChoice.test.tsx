@@ -188,18 +188,11 @@ describe('MultipleChoiceList', () => {
         0
       );
 
-      // Each row is a read-only checkbox carrying the student's selection
-      const checkboxes = screen.getAllByRole('checkbox');
-      expect(checkboxes).toHaveLength(3);
-      expect(checkboxes.map((c) => c.getAttribute('aria-checked'))).toEqual([
-        'true',
-        'false',
-        'true',
-      ]);
-      for (const checkbox of checkboxes) {
-        expect(checkbox).toHaveAttribute('aria-readonly', 'true');
-        expect(checkbox).not.toHaveAttribute('tabindex');
-      }
+      // Read-only result: no checkbox semantics, the sr-only text tells what
+      // the student marked
+      expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
+      expect(screen.getAllByText('Você marcou')).toHaveLength(2);
+      expect(screen.getAllByText('Não marcada')).toHaveLength(1);
 
       // Should have visual checkboxes (divs with specific classes), hidden
       // from assistive technologies
@@ -232,16 +225,15 @@ describe('MultipleChoiceList', () => {
         />
       );
 
-      const [first, second] = screen.getAllByRole('checkbox');
-      expect(first).toHaveTextContent('Alternativa 1 de 2');
+      const first = screen.getByText('Alternativa 1 de 2').parentElement;
+      const second = screen.getByText('Alternativa 2 de 2').parentElement;
       expect(first).toHaveTextContent('Não marcada');
-      expect(first).toHaveAccessibleName(/Resposta correta/);
-      expect(second).toHaveTextContent('Alternativa 2 de 2');
+      expect(first).toHaveTextContent('Resposta correta');
       expect(second).toHaveTextContent('Você marcou');
-      expect(second).toHaveAttribute('aria-checked', 'true');
+      expect(second).not.toHaveAttribute('aria-checked');
     });
 
-    it('marks rows as aria-disabled only when disabled', () => {
+    it('shows disabled rows only visually, without ARIA state', () => {
       const { rerender } = render(
         <MultipleChoiceList
           choices={[
@@ -251,9 +243,11 @@ describe('MultipleChoiceList', () => {
           mode="readonly"
         />
       );
-      const [first, second] = screen.getAllByRole('checkbox');
-      expect(first).toHaveAttribute('aria-disabled', 'true');
-      expect(second).not.toHaveAttribute('aria-disabled');
+      const first = screen.getByText('Alternativa 1 de 2').parentElement;
+      const second = screen.getByText('Alternativa 2 de 2').parentElement;
+      expect(first).toHaveClass('opacity-50');
+      expect(second).not.toHaveClass('opacity-50');
+      expect(document.querySelector('[aria-disabled]')).toBeNull();
 
       rerender(
         <MultipleChoiceList
@@ -262,10 +256,10 @@ describe('MultipleChoiceList', () => {
           disabled
         />
       );
-      expect(screen.getByRole('checkbox')).toHaveAttribute(
-        'aria-disabled',
-        'true'
+      expect(document.querySelector('.w-5.h-5.rounded.border-2')).toHaveClass(
+        'opacity-40'
       );
+      expect(document.querySelector('[aria-disabled]')).toBeNull();
     });
 
     it('shows correct visual state for selected items', () => {

@@ -776,13 +776,11 @@ export function SimulationsDetailModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Simulados" size="xl">
       {student && (
-        // Área rolável focável e nomeada: sem `tabIndex` quem usa só teclado
-        // não consegue rolar quando não há controle focável no trecho cortado.
-        <div
+        // Região nomeada. Sem `tabIndex`: os navegadores atuais já tornam
+        // focável pelo teclado um contêiner rolável sem controle focável.
+        <section
           className="flex max-h-[70vh] flex-col gap-6 overflow-y-auto pr-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-950"
-          role="region"
           aria-label={`Simulados de ${student.name}`}
-          tabIndex={0}
         >
           <StudentSummaryHeader
             name={student.name}
@@ -859,7 +857,7 @@ export function SimulationsDetailModal({
               )}
             </section>
           )}
-        </div>
+        </section>
       )}
     </Modal>
   );

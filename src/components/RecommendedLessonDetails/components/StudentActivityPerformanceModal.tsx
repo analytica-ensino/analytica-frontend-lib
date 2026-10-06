@@ -239,16 +239,13 @@ const LessonItem = ({ lesson }: { lesson: PerformanceLesson }) => (
  * Loading skeleton
  */
 const LoadingSkeleton = () => (
-  // `role="status"` + texto `sr-only`: o esqueleto é só visual, e sem isso o
-  // leitor de tela não sabe que o conteúdo está carregando.
+  // `<output>` (região viva nativa) com texto `sr-only`: o esqueleto é só
+  // visual, e sem isso o leitor de tela não sabe que o conteúdo está carregando.
   <div
     data-testid="loading-skeleton"
     className="flex flex-col gap-4 animate-pulse"
-    role="status"
   >
-    <Text as="span" className="sr-only">
-      Carregando desempenho do estudante...
-    </Text>
+    <output className="sr-only">Carregando desempenho do estudante...</output>
     <div className="h-6 bg-background-200 rounded w-48" />
     <div className="grid grid-cols-3 gap-3">
       <div className="h-28 bg-background-200 rounded-xl" />

@@ -115,7 +115,7 @@ const MultipleChoiceList = ({
     );
 
     return (
-      // Puramente decorativo: o estado vem do `aria-checked` da linha.
+      // Puramente decorativo: o estado sai no texto `sr-only` da linha.
       <div className={checkboxClasses} aria-hidden="true">
         {isSelected && <CheckIcon size={16} weight="bold" />}
       </div>
@@ -132,18 +132,13 @@ const MultipleChoiceList = ({
           const isDisabled = choice.disabled || disabled;
 
           /*
-           * Mesmo padrão do resultado de Alternative: a linha inteira é um único
-           * ponto de leitura (role="checkbox" + aria-checked), só de leitura e
-           * fora da ordem do Tab. O conteúdo vira o nome, na ordem: posição,
-           * enunciado da alternativa, status e o que o aluno marcou.
+           * Resultado só de leitura: não há controle para operar, então a linha
+           * não finge ser um checkbox. A leitura sai do texto, na ordem:
+           * posição, enunciado da alternativa, status e o que o aluno marcou.
            */
           return (
             <div
               key={`readonly-${choice.value}-${i}`}
-              role="checkbox"
-              aria-checked={isSelected}
-              aria-readonly="true"
-              aria-disabled={isDisabled ? true : undefined}
               className={cn(
                 'flex flex-row justify-between gap-2 items-start p-2 rounded-lg transition-all',
                 statusStyles,
@@ -170,8 +165,7 @@ const MultipleChoiceList = ({
               {statusBadge && (
                 <div className="flex-shrink-0">{statusBadge}</div>
               )}
-              {/* Deixa explícito o que o aluno escolheu, independente de o
-                  leitor anunciar o estado do aria-checked. */}
+              {/* Única fonte do que o aluno escolheu para o leitor de tela. */}
               <Text as="span" className="sr-only">
                 {isSelected ? 'Você marcou' : 'Não marcada'}
               </Text>

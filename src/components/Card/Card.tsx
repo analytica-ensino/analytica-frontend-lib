@@ -1941,30 +1941,24 @@ const CardSimulationHistory = forwardRef<
                             "Excluir simulado" fica como irmão, nunca aninhado
                             num role="button" (WCAG 4.1.2). O ::after cobre o
                             card inteiro para manter toda a área clicável. */}
-                        <div
+                        <Button
+                          variant="raw"
                           className={cn(
-                            'flex flex-wrap flex-col justify-between sm:flex-row gap-2 flex-1 min-w-0',
+                            'flex flex-wrap flex-col justify-between sm:flex-row gap-2 flex-1 min-w-0 text-left',
                             'after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-indicator-info'
                           )}
-                          role="button"
-                          tabIndex={0}
                           onClick={() => onSimulationClick?.(simulation)}
-                          onKeyDown={(event) => {
-                            if (event.key === 'Enter' || event.key === ' ') {
-                              event.preventDefault();
-                              onSimulationClick?.(simulation);
-                            }
-                          }}
                         >
                           <Text
+                            as="span"
                             size="lg"
                             weight="bold"
-                            className="text-text-950 truncate"
+                            className="block text-text-950 truncate"
                           >
                             {simulation.title}
                           </Text>
 
-                          <div className="flex items-center gap-2">
+                          <Text as="span" className="flex items-center gap-2">
                             <Badge
                               variant="examsOutlined"
                               action={typeStyles.badge}
@@ -1983,11 +1977,15 @@ const CardSimulationHistory = forwardRef<
                               </Badge>
                             )}
 
-                            <Text size="sm" className="text-text-800 truncate">
+                            <Text
+                              as="span"
+                              size="sm"
+                              className="text-text-800 truncate"
+                            >
                               {simulation.info}
                             </Text>
-                          </div>
-                        </div>
+                          </Text>
+                        </Button>
 
                         <div className="flex items-center gap-1 flex-shrink-0">
                           {simulation.canDelete && onDeleteClick && (

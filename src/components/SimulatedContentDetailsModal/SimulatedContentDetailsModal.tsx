@@ -282,15 +282,12 @@ export function SimulatedContentDetailsModal({
   );
 
   const renderLoading = (): ReactNode => (
-    // `role="status"` + texto `sr-only`: os skeletons são só visuais.
-    <div
-      className="flex flex-col gap-4"
-      data-testid="content-details-loading"
-      role="status"
-    >
-      <Text as="span" className="sr-only">
+    // `<output>` (região viva nativa) com texto `sr-only`: os skeletons são só
+    // visuais.
+    <div className="flex flex-col gap-4" data-testid="content-details-loading">
+      <output className="sr-only">
         Carregando desempenho da competência...
-      </Text>
+      </output>
       {/* Header skeleton */}
       <div className="p-4 bg-background-50 rounded-xl">
         <SkeletonRounded className="h-5 w-48 mb-2" />

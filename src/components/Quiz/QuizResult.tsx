@@ -138,13 +138,19 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
           getClassesByAnswersStatus(),
           className
         )}
-        // role="status": o resultado muda ao navegar entre questões e o
-        // leitor de tela precisa anunciar o novo feedback sem mover o foco.
-        role="status"
         {...props}
       >
-        <p className="text-text-950 font-bold text-lg">Resultado</p>
-        <p className="text-text-700 text-md">{getLabelByAnswersStatus()}</p>
+        {/* `<output>` (região viva nativa): o resultado muda ao navegar entre
+            questões e o leitor de tela precisa anunciar o novo feedback sem
+            mover o foco. `contents` mantém o layout do flex do pai. */}
+        <output className="contents">
+          <Text as="span" className="block text-text-950 font-bold text-lg">
+            Resultado
+          </Text>
+          <Text as="span" className="block text-text-700 text-md">
+            {getLabelByAnswersStatus()}
+          </Text>
+        </output>
       </div>
     );
   }

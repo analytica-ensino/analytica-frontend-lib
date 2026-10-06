@@ -1073,10 +1073,12 @@ describe('ActivityDetails', () => {
       await waitFor(() => {
         expect(screen.getByText('Ver atividade')).toBeInTheDocument();
       });
-      // The scrollable list is a focusable, named region for keyboard users
-      expect(
-        screen.getByRole('region', { name: 'Questões da atividade' })
-      ).toHaveAttribute('tabindex', '0');
+      // The scrollable list is a named section region
+      const region = screen.getByRole('region', {
+        name: 'Questões da atividade',
+      });
+      expect(region.tagName).toBe('SECTION');
+      expect(region).not.toHaveAttribute('tabindex');
       // The modal lists the loaded question cards
       expect(screen.getByText('Questao um')).toBeInTheDocument();
       expect(screen.getByText('Questao dois')).toBeInTheDocument();

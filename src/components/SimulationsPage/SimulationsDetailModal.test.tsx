@@ -1389,7 +1389,7 @@ describe('SimulationsDetailModal accessibility', () => {
     } as unknown as BaseApiClient;
   }
 
-  it('exposes the scroll area as a focusable named region', () => {
+  it('exposes the scroll area as a named section region', () => {
     render(
       <SimulationsDetailModal
         api={makeRoutedApi({ list: () => new Promise(() => undefined) })}
@@ -1402,7 +1402,8 @@ describe('SimulationsDetailModal accessibility', () => {
     const region = screen.getByRole('region', {
       name: 'Simulados de Ana Costa',
     });
-    expect(region).toHaveAttribute('tabindex', '0');
+    expect(region.tagName).toBe('SECTION');
+    expect(region).not.toHaveAttribute('tabindex');
   });
 
   it('announces a list failure as an alert', async () => {

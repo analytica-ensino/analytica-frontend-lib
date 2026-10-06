@@ -307,15 +307,10 @@ const TopicCard = ({
  * Loading skeleton for the modal content
  */
 const LoadingSkeleton = () => (
-  // `role="status"` + texto `sr-only`: os skeletons são só visuais.
-  <div
-    data-testid="lesson-progress-skeleton"
-    className="flex flex-col gap-4"
-    role="status"
-  >
-    <Text as="span" className="sr-only">
-      Carregando progresso do estudante...
-    </Text>
+  // `<output>` (região viva nativa) com texto `sr-only`: os skeletons são só
+  // visuais.
+  <div data-testid="lesson-progress-skeleton" className="flex flex-col gap-4">
+    <output className="sr-only">Carregando progresso do estudante...</output>
     <Skeleton variant="text" width="12rem" height={24} />
     <div className="flex flex-row gap-3">
       <SkeletonCircle width={107} height={107} />
