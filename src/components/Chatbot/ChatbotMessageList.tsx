@@ -46,7 +46,11 @@ export default function ChatbotMessageList({
 
   return (
     <div
-      role="log"
+      // Acessibilidade (AE-2667): sem `role="log"`. O papel não acrescentava
+      // nada para o leitor de tela — só fazia o VoiceOver anunciar "log" no
+      // fim de cada leitura da área de conversa ("...nos seus estudos?, log").
+      // `aria-live="polite"` + `aria-relevant="additions"` sozinhos já
+      // anunciam as mensagens novas, que é o comportamento que interessa.
       aria-live="polite"
       aria-relevant="additions"
       className={cn(

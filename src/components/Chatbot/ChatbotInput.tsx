@@ -32,12 +32,17 @@ export default function ChatbotInput({
 }: Readonly<ChatbotInputProps>) {
   const [value, setValue] = useState('');
 
+  const isSendDisabled = disabled || value.trim().length === 0;
+
   const submit = useCallback(() => {
-    const trimmed = value.trim();
-    if (!trimmed || disabled) return;
-    onSend(trimmed);
+    // O botão de enviar usa `aria-disabled` em vez de `disabled` (ver o
+    // comentário no `<Button>` abaixo), então o clique continua chegando até
+    // aqui mesmo com o botão desabilitado — esta guarda é o que impede o
+    // envio. Vale também para o Enter no textarea.
+    if (isSendDisabled) return;
+    onSend(value.trim());
     setValue('');
-  }, [disabled, onSend, value]);
+  }, [isSendDisabled, onSend, value]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -52,8 +57,6 @@ export default function ChatbotInput({
     },
     [submit]
   );
-
-  const isSendDisabled = disabled || value.trim().length === 0;
 
   return (
     <div
@@ -82,22 +85,37 @@ export default function ChatbotInput({
       {/* Use the library's `<Button>` with `variant="raw"` (same pattern
           as `ChatbotFab`) so the send action goes through the shared
           component. `raw` keeps custom sizing/shape without inheriting
-          the default solid/outline/link classes. */}
+          the default solid/outline/link classes.
+
+          Acessibilidade (AE-2667): o estado desabilitado vai por
+          `aria-disabled`, não pelo `disabled` nativo. Com `disabled` o botão
+          sai da ordem de tabulação e o VoiceOver anuncia o estado como
+          "escurecido"; com `aria-disabled` ele segue focável e o estado é
+          anunciado como parte do rótulo. Quem bloqueia o envio é a guarda do
+          `submit`, e o visual vem das variantes `aria-disabled:` (que o
+          Tailwind emite depois das `hover:`, então continuam vencendo o
+          hover como as `disabled:` venciam antes).
+
+          O ícone é decorativo e vai `aria-hidden`: o rótulo do botão já diz o
+          que ele faz, e sem isso o Safari expõe o `<svg>` como um grupo no
+          conteúdo do botão — era de onde vinha o "grupo" no fim da leitura. */}
       <Button
         variant="raw"
         type="button"
         onClick={submit}
-        disabled={isSendDisabled}
-        aria-label="Enviar mensagem"
+        aria-disabled={isSendDisabled}
+        aria-label={
+          isSendDisabled ? 'Enviar mensagem, desabilitado' : 'Enviar mensagem'
+        }
         className={cn(
           'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full',
           'bg-primary-500 text-white transition-colors',
           'hover:bg-primary-600',
-          'disabled:bg-background-200 disabled:text-text-500 disabled:cursor-not-allowed',
+          'aria-disabled:bg-background-200 aria-disabled:text-text-500 aria-disabled:cursor-not-allowed',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300'
         )}
       >
-        <PaperPlaneTiltIcon size={20} weight="fill" />
+        <PaperPlaneTiltIcon size={20} weight="fill" aria-hidden="true" />
       </Button>
     </div>
   );
