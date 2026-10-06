@@ -127,7 +127,19 @@ const Menu = forwardRef<HTMLDivElement, MenuProps>(
     const storeRef = useRef<MenuStoreApi>(null);
     storeRef.current ??= createMenuStore(() => onValueChangeRef.current);
     const store = storeRef.current;
-    const { syncValue } = useStore(store, (s) => s);
+    const { syncValue, value: selectedValue } = useStore(store, (s) => s);
+
+    /**
+     * Quem fica na ordem do Tab (roving tab stop do padrão de abas): a aba
+     * selecionada, para quem chega de Tab cair direto nela. Decidido aqui, não
+     * em cada item, porque só o Menu vê a lista toda — e se o `value` não casar
+     * com nenhum item (ex.: seleção que chega depois dos dados), o primeiro item
+     * assume o tab stop, senão a lista inteira ficaria fora do teclado.
+     */
+    const itemValues = collectItemValues(children);
+    const tabStopValue = itemValues.includes(selectedValue)
+      ? selectedValue
+      : itemValues[0];
 
     // Sync the controlled/default value into the store WITHOUT firing
     // onValueChange — a prop change is not a user click.
@@ -148,7 +160,7 @@ const Menu = forwardRef<HTMLDivElement, MenuProps>(
         `}
         {...props}
       >
-        {injectStore(children, store)}
+        {injectStore(children, store, tabStopValue)}
       </div>
     );
   }
@@ -205,9 +217,17 @@ interface MenuItemProps extends HTMLAttributes<HTMLLIElement> {
   value: string;
   disabled?: boolean;
   store?: MenuStoreApi;
+  /**
+   * Valor do item que fica na ordem do Tab. Injetado pelo Menu, que é quem vê a
+   * lista inteira — não passe à mão.
+   */
+  tabStopValue?: string;
   variant?: MenuVariant;
   separator?: boolean;
 }
+
+/** Setas que andam entre abas: direita avança, esquerda volta, com a volta ao começo/fim. */
+const ARROW_STEP: Record<string, number> = { ArrowRight: 1, ArrowLeft: -1 };
 
 const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
   (
@@ -217,6 +237,7 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
       value,
       disabled = false,
       store: externalStore,
+      tabStopValue,
       variant = 'menu',
       separator = false,
       ...props
@@ -250,6 +271,35 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
      */
     const isTab = isTabVariant(variant);
 
+    /**
+     * Roving tab stop: numa lista de abas só uma entra na ordem do Tab — a
+     * selecionada (quem chega de Tab cai na aba ativa, não na primeira), e o
+     * passeio entre as abas é por seta. Sem isso o Tab percorria uma aba por
+     * vez, o que o padrão de abas reserva para sair da lista.
+     *
+     * O `breadcrumb` fica de fora: são links de navegação, cada um na ordem do
+     * Tab como antes. `tabStopValue` indefinido (Menu sem item casando) também
+     * mantém todos focáveis, para nunca sobrar lista inalcançável.
+     */
+    const isTabStop =
+      !isTab || tabStopValue === undefined || tabStopValue === value;
+
+    /** Move o foco para a aba vizinha sem trocar a seleção — ativar é Enter/Espaço. */
+    const moveFocus = (e: KeyboardEvent<HTMLLIElement>, step: number): void => {
+      const tabs = Array.from(
+        e.currentTarget
+          .closest('[role="tablist"]')
+          ?.querySelectorAll<HTMLElement>(
+            '[role="tab"]:not([aria-disabled="true"])'
+          ) ?? []
+      );
+      const current = tabs.indexOf(e.currentTarget);
+      const next = tabs[(current + step + tabs.length) % tabs.length];
+      if (current === -1 || !next || next === e.currentTarget) return;
+      e.preventDefault();
+      next.focus();
+    };
+
     const commonProps = {
       ...(isTab
         ? { role: 'tab', 'aria-selected': isSelected }
@@ -261,9 +311,14 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
       ref,
       onClick: handleClick,
       onKeyDown: (e: KeyboardEvent<HTMLLIElement>) => {
-        if (['Enter', ' '].includes(e.key)) handleClick(e);
+        if (['Enter', ' '].includes(e.key)) {
+          handleClick(e);
+          return;
+        }
+        const step = isTab ? ARROW_STEP[e.key] : undefined;
+        if (step !== undefined) moveFocus(e, step);
       },
-      tabIndex: disabled ? -1 : 0,
+      tabIndex: disabled || !isTabStop ? -1 : 0,
       onMouseDown: (e: MouseEvent<HTMLLIElement>) => {
         e.preventDefault();
       },
@@ -510,16 +565,50 @@ const MenuOverflow = ({
   );
 };
 
-const injectStore = (children: ReactNode, store: MenuStoreApi): ReactNode =>
+/**
+ * Valores dos itens habilitados, na ordem em que aparecem. Serve só para o Menu
+ * escolher qual aba fica na ordem do Tab; item desabilitado fica fora porque não
+ * pode receber foco. Percorre a mesma árvore de `injectStore`, então vale para
+ * os itens dentro do MenuContent.
+ */
+const collectItemValues = (
+  children: ReactNode,
+  out: string[] = []
+): string[] => {
+  Children.forEach(children, (child) => {
+    if (!isValidElement(child)) return;
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    const typedChild = child as ReactElement<any>;
+    if (typedChild.type === MenuItem && !typedChild.props.disabled) {
+      out.push(typedChild.props.value);
+    }
+    if (typedChild.props.children) {
+      collectItemValues(typedChild.props.children, out);
+    }
+  });
+  return out;
+};
+
+const injectStore = (
+  children: ReactNode,
+  store: MenuStoreApi,
+  tabStopValue?: string
+): ReactNode =>
   Children.map(children, (child) => {
     if (!isValidElement(child)) return child;
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     const typedChild = child as ReactElement<any>;
     const shouldInject = typedChild.type === MenuItem;
     return cloneElement(typedChild, {
-      ...(shouldInject ? { store } : {}),
+      ...(shouldInject ? { store, tabStopValue } : {}),
       ...(typedChild.props.children
-        ? { children: injectStore(typedChild.props.children, store) }
+        ? {
+            children: injectStore(
+              typedChild.props.children,
+              store,
+              tabStopValue
+            ),
+          }
         : {}),
     });
   });

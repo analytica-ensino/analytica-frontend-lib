@@ -735,6 +735,131 @@ describe('MenuItem — estado selecionado acessível', () => {
   });
 });
 
+describe('MenuItem — navegação por teclado entre abas', () => {
+  const renderTabs = (props?: { value?: string; disabledValue?: string }) =>
+    render(
+      <Menu defaultValue="mat" value={props?.value ?? 'mat'}>
+        <MenuContent>
+          {['mat', 'port', 'bio'].map((v) => (
+            <MenuItem key={v} value={v} disabled={props?.disabledValue === v}>
+              {v}
+            </MenuItem>
+          ))}
+        </MenuContent>
+      </Menu>
+    );
+
+  // Padrão de abas: a lista é UMA parada de Tab, e quem chega nela cai na aba
+  // ativa. Antes cada aba era uma parada, então o Tab percorria todas antes de
+  // sair da lista.
+  it('deixa só a aba selecionada na ordem do Tab', () => {
+    renderTabs({ value: 'port' });
+
+    const [mat, port, bio] = screen.getAllByRole('tab');
+    expect(port).toHaveAttribute('tabindex', '0');
+    expect(mat).toHaveAttribute('tabindex', '-1');
+    expect(bio).toHaveAttribute('tabindex', '-1');
+  });
+
+  it('anda com as setas sem trocar a seleção', () => {
+    const handleChange = jest.fn();
+    render(
+      <Menu defaultValue="mat" onValueChange={handleChange}>
+        <MenuContent>
+          <MenuItem value="mat">Matemática</MenuItem>
+          <MenuItem value="port">Português</MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    const [mat, port] = screen.getAllByRole('tab');
+    mat.focus();
+    fireEvent.keyDown(mat, { key: 'ArrowRight' });
+
+    expect(port).toHaveFocus();
+    expect(handleChange).not.toHaveBeenCalled();
+    expect(mat).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('dá a volta nas pontas', () => {
+    renderTabs();
+
+    const [mat, , bio] = screen.getAllByRole('tab');
+    mat.focus();
+    fireEvent.keyDown(mat, { key: 'ArrowLeft' });
+    expect(bio).toHaveFocus();
+
+    fireEvent.keyDown(bio, { key: 'ArrowRight' });
+    expect(mat).toHaveFocus();
+  });
+
+  it('pula aba desabilitada', () => {
+    renderTabs({ disabledValue: 'port' });
+
+    const [mat, , bio] = screen.getAllByRole('tab');
+    mat.focus();
+    fireEvent.keyDown(mat, { key: 'ArrowRight' });
+
+    expect(bio).toHaveFocus();
+  });
+
+  it('ativa com Enter e Espaço a aba que o foco alcançou', () => {
+    const handleChange = jest.fn();
+    render(
+      <Menu defaultValue="mat" onValueChange={handleChange}>
+        <MenuContent>
+          <MenuItem value="mat">Matemática</MenuItem>
+          <MenuItem value="port">Português</MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    const [mat, port] = screen.getAllByRole('tab');
+    fireEvent.keyDown(mat, { key: 'ArrowRight' });
+    fireEvent.keyDown(port, { key: 'Enter' });
+    expect(handleChange).toHaveBeenLastCalledWith('port');
+
+    fireEvent.keyDown(mat, { key: ' ' });
+    expect(handleChange).toHaveBeenLastCalledWith('mat');
+  });
+
+  // Sem nenhum item casando com o `value` (ex.: seleção que chega depois dos
+  // dados), ninguém teria tabindex 0 e a lista sairia do alcance do teclado.
+  it('mantém o primeiro item alcançável quando nada está selecionado', () => {
+    renderTabs({ value: 'inexistente' });
+
+    const [mat, port] = screen.getAllByRole('tab');
+    expect(mat).toHaveAttribute('tabindex', '0');
+    expect(mat).toHaveAttribute('aria-selected', 'false');
+    expect(port).toHaveAttribute('tabindex', '-1');
+  });
+
+  // Breadcrumb é navegação, não aba: cada item segue na ordem do Tab e as setas
+  // não movem foco.
+  it('não mexe no breadcrumb', () => {
+    render(
+      <Menu defaultValue="breadcrumb-1" variant="breadcrumb">
+        <MenuContent variant="breadcrumb">
+          <MenuItem value="breadcrumb-0" variant="breadcrumb">
+            Início
+          </MenuItem>
+          <MenuItem value="breadcrumb-1" variant="breadcrumb">
+            Atual
+          </MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    const [first, current] = screen.getAllByRole('menuitem');
+    expect(first).toHaveAttribute('tabindex', '0');
+    expect(current).toHaveAttribute('tabindex', '0');
+
+    first.focus();
+    fireEvent.keyDown(first, { key: 'ArrowRight' });
+    expect(first).toHaveFocus();
+  });
+});
+
 describe('MenuOverflow', () => {
   const mockChildren = (
     <>
