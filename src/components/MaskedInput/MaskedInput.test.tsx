@@ -94,6 +94,43 @@ describe('MaskedInput', () => {
     expect(screen.getByDisplayValue('12.345.678/0001-99')).toBeInTheDocument();
   });
 
+  it('preserves letters typed into a CNPJ field (IN RFB 2.229/2024)', () => {
+    const Wrapper = () => {
+      const [value, setValue] = useState('');
+      return (
+        <MaskedInput
+          mask={MASK_TYPE.CNPJ}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+        />
+      );
+    };
+    render(<Wrapper />);
+    const input = screen.getByRole('textbox');
+
+    fireEvent.change(input, { target: { value: '12ABC34501DE35' } });
+    expect(input).toHaveValue('12.ABC.345/01DE-35');
+  });
+
+  it('drops letters typed into the CNPJ check-digit positions', () => {
+    const Wrapper = () => {
+      const [value, setValue] = useState('');
+      return (
+        <MaskedInput
+          mask={MASK_TYPE.CNPJ}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+        />
+      );
+    };
+    render(<Wrapper />);
+    const input = screen.getByRole('textbox');
+
+    // As duas ultimas posicoes sao o digito verificador e so aceitam numero.
+    fireEvent.change(input, { target: { value: '12ABC34501DEAB' } });
+    expect(input).toHaveValue('12.ABC.345/01DE');
+  });
+
   it('forwards label and other Input props correctly', () => {
     render(
       <MaskedInput

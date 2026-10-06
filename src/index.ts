@@ -1113,6 +1113,7 @@ export {
   formatCpf,
   formatDocument,
   formatPhone,
+  isValidCnpj,
   maskCepInput,
   maskCnpjInput,
   maskCpfInput,
