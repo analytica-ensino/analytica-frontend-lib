@@ -33,8 +33,7 @@ type MenuVariant =
  * `breadcrumb` não é aba nem seleção: o item "ativo" é a página atual, então
  * fica em `menuitem` + `aria-current="page"`.
  */
-const isTabVariant = (variant: MenuVariant | string) =>
-  variant !== 'breadcrumb';
+const isTabVariant = (variant: MenuVariant) => variant !== 'breadcrumb';
 
 interface MenuStore {
   value: string;

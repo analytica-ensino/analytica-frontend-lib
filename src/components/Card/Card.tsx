@@ -604,8 +604,12 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
      * card do outro numa lista deles — e, por estar aqui, dispensa a leitura do
      * conteúdo visual, que vai todo em `aria-hidden` abaixo.
      */
+    const trimmedLabelProgress = labelProgress.trim();
+    const progressText = trimmedLabelProgress
+      ? `${progress}% ${trimmedLabelProgress}`
+      : `${progress}%`;
     const accessibleLabel = hasProgress
-      ? `${header}: ${progress}%${labelProgress.trim() ? ` ${labelProgress.trim()}` : ''}`
+      ? `${header}: ${progressText}`
       : `${header}: ${description}`;
 
     return (
