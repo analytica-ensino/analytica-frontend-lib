@@ -175,6 +175,61 @@ export function maskCepInput(value: string): string {
 }
 
 // =====================================================================
+// Validacao de CNPJ (modulo 11). Suporta o formato alfanumerico da
+// IN RFB 2.229/2024 e, por consequencia aritmetica, o numerico anterior.
+// =====================================================================
+
+const CNPJ_FIRST_WEIGHTS = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+const CNPJ_SECOND_WEIGHTS = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+
+/**
+ * Valor numerico de um caractere do CNPJ: codigo ASCII menos 48.
+ * Produz '0'-'9' => 0-9 e 'A'-'Z' => 17-42. Para entrada numerica o
+ * resultado e identico a conversao direta, o que preserva a validacao
+ * dos CNPJs ja cadastrados.
+ */
+const cnpjCharValue = (char: string): number => char.charCodeAt(0) - 48;
+
+const cnpjCheckDigit = (chars: string, weights: number[]): number => {
+  let sum = 0;
+  for (let i = 0; i < weights.length; i++) {
+    sum += cnpjCharValue(chars[i]) * weights[i];
+  }
+  const remainder = sum % 11;
+  return remainder < 2 ? 0 : 11 - remainder;
+};
+
+/**
+ * Valida um CNPJ pelo algoritmo oficial de digitos verificadores.
+ *
+ * Aceita o valor com ou sem pontuacao e em qualquer caixa. Rejeita
+ * `00000000000000`, o unico caso de sequencia repetida que passa no
+ * modulo 11 — e, como o digito verificador e sempre numerico, nenhuma
+ * string com letra pode ter 14 caracteres identicos.
+ *
+ * @example
+ * ```ts
+ * isValidCnpj('12.ABC.345/01DE-35'); // true
+ * isValidCnpj('11222333000181');     // true
+ * isValidCnpj('12ABC34501DE34');     // false (digito verificador errado)
+ * ```
+ */
+export function isValidCnpj(value: string): boolean {
+  const chars = extractChars(value, MASK_TYPE.CNPJ);
+  if (chars.length !== MASK_MAX_LENGTH[MASK_TYPE.CNPJ]) return false;
+  if (/^(\d)\1{13}$/.test(chars)) return false;
+
+  const first = cnpjCheckDigit(
+    chars.slice(0, CNPJ_BASE_LENGTH),
+    CNPJ_FIRST_WEIGHTS
+  );
+  if (first !== Number(chars[CNPJ_BASE_LENGTH])) return false;
+
+  const second = cnpjCheckDigit(chars.slice(0, 13), CNPJ_SECOND_WEIGHTS);
+  return second === Number(chars[13]);
+}
+
+// =====================================================================
 // API generica via enum: util quando o tipo de mascara e dinamico
 // (ex.: input que troca entre CNPJ/CPF baseado em radio).
 // =====================================================================

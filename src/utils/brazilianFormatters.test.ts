@@ -6,6 +6,7 @@ import {
   formatCpf,
   formatDocument,
   formatPhone,
+  isValidCnpj,
   maskCepInput,
   maskCnpjInput,
   maskCpfInput,
@@ -73,6 +74,41 @@ describe('brazilianFormatters', () => {
 
     it('continua mascarando CNPJ numerico sem alteracao', () => {
       expect(maskCnpjInput('12345678000199')).toBe('12.345.678/0001-99');
+    });
+  });
+
+  describe('isValidCnpj', () => {
+    it('aceita o exemplo alfanumerico da Receita', () => {
+      expect(isValidCnpj('12ABC34501DE35')).toBe(true);
+      expect(isValidCnpj('12.ABC.345/01DE-35')).toBe(true);
+    });
+
+    it('aceita minuscula convertendo para caixa alta', () => {
+      expect(isValidCnpj('12abc34501de35')).toBe(true);
+    });
+
+    it('aceita outros CNPJs alfanumericos validos', () => {
+      expect(isValidCnpj('AB123456000X05')).toBe(true);
+      expect(isValidCnpj('ZZ999888000A90')).toBe(true);
+    });
+
+    it('mantem validos os CNPJs numericos', () => {
+      expect(isValidCnpj('11222333000181')).toBe(true);
+      expect(isValidCnpj('11.222.333/0001-81')).toBe(true);
+    });
+
+    it('rejeita digito verificador errado', () => {
+      expect(isValidCnpj('12ABC34501DE34')).toBe(false);
+      expect(isValidCnpj('11222333000180')).toBe(false);
+    });
+
+    it('rejeita comprimento invalido', () => {
+      expect(isValidCnpj('12ABC34501DE3')).toBe(false);
+      expect(isValidCnpj('')).toBe(false);
+    });
+
+    it('rejeita a sequencia de zeros', () => {
+      expect(isValidCnpj('00000000000000')).toBe(false);
     });
   });
 
