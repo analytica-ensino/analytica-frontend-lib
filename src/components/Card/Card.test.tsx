@@ -834,6 +834,51 @@ describe('CardPerformance', () => {
     fireEvent.click(screen.getByTestId('caret-icon'));
     expect(handleClick).toHaveBeenCalledWith('bar');
   });
+
+  describe('leitura pelo leitor de tela', () => {
+    // No variant `caret` o card é o próprio controle e era anunciado só como
+    // "botão", sem dizer de qual assunto nem como está o desempenho.
+    it('nomeia o card clicável com o assunto e o progresso', () => {
+      render(
+        <CardPerformance
+          {...baseProps}
+          actionVariant="caret"
+          progress={80}
+          labelProgress="de acertos"
+        />
+      );
+
+      expect(
+        screen.getByRole('button', {
+          name: 'Desempenho de Teste: 80% de acertos',
+        })
+      ).toBeInTheDocument();
+    });
+
+    it('usa a descrição no nome quando não há progresso', () => {
+      render(<CardPerformance {...baseProps} actionVariant="caret" />);
+
+      expect(
+        screen.getByRole('button', {
+          name: 'Desempenho de Teste: Sem dados ainda! Você ainda não fez um questionário neste assunto.',
+        })
+      ).toBeInTheDocument();
+    });
+
+    // No variant `button` quem navega é o "Ver Aula". O card virou `group` só
+    // para o rótulo chegar ao leitor: como `role="button"` sem ação ele ficava
+    // focável sem fazer nada, com um botão de verdade aninhado dentro.
+    it('rotula o card não clicável como grupo, sem foco próprio', () => {
+      render(<CardPerformance {...baseProps} progress={80} />);
+
+      const card = screen.getByRole('group', {
+        name: 'Desempenho de Teste: 80%',
+      });
+
+      expect(card).not.toHaveAttribute('tabindex');
+      expect(screen.getAllByRole('button')).toHaveLength(1);
+    });
+  });
 });
 
 describe('CardResults', () => {
@@ -3950,6 +3995,76 @@ describe('CardSimulationHistory', () => {
       '[class*="hover:shadow-soft-shadow-2"]'
     );
     expect(simulationCards.length).toBeGreaterThan(0);
+  });
+
+  describe('leitura pelo leitor de tela', () => {
+    // O card era um `div role="button"` sem nome: anunciava só "botão", sem
+    // dizer qual simulado abriria.
+    it('nomeia o card com título, tipo e acertos', () => {
+      render(<CardSimulationHistory {...baseProps} />);
+
+      expect(
+        screen.getByRole('button', {
+          name: 'Simulado Enem #42 — Enem — 45 de 90 corretas',
+        })
+      ).toBeInTheDocument();
+    });
+
+    it('inclui a situação no nome quando há badge de status', () => {
+      const data = [
+        {
+          date: '12 Fev',
+          simulations: [
+            {
+              ...mockData[0].simulations[0],
+              statusBadge: {
+                label: 'Em andamento',
+                action: 'warning' as const,
+              },
+            },
+          ],
+        },
+      ];
+      render(<CardSimulationHistory data={data} />);
+
+      expect(
+        screen.getByRole('button', {
+          name: 'Simulado Enem #42 — Enem — Em andamento — 45 de 90 corretas',
+        })
+      ).toBeInTheDocument();
+    });
+
+    it('esconde do leitor o conteúdo que já está no nome do card', () => {
+      render(<CardSimulationHistory {...baseProps} />);
+
+      expect(
+        screen.getByText('Simulado Enem #42').closest('[aria-hidden="true"]')
+      ).toBeInTheDocument();
+      expect(screen.getAllByTestId('caret-icon')[0]).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
+    });
+
+    // Botão dentro de botão é HTML inválido e o leitor de tela não alcança o
+    // aninhado: o excluir é irmão do card clicável, não filho dele.
+    it('mantém o excluir fora do card clicável', () => {
+      const data = [
+        {
+          date: '12 Fev',
+          simulations: [{ ...mockData[0].simulations[0], canDelete: true }],
+        },
+      ];
+      render(<CardSimulationHistory data={data} onDeleteClick={jest.fn()} />);
+
+      const deleteButton = screen.getByTestId('delete-simulation-1');
+      const card = screen.getByRole('button', {
+        name: /^Simulado Enem #42/,
+      });
+
+      expect(deleteButton.parentElement?.closest('button')).toBeNull();
+      expect(card).not.toContainElement(deleteButton);
+    });
   });
 });
 

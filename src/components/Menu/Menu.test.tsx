@@ -241,7 +241,7 @@ describe('Menu Component', () => {
         </Menu>
       );
 
-      const items = screen.getAllByRole('menuitem');
+      const items = screen.getAllByRole('tab');
       expect(
         items.some(
           (item) => item.getAttribute('data-variant') === 'menu-overflow'
@@ -258,7 +258,7 @@ describe('Menu Component', () => {
         </Menu>
       );
 
-      const menuItem = screen.getByRole('menuitem');
+      const menuItem = screen.getByRole('tab');
       expect(menuItem).toHaveClass(
         'w-fit flex flex-col items-center px-2 pt-4 gap-3'
       );
@@ -278,7 +278,7 @@ describe('Menu Component', () => {
         </Menu>
       );
 
-      const items = screen.getAllByRole('menuitem');
+      const items = screen.getAllByRole('tab');
       expect(
         items.some(
           (item) => item.getAttribute('data-variant') === 'menu-overflow-col'
@@ -298,7 +298,7 @@ describe('Menu Component', () => {
         </Menu>
       );
 
-      const items = screen.getAllByRole('menuitem');
+      const items = screen.getAllByRole('tab');
       const selected = items.find(
         (item) =>
           item.getAttribute('data-variant') === 'menu-overflow-col' &&
@@ -317,7 +317,7 @@ describe('Menu Component', () => {
         </Menu>
       );
 
-      const menuItem = screen.getByRole('menuitem');
+      const menuItem = screen.getByRole('tab');
       // The h-1 bg-primary-950 indicator div used by menu2/menu-overflow
       // should not be present in menu-overflow-col.
       const indicator = menuItem.querySelector('div.h-1.bg-primary-950');
@@ -333,7 +333,7 @@ describe('Menu Component', () => {
         </Menu>
       );
 
-      const menuItem = screen.getByRole('menuitem');
+      const menuItem = screen.getByRole('tab');
       expect(menuItem).toHaveClass('flex-1');
       expect(menuItem).toHaveClass('min-w-fit');
       expect(menuItem).toHaveClass('flex');
@@ -586,14 +586,34 @@ describe('MenuContent', () => {
     expect(menuContent).toHaveClass('custom-class');
   });
 
-  // Sem `role="menu"` no container, cada `<li role="menuitem">` fica órfão —
+  // Sem `role="tablist"` no container, cada `<li role="tab">` fica órfão —
   // ARIA inválido, e o leitor de tela não deriva a posição ("1 de 2"). Com o
   // papel correto no pai a posição sai sozinha, sem aria-posinset na mão.
-  it('anuncia o container como menu', () => {
+  it('anuncia o container de abas como tablist', () => {
     render(
       <Menu defaultValue="home">
         <MenuContent data-testid="menu-content">
           <MenuItem value="home">Home</MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    expect(screen.getByTestId('menu-content')).toHaveAttribute(
+      'role',
+      'tablist'
+    );
+    expect(screen.getByRole('tab')).toBeInTheDocument();
+  });
+
+  // Breadcrumb não é aba: o container volta a ser `menu` para os
+  // `<li role="menuitem">` não ficarem órfãos.
+  it('anuncia o container de breadcrumb como menu', () => {
+    render(
+      <Menu defaultValue="home" variant="breadcrumb">
+        <MenuContent variant="breadcrumb" data-testid="menu-content">
+          <MenuItem value="home" variant="breadcrumb">
+            Home
+          </MenuItem>
         </MenuContent>
       </Menu>
     );
@@ -605,25 +625,21 @@ describe('MenuContent', () => {
   it('deixa o consumidor sobrepor o papel', () => {
     render(
       <Menu defaultValue="home">
-        <MenuContent role="tablist" data-testid="menu-content">
+        <MenuContent role="list" data-testid="menu-content">
           <MenuItem value="home">Home</MenuItem>
         </MenuContent>
       </Menu>
     );
 
-    expect(screen.getByTestId('menu-content')).toHaveAttribute(
-      'role',
-      'tablist'
-    );
+    expect(screen.getByTestId('menu-content')).toHaveAttribute('role', 'list');
   });
 });
 
 describe('MenuItem — estado selecionado acessível', () => {
   // A seleção só existia como classe de fundo e barrinha: quem usa leitor de
-  // tela não sabia qual item está ativo. O estado sai por `aria-describedby`
-  // porque `aria-selected` não é válido em `role="menuitem"` e os leitores o
-  // ignoram; descrição é o único slot lido depois do papel e da posição,
-  // fechando "próximas atividades, item de menu, 1 de 2, selecionado".
+  // tela não sabia qual aba está ativa. Como aba, o estado sai em
+  // `aria-selected` — o slot nativo do papel `tab`, lido pelos leitores sem
+  // truque de descrição.
   const renderMenu = () =>
     render(
       <Menu defaultValue="near">
@@ -638,33 +654,27 @@ describe('MenuItem — estado selecionado acessível', () => {
       </Menu>
     );
 
-  const descriptionOf = (item: HTMLElement) => {
-    const id = item.getAttribute('aria-describedby');
-    return id ? document.getElementById(id)?.textContent : undefined;
-  };
-
-  it('descreve o item ativo como selecionado e o outro como não selecionado', () => {
+  it('marca a aba ativa com aria-selected e a outra sem', () => {
     renderMenu();
 
-    const [near, done] = screen.getAllByRole('menuitem');
-    expect(descriptionOf(near)).toBe('selecionado');
-    expect(descriptionOf(done)).toBe('não selecionado');
+    const [near, done] = screen.getAllByRole('tab');
+    expect(near).toHaveAttribute('aria-selected', 'true');
+    expect(done).toHaveAttribute('aria-selected', 'false');
   });
 
   it('acompanha a troca de seleção', () => {
     renderMenu();
 
-    fireEvent.click(screen.getByRole('menuitem', { name: /concluídas/i }));
+    fireEvent.click(screen.getByRole('tab', { name: /concluídas/i }));
 
-    const [near, done] = screen.getAllByRole('menuitem');
-    expect(descriptionOf(near)).toBe('não selecionado');
-    expect(descriptionOf(done)).toBe('selecionado');
+    const [near, done] = screen.getAllByRole('tab');
+    expect(near).toHaveAttribute('aria-selected', 'false');
+    expect(done).toHaveAttribute('aria-selected', 'true');
   });
 
-  // O span de estado vive dentro do `<li>`, então entraria no nome acessível
-  // de quem deriva o nome do conteúdo. Só é emitido para itens com
-  // `aria-label` explícito — aí o nome não vem do conteúdo e não há vazamento.
-  it('não descreve itens sem aria-label, para não vazar no nome', () => {
+  // `aria-selected` fica no próprio `<li>`, então o estado não entra no nome
+  // acessível nem de quem deriva o nome do conteúdo.
+  it('não mistura o estado com o nome acessível', () => {
     render(
       <Menu defaultValue="home">
         <MenuContent>
@@ -673,8 +683,8 @@ describe('MenuItem — estado selecionado acessível', () => {
       </Menu>
     );
 
-    const item = screen.getByRole('menuitem');
-    expect(item).not.toHaveAttribute('aria-describedby');
+    const item = screen.getByRole('tab');
+    expect(item).toHaveAttribute('aria-selected', 'true');
     expect(item).toHaveAccessibleName('Home');
   });
 
@@ -682,8 +692,29 @@ describe('MenuItem — estado selecionado acessível', () => {
     renderMenu();
 
     expect(
-      screen.getByRole('menuitem', { name: 'Próximas atividades' })
+      screen.getByRole('tab', { name: 'Próximas atividades' })
     ).toBeInTheDocument();
+  });
+
+  // Breadcrumb não tem seleção de aba: o item ativo é a página atual.
+  it('marca o último breadcrumb como página atual, sem aria-selected', () => {
+    render(
+      <Menu defaultValue="breadcrumb-1" variant="breadcrumb">
+        <MenuContent variant="breadcrumb">
+          <MenuItem value="breadcrumb-0" variant="breadcrumb">
+            Início
+          </MenuItem>
+          <MenuItem value="breadcrumb-1" variant="breadcrumb">
+            Atual
+          </MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    const [first, current] = screen.getAllByRole('menuitem');
+    expect(current).toHaveAttribute('aria-current', 'page');
+    expect(current).not.toHaveAttribute('aria-selected');
+    expect(first).not.toHaveAttribute('aria-current');
   });
 
   it('deixa o consumidor somar a própria descrição', () => {
@@ -697,7 +728,7 @@ describe('MenuItem — estado selecionado acessível', () => {
       </Menu>
     );
 
-    expect(screen.getByRole('menuitem')).toHaveAttribute(
+    expect(screen.getByRole('tab')).toHaveAttribute(
       'aria-describedby',
       'extra'
     );

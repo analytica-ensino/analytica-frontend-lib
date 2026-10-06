@@ -586,6 +586,18 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
     ref
   ) => {
     const hasProgress = progress !== undefined;
+    const isCaret = actionVariant === 'caret';
+
+    /**
+     * O card não tinha nome acessível: no variant `caret` ele é o próprio
+     * controle (CardBase vira `role="button"`) e era anunciado só como "botão";
+     * no variant `button` é um bloco cujo rótulo precisa de `role="group"` para
+     * chegar ao leitor de tela. O rótulo junta o assunto com o estado, que é o
+     * que diferencia um card do outro numa lista deles.
+     */
+    const accessibleLabel = hasProgress
+      ? `${header}: ${progress}%${labelProgress.trim() ? ` ${labelProgress.trim()}` : ''}`
+      : `${header}: ${description}`;
 
     return (
       <CardBase
@@ -593,11 +605,16 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
         layout="horizontal"
         padding="medium"
         minHeight="none"
-        className={cn(
-          actionVariant == 'caret' ? 'cursor-pointer' : '',
-          className
-        )}
-        onClick={() => actionVariant == 'caret' && onClickButton?.(valueButton)}
+        className={cn(isCaret ? 'cursor-pointer' : '', className)}
+        // Só o variant `caret` navega ao clicar. Passar o handler sempre deixava
+        // o variant `button` focável como `role="button"` sem fazer nada — e com
+        // o "Ver Aula" aninhado dentro, que é interativo dentro de interativo.
+        onClick={isCaret ? () => onClickButton?.(valueButton) : undefined}
+        // Spread condicional, não `role={isCaret ? undefined : 'group'}`: um
+        // `role` explícito como `undefined` ainda chega no spread do CardBase e
+        // apagaria o `role="button"` que ele dá ao card clicável.
+        {...(isCaret ? {} : { role: 'group' })}
+        aria-label={accessibleLabel}
         {...props}
       >
         <div className="w-full flex flex-col justify-between gap-2">
@@ -1847,22 +1864,48 @@ const CardSimulationHistory = forwardRef<
               <div className="flex flex-col gap-2 flex-1">
                 {section.simulations.map((simulation) => {
                   const typeStyles = SIMULATION_TYPE_STYLES[simulation.type];
+                  const showDelete = simulation.canDelete && !!onDeleteClick;
+
+                  /**
+                   * O card não tinha nome acessível: era um `div
+                   * role="button"` anunciado só como "botão", deixando quem usa
+                   * leitor de tela sem saber qual simulado abriria. O rótulo
+                   * junta o que está na arte — título, tipo, situação e acertos
+                   * — na ordem em que se lê o card.
+                   */
+                  const accessibleLabel = [
+                    simulation.title,
+                    typeStyles.text,
+                    simulation.statusBadge?.label,
+                    simulation.info,
+                  ]
+                    .filter(Boolean)
+                    .join(' — ');
 
                   return (
-                    <CardBase
+                    <div
                       key={simulation.id}
-                      layout="horizontal"
-                      padding="medium"
-                      minHeight="none"
-                      cursor="pointer"
                       className={cn(
-                        `${typeStyles.background} rounded-xl hover:shadow-soft-shadow-2 
-                          transition-shadow duration-200 h-auto min-h-[61px]`
+                        typeStyles.background,
+                        `w-full flex flex-row items-center gap-1 border border-border-50 rounded-xl
+                          hover:shadow-soft-shadow-2 transition-shadow duration-200 h-auto min-h-[61px]`,
+                        showDelete ? 'pr-4' : ''
                       )}
-                      onClick={() => onSimulationClick?.(simulation)}
                     >
-                      <div className="flex justify-between items-center w-full gap-2">
-                        <div className="flex flex-wrap flex-col justify-between sm:flex-row gap-2 flex-1 min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => onSimulationClick?.(simulation)}
+                        aria-label={accessibleLabel}
+                        className="flex flex-1 min-w-0 flex-row justify-between items-center gap-2 p-4 text-left cursor-pointer"
+                      >
+                        {/* Tudo aqui já está no `aria-label` do botão. Sem o
+                            aria-hidden o leitor repetiria título, selos e
+                            acertos depois de anunciar o nome do card. Nada
+                            focável vive dentro — o excluir é irmão do botão. */}
+                        <div
+                          aria-hidden="true"
+                          className="flex flex-wrap flex-col justify-between sm:flex-row gap-2 flex-1 min-w-0"
+                        >
                           <Text
                             size="lg"
                             weight="bold"
@@ -1896,30 +1939,30 @@ const CardSimulationHistory = forwardRef<
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          {simulation.canDelete && onDeleteClick && (
-                            <IconButton
-                              size="sm"
-                              icon={<TrashIcon size={20} />}
-                              aria-label={`Excluir simulado ${simulation.title}`}
-                              data-testid={`delete-simulation-${simulation.id}`}
-                              // The whole CardBase is clickable, so the click
-                              // must not bubble up into onSimulationClick.
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                onDeleteClick(simulation);
-                              }}
-                            />
-                          )}
+                        <CaretRightIcon
+                          size={24}
+                          className="text-text-800 shrink-0"
+                          data-testid="caret-icon"
+                          aria-hidden="true"
+                        />
+                      </button>
 
-                          <CaretRightIcon
-                            size={24}
-                            className="text-text-800"
-                            data-testid="caret-icon"
-                          />
-                        </div>
-                      </div>
-                    </CardBase>
+                      {/* Irmão do botão do card, não filho: botão dentro de
+                          botão é HTML inválido, o leitor de tela não alcança o
+                          aninhado e o clique precisava de stopPropagation para
+                          não navegar junto. Fora, o excluir é um controle
+                          próprio — e por isso vem depois do caret, que fecha a
+                          área clicável do card. */}
+                      {showDelete && (
+                        <IconButton
+                          size="sm"
+                          icon={<TrashIcon size={20} />}
+                          aria-label={`Excluir simulado ${simulation.title}`}
+                          data-testid={`delete-simulation-${simulation.id}`}
+                          onClick={() => onDeleteClick(simulation)}
+                        />
+                      )}
+                    </div>
                   );
                 })}
               </div>
