@@ -1,7 +1,12 @@
 import {
+  Children,
+  cloneElement,
+  isValidElement,
+  ReactElement,
   ReactNode,
   useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -118,8 +123,16 @@ export function Tooltip({
   usePortal = false,
 }: Readonly<TooltipProps>) {
   const triggerRef = useRef<HTMLSpanElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  // Um id por instância: com um id fixo, dois tooltips na tela compartilhavam
+  // o mesmo alvo de `aria-describedby` e o leitor lia o texto errado.
+  const tooltipId = `tooltip-${useId()}`;
   const [open, setOpen] = useState(false);
+  /** CSS mode: whether the trigger is hovered or holds focus. */
+  const [active, setActive] = useState(false);
+  /** CSS mode: hidden by Escape until the pointer/focus leaves. */
+  const [dismissed, setDismissed] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number }>({
     top: 0,
     left: 0,
@@ -175,6 +188,51 @@ export function Tooltip({
     };
   }, [usePortal]);
 
+  /** CSS mode: track hover/focus through the DOM API (same reason as above). */
+  useEffect(() => {
+    if (usePortal) return;
+    const node = wrapperRef.current;
+    if (!node) return;
+
+    const handleEnter = () => setActive(true);
+    const handleLeave = () => {
+      setActive(false);
+      setDismissed(false);
+    };
+
+    node.addEventListener('mouseenter', handleEnter);
+    node.addEventListener('mouseleave', handleLeave);
+    node.addEventListener('focusin', handleEnter);
+    node.addEventListener('focusout', handleLeave);
+
+    return () => {
+      node.removeEventListener('mouseenter', handleEnter);
+      node.removeEventListener('mouseleave', handleLeave);
+      node.removeEventListener('focusin', handleEnter);
+      node.removeEventListener('focusout', handleLeave);
+    };
+  }, [usePortal]);
+
+  /**
+   * WCAG 1.4.13: conteúdo que aparece no hover/foco precisa ser dispensável
+   * sem mover o ponteiro nem o foco. Escape fecha o tooltip visível; o
+   * listener só existe enquanto ele está aberto.
+   */
+  const isShowing = usePortal ? open : active;
+  useEffect(() => {
+    if (!isShowing) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (usePortal) {
+        setOpen(false);
+      } else {
+        setDismissed(true);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isShowing, usePortal]);
+
   if (disabled) {
     return <>{children}</>;
   }
@@ -185,7 +243,7 @@ export function Tooltip({
         as="span"
         ref={triggerRef}
         className={cn('relative inline-flex', className)}
-        aria-describedby={open ? 'tooltip-portal' : undefined}
+        aria-describedby={open ? tooltipId : undefined}
       >
         {children}
         {open &&
@@ -193,7 +251,7 @@ export function Tooltip({
           createPortal(
             <div
               ref={tooltipRef}
-              id="tooltip-portal"
+              id={tooltipId}
               role="tooltip"
               style={{
                 position: 'fixed',
@@ -211,12 +269,38 @@ export function Tooltip({
     );
   }
 
+  // O tooltip CSS fica sempre no DOM: ligado ao gatilho por
+  // `aria-describedby`, o leitor anuncia o conteúdo junto do elemento focado
+  // (antes ele era só visual). Com um único elemento, a descrição vai nele;
+  // com texto solto ou vários filhos, no wrapper.
+  const onlyChild = Children.count(children) === 1 ? children : null;
+  const describableChild = isValidElement<{ 'aria-describedby'?: string }>(
+    onlyChild
+  )
+    ? (onlyChild as ReactElement<{ 'aria-describedby'?: string }>)
+    : null;
+  const trigger = describableChild
+    ? cloneElement(describableChild, {
+        'aria-describedby': [
+          describableChild.props['aria-describedby'],
+          tooltipId,
+        ]
+          .filter(Boolean)
+          .join(' '),
+      })
+    : children;
+
   return (
-    <div className={cn('relative inline-flex group', className)}>
-      {children}
+    <div
+      ref={wrapperRef}
+      className={cn('relative inline-flex group', className)}
+      aria-describedby={describableChild ? undefined : tooltipId}
+    >
+      {trigger}
 
       {/* Tooltip content - shown on hover/focus via CSS */}
       <div
+        id={tooltipId}
         role="tooltip"
         className={cn(
           'absolute z-50',
@@ -225,6 +309,7 @@ export function Tooltip({
           'group-hover:opacity-100 group-hover:visible',
           'group-focus-within:opacity-100 group-focus-within:visible',
           POSITION_CLASSES[position],
+          dismissed && '!opacity-0 !invisible',
           contentClassName
         )}
       >

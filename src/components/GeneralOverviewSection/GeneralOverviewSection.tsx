@@ -145,7 +145,7 @@ export function GeneralOverviewSection({
       <div className="space-y-4 p-5 bg-background border border-border-50 rounded-xl">
         {/* Header */}
         <div className="space-y-1">
-          <Text size="lg" weight="bold" className="text-text-950">
+          <Text as="h3" size="lg" weight="bold" className="text-text-950">
             Geral
           </Text>
           <SkeletonRounded className="h-4 w-3/4" />
@@ -177,7 +177,7 @@ export function GeneralOverviewSection({
     <div className="space-y-4 p-5 bg-background border border-border-50 rounded-xl">
       {/* Header with description */}
       <div className="space-y-1">
-        <Text size="lg" weight="bold" className="text-text-950">
+        <Text as="h3" size="lg" weight="bold" className="text-text-950">
           Geral
         </Text>
         <Text size="sm" className="text-text-500">
@@ -197,6 +197,9 @@ export function GeneralOverviewSection({
             }
             variant="green"
             size="small"
+            // Na escala TRI a barra recebe nota/10 e anunciaria "65%" para
+            // uma nota 650: o nome acessível repete o número mostrado.
+            accessibleLabel={`Proficiência geral: ${formatScore(data.overallPercentage, scoreType)}`}
           />
         </div>
         <Text

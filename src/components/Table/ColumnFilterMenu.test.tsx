@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import ColumnFilterMenu from './ColumnFilterMenu';
+import ColumnFilterMenu, { getTriggerLabel } from './ColumnFilterMenu';
 import type { ColumnFilterConfig } from './useColumnFilters';
 
 const config: ColumnFilterConfig = {
@@ -13,9 +13,71 @@ const config: ColumnFilterConfig = {
 };
 
 const openMenu = () =>
-  fireEvent.click(screen.getByRole('button', { name: 'Filtrar por Status' }));
+  fireEvent.click(screen.getByRole('button', { name: /^Filtrar por Status/ }));
 
 describe('ColumnFilterMenu', () => {
+  describe('acessibilidade', () => {
+    it('diz no nome do gatilho quantas opções estão ativas', () => {
+      const { rerender } = render(
+        <ColumnFilterMenu
+          columnLabel="Status"
+          config={config}
+          value={[]}
+          onChange={jest.fn()}
+        />
+      );
+      expect(
+        screen.getByRole('button', { name: 'Filtrar por Status' })
+      ).toBeInTheDocument();
+
+      rerender(
+        <ColumnFilterMenu
+          columnLabel="Status"
+          config={{ ...config, multiple: true }}
+          value={['DESTAQUE', 'SEM_ACESSO']}
+          onChange={jest.fn()}
+        />
+      );
+      expect(
+        screen.getByRole('button', {
+          name: 'Filtrar por Status, 2 selecionados',
+        })
+      ).toBeInTheDocument();
+    });
+
+    it('monta o nome no singular e no plural', () => {
+      expect(getTriggerLabel('Escola', 0)).toBe('Filtrar por Escola');
+      expect(getTriggerLabel('Escola', 1)).toBe(
+        'Filtrar por Escola, 1 selecionado'
+      );
+      expect(getTriggerLabel('Escola', 3)).toBe(
+        'Filtrar por Escola, 3 selecionados'
+      );
+    });
+
+    it('expõe as opções como itens marcáveis com aria-checked', () => {
+      render(
+        <ColumnFilterMenu
+          columnLabel="Status"
+          config={config}
+          value={['DESTAQUE']}
+          onChange={jest.fn()}
+        />
+      );
+      openMenu();
+
+      expect(
+        screen.getByRole('menuitemcheckbox', { name: 'DESTAQUE' })
+      ).toHaveAttribute('aria-checked', 'true');
+      expect(
+        screen.getByRole('menuitemcheckbox', { name: 'SEM ACESSO' })
+      ).toHaveAttribute('aria-checked', 'false');
+      expect(
+        screen.getByRole('menuitemcheckbox', { name: 'Todos os status' })
+      ).toHaveAttribute('aria-checked', 'false');
+    });
+  });
+
   it('uses a caret as its trigger — an arrow would read as "sorted"', () => {
     render(
       <ColumnFilterMenu

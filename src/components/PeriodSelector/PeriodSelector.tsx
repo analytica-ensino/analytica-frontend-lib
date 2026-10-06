@@ -65,8 +65,9 @@ export function PeriodSelector({
       variant="breadcrumb"
       className={`!px-0 ${className ?? ''}`}
       onValueChange={onChange}
+      semantics="radio"
     >
-      <MenuContent className="!px-0">
+      <MenuContent className="!px-0" aria-label="Período">
         {filteredOptions.map((tab: PeriodTab) => (
           <MenuItem
             key={tab.value}

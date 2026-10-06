@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { SimpleBarChart, type SimpleBarChartDataItem } from './SimpleBarChart';
@@ -147,21 +147,38 @@ describe('SimpleBarChart', () => {
   });
 
   describe('Accessibility', () => {
-    it('should have aria-label on container', () => {
+    it('exposes the plot as an image named by the title and described by the data table', () => {
       render(<SimpleBarChart data={mockData} title="Acessos por dia" />);
 
-      const chart = screen.getByLabelText('Acessos por dia');
-      expect(chart).toBeInTheDocument();
+      const chart = screen.getByRole('img', { name: 'Acessos por dia' });
+      const table = screen.getByRole('table', {
+        name: 'Dados do gráfico: Acessos por dia',
+      });
+      expect(chart).toHaveAttribute('aria-describedby', table.id);
+      expect(
+        within(table).getByRole('rowheader', { name: 'SEG' })
+      ).toBeTruthy();
+      expect(within(table).getByRole('cell', { name: '150' })).toBeTruthy();
     });
 
-    it('should have aria-label on each bar', () => {
+    it('uses formatTooltip text as the table value', () => {
+      render(
+        <SimpleBarChart
+          data={[{ label: '2 a 4', value: 24845 }]}
+          title="Faixas"
+          formatTooltip={(item) => `Média de ${item.label}: ${item.value}`}
+        />
+      );
+      const table = screen.getByRole('table');
+      expect(
+        within(table).getByRole('cell', { name: 'Média de 2 a 4: 24845' })
+      ).toBeTruthy();
+    });
+
+    it('should not set aria-label on role-less bars', () => {
       render(<SimpleBarChart data={mockData} title="Test Chart" />);
 
-      const barSEG = screen.getByTestId('bar-SEG');
-      expect(barSEG).toHaveAttribute('aria-label', 'SEG: 150');
-
-      const barTER = screen.getByTestId('bar-TER');
-      expect(barTER).toHaveAttribute('aria-label', 'TER: 200');
+      expect(screen.getByTestId('bar-SEG')).not.toHaveAttribute('aria-label');
     });
 
     it('should have aria-hidden on Y-axis', () => {
@@ -272,7 +289,7 @@ describe('SimpleBarChart', () => {
         />
       );
 
-      await user.hover(screen.getByText('0 a 2'));
+      await user.hover(screen.getByTestId('label-0 a 2'));
 
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
     });

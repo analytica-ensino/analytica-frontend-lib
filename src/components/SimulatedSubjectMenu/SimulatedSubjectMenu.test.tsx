@@ -27,12 +27,21 @@ jest.mock('../Menu/Menu', () => ({
     children,
     value,
     onValueChange,
+    semantics,
+    'aria-labelledby': ariaLabelledBy,
   }: {
     children: React.ReactNode;
     value: string;
     onValueChange?: (value: string) => void;
+    semantics?: string;
+    'aria-labelledby'?: string;
   }) => (
-    <div data-testid="menu-overflow" data-value={value}>
+    <div
+      data-testid="menu-overflow"
+      data-value={value}
+      data-semantics={semantics}
+      data-labelledby={ariaLabelledBy}
+    >
       {React.Children.map(children, (child) => {
         if (!React.isValidElement(child)) return child;
         const childValue = (child.props as { value: string }).value;
@@ -113,6 +122,22 @@ describe('SimulatedSubjectMenu', () => {
     expect(screen.getByText('Componente curricular')).toBeInTheDocument();
     expect(screen.getByText('Todos')).toBeInTheDocument();
     expect(screen.getByText('Matematica')).toBeInTheDocument();
+  });
+
+  // Escolha única de componente: grupo de rádios nomeado pelo rótulo visível.
+  it('renders the strip as a radio group labelled by the visible label', () => {
+    render(
+      <SimulatedSubjectMenu
+        api={api}
+        areaKnowledgeId={null}
+        selectedSubjectId={null}
+        onSubjectChange={onSubjectChange}
+      />
+    );
+
+    const strip = screen.getByTestId('menu-overflow');
+    expect(strip).toHaveAttribute('data-semantics', 'radio');
+    expect(strip.getAttribute('data-labelledby')).toBeTruthy();
   });
 
   it('calls fetchSubjects on mount and areaKnowledgeId changes', () => {

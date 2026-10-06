@@ -1,8 +1,9 @@
-import { type HTMLAttributes, type ReactNode } from 'react';
+import { useId, type HTMLAttributes, type ReactNode } from 'react';
 import Text from '../Text/Text';
 import { Tooltip } from '../Tooltip/Tooltip';
 import { cn } from '../../utils/utils';
 import { bgClassToCssVar, formatAxisTick } from '../../utils/chartUtils';
+import { ChartDataTable } from '../shared/ChartDataTable';
 
 /**
  * Data item for SimpleBarChart
@@ -150,7 +151,6 @@ const Bar = ({
               // its column on narrow screens instead of spilling over it.
               className={cn('w-full max-w-8 rounded-md', barColor)}
               style={{ height: `${barHeight}px` }}
-              aria-label={`${item.label}: ${item.value}`}
             />
           )}
           {item.value > 0 && (
@@ -201,6 +201,7 @@ export const SimpleBarChart = ({
   const maxValue = Math.max(...data.map((item) => item.value), 0);
   const yAxisTicks = calculateTicks(maxValue);
   const adjustedMax = yAxisTicks[0];
+  const tableId = useId();
 
   return (
     <div
@@ -208,7 +209,6 @@ export const SimpleBarChart = ({
         'flex flex-col min-w-0 p-5 gap-4 bg-background border border-border-50 rounded-xl',
         className
       )}
-      aria-label={title}
       {...props}
     >
       <div className="flex flex-col gap-1">
@@ -226,7 +226,14 @@ export const SimpleBarChart = ({
           </Text>
         )}
       </div>
-      <div className="flex flex-row min-w-0">
+      {/* As barras são divs sem semântica: o gráfico vira uma imagem nomeada
+          pelo título e descrita pela tabela sr-only com os mesmos dados. */}
+      <div
+        role="img"
+        aria-label={title}
+        aria-describedby={tableId}
+        className="flex flex-row min-w-0"
+      >
         <YAxis ticks={yAxisTicks} chartHeight={chartHeight} />
         <div className="w-2 shrink-0 sm:w-4" />
         <div className="flex-1 min-w-0 relative">
@@ -252,6 +259,15 @@ export const SimpleBarChart = ({
           </div>
         </div>
       </div>
+      <ChartDataTable
+        id={tableId}
+        caption={`Dados do gráfico: ${title}`}
+        columns={['Rótulo', 'Valor']}
+        rows={data.map((item) => [
+          item.label,
+          formatTooltip ? formatTooltip(item) : item.value,
+        ])}
+      />
     </div>
   );
 };

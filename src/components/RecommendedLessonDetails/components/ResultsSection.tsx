@@ -47,7 +47,12 @@ export const ResultsSection = ({ data, labels }: ResultsSectionProps) => {
               as="span"
               className="size-8 rounded-full flex items-center justify-center bg-warning-300 mb-2"
             >
-              <TrophyIcon size={18} weight="fill" className="text-white" />
+              <TrophyIcon
+                size={18}
+                weight="fill"
+                className="text-white"
+                aria-hidden="true"
+              />
             </Text>
             <Text
               size="2xs"
@@ -71,7 +76,12 @@ export const ResultsSection = ({ data, labels }: ResultsSectionProps) => {
               as="span"
               className="size-8 rounded-full flex items-center justify-center bg-error-300 mb-2"
             >
-              <WarningIcon size={18} weight="fill" className="text-error-700" />
+              <WarningIcon
+                size={18}
+                weight="fill"
+                className="text-error-700"
+                aria-hidden="true"
+              />
             </Text>
             <Text
               size="2xs"

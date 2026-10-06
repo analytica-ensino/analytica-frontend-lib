@@ -446,7 +446,7 @@ describe('EssayCompetenceDetailsModal', () => {
      * de montar a planilha.
      */
     const chooseFormatAndConfirm = async (format: 'PDF' | 'Excel') => {
-      fireEvent.click(screen.getByRole('button', { name: format }));
+      fireEvent.click(screen.getByRole('radio', { name: format }));
       fireEvent.click(screen.getByRole('button', { name: 'Baixar' }));
       // O `fireEvent` já roda dentro de um `act` do Testing Library; este aqui
       // existe só para drenar o que o clique disparou de assíncrono — o caminho
@@ -492,8 +492,8 @@ describe('EssayCompetenceDetailsModal', () => {
 
       openFormatChooser();
 
-      expect(screen.getByRole('button', { name: 'PDF' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Excel' })).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: 'PDF' })).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: 'Excel' })).toBeInTheDocument();
     });
 
     it('imprime o modal no caminho PDF, com o nome do arquivo do dia, e NÃO gera Excel', async () => {

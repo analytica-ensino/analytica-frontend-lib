@@ -17,6 +17,7 @@ import Badge from '../Badge/Badge';
 import { useTheme } from '../../hooks/useTheme';
 import Button from '../Button/Button';
 import { formatExamInfo, shouldShowExamInfo } from './Quiz.utils';
+import Text from '../Text/Text';
 
 const QuizBadge = ({
   subtype,
@@ -109,7 +110,16 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
 
       switch (status) {
         case ANSWER_STATUS.RESPOSTA_CORRETA:
-          return '🎉 Parabéns!!';
+          // Emoji decorativo: sem o aria-hidden o leitor anuncia
+          // "confete" (ou o nome do emoji) antes da mensagem.
+          return (
+            <>
+              <Text as="span" color="text-text-700" aria-hidden="true">
+                🎉
+              </Text>{' '}
+              Parabéns!!
+            </>
+          );
         case ANSWER_STATUS.RESPOSTA_INCORRETA:
           return 'Não foi dessa vez...';
         case ANSWER_STATUS.PENDENTE_AVALIACAO:
@@ -128,6 +138,9 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
           getClassesByAnswersStatus(),
           className
         )}
+        // role="status": o resultado muda ao navegar entre questões e o
+        // leitor de tela precisa anunciar o novo feedback sem mover o foco.
+        role="status"
         {...props}
       >
         <p className="text-text-950 font-bold text-lg">Resultado</p>
@@ -169,7 +182,11 @@ const QuizResultHeaderTitle = forwardRef<
       )}
       {...props}
     >
-      <p className="text-text-950 font-bold text-2xl">Resultado</p>
+      {/* Título principal da tela de resultado: h1 para a navegação por
+          cabeçalhos do leitor de tela. */}
+      <Text as="h1" size="2xl" weight="bold" color="text-text-950">
+        Resultado
+      </Text>
       <div className="flex flex-row gap-3 items-center">
         {canRetry && onRepeat && (
           <Button
@@ -188,23 +205,46 @@ const QuizResultHeaderTitle = forwardRef<
   );
 });
 
-const QuizResultTitle = forwardRef<
-  HTMLParagraphElement,
-  { className?: string }
->(({ className, ...props }, ref) => {
-  const { getQuizTitle } = useQuizStore();
-  const quizTitle = getQuizTitle();
+const QuizResultTitle = forwardRef<HTMLHeadingElement, { className?: string }>(
+  ({ className, ...props }, ref) => {
+    const { getQuizTitle } = useQuizStore();
+    const quizTitle = getQuizTitle();
 
-  return (
-    <p
-      className={cn('pt-6 pb-4 text-text-950 font-bold text-lg', className)}
-      ref={ref}
-      {...props}
-    >
-      {quizTitle}
-    </p>
-  );
-});
+    // Título da atividade logo abaixo do h1 "Resultado": seção de nível 2.
+    return (
+      <h2
+        className={cn('pt-6 pb-4 text-text-950 font-bold text-lg', className)}
+        ref={ref}
+        {...props}
+      >
+        {quizTitle}
+      </h2>
+    );
+  }
+);
+
+/**
+ * Accessible name of a difficulty progress bar on the result screen.
+ *
+ * @param difficultyLabel - Difficulty name in lowercase, e.g. "fáceis"
+ * @param correct - Number of correct answers for this difficulty
+ * @param total - Number of questions for this difficulty
+ * @returns The sentence announced by screen readers
+ *
+ * @example
+ * ```typescript
+ * getDifficultyAccessibleLabel('fáceis', 2, 5); // 'Questões fáceis: 2 de 5 corretas.'
+ * getDifficultyAccessibleLabel('fáceis', 0, 0); // 'Questões fáceis: nenhuma questão.'
+ * ```
+ */
+const getDifficultyAccessibleLabel = (
+  difficultyLabel: string,
+  correct: number,
+  total: number
+): string =>
+  total > 0
+    ? `Questões ${difficultyLabel}: ${correct} de ${total} corretas.`
+    : `Questões ${difficultyLabel}: nenhuma questão.`;
 
 /**
  * Update statistics counters based on difficulty level
@@ -425,6 +465,13 @@ const QuizResultPerformance = forwardRef<
             value={stats.correctEasyAnswers}
             max={stats.totalEasyQuestions}
             label="Fáceis"
+            // Frase completa: "2 de 5" sozinho não diz que são acertos, e
+            // sem questões a barra não deve soar como "0 de 0".
+            accessibleLabel={getDifficultyAccessibleLabel(
+              'fáceis',
+              stats.correctEasyAnswers,
+              stats.totalEasyQuestions
+            )}
             showHitCount
             labelClassName="text-base font-medium text-text-800 leading-none"
             percentageClassName="text-xs font-medium leading-[14px] text-right"
@@ -437,6 +484,13 @@ const QuizResultPerformance = forwardRef<
             value={stats.correctMediumAnswers}
             max={stats.totalMediumQuestions}
             label="Médias"
+            // Frase completa: "2 de 5" sozinho não diz que são acertos, e
+            // sem questões a barra não deve soar como "0 de 0".
+            accessibleLabel={getDifficultyAccessibleLabel(
+              'médias',
+              stats.correctMediumAnswers,
+              stats.totalMediumQuestions
+            )}
             showHitCount
             labelClassName="text-base font-medium text-text-800 leading-none"
             percentageClassName="text-xs font-medium leading-[14px] text-right"
@@ -449,6 +503,13 @@ const QuizResultPerformance = forwardRef<
             value={stats.correctDifficultAnswers}
             max={stats.totalDifficultQuestions}
             label="Difíceis"
+            // Frase completa: "2 de 5" sozinho não diz que são acertos, e
+            // sem questões a barra não deve soar como "0 de 0".
+            accessibleLabel={getDifficultyAccessibleLabel(
+              'difíceis',
+              stats.correctDifficultAnswers,
+              stats.totalDifficultQuestions
+            )}
             showHitCount
             labelClassName="text-base font-medium text-text-800 leading-none"
             percentageClassName="text-xs font-medium leading-[14px] text-right"
@@ -475,6 +536,9 @@ const QuizListResult = forwardRef<
       let incorrect = 0;
 
       for (const question of questions) {
+        // Nota: questões em branco ou com avaliação pendente entram como
+        // "incorretas" nesta contagem (e, portanto, no nome acessível do
+        // CardResults). Mantido como está; revisar se o produto pedir.
         if (question.answerStatus === ANSWER_STATUS.RESPOSTA_CORRETA) {
           correct++;
         } else {
@@ -500,9 +564,15 @@ const QuizListResult = forwardRef<
 
   return (
     <section ref={ref} className={className} {...props}>
-      <p className="pt-6 pb-4 text-text-950 font-bold text-lg">
+      <Text
+        as="h2"
+        size="lg"
+        weight="bold"
+        color="text-text-950"
+        className="pt-6 pb-4"
+      >
         Componentes curriculares
-      </p>
+      </Text>
 
       <ul className="flex flex-col gap-2">
         {subjectsStats.map((subject) => (
@@ -552,17 +622,24 @@ const QuizListResultByMateria = ({
   return (
     <div className="flex flex-col">
       <div className="flex flex-row pt-4 justify-between">
-        <p className="text-text-950 font-bold text-2xl">
+        {/* Nesta visão o nome do componente curricular é o título da tela. */}
+        <Text as="h1" size="2xl" weight="bold" color="text-text-950">
           {subjectName ||
             formattedQuestions?.[0]?.knowledgeMatrix?.[0]?.subject?.name ||
             'Sem componente curricular'}
-        </p>
+        </Text>
       </div>
 
       <section className="flex flex-col ">
-        <p className="pt-6 pb-4 text-text-950 font-bold text-lg">
+        <Text
+          as="h2"
+          size="lg"
+          weight="bold"
+          color="text-text-950"
+          className="pt-6 pb-4"
+        >
           Resultado das questões
-        </p>
+        </Text>
 
         <ul className="flex flex-col gap-2 pt-4">
           {formattedQuestions.map((question) => {

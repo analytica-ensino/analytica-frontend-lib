@@ -5,6 +5,7 @@ import { SealWarningIcon } from '@phosphor-icons/react/dist/csr/SealWarning';
 import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
+import Button from '../Button/Button';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import ProgressCircle from '../ProgressCircle/ProgressCircle';
 import { CardActivitiesResults } from '../Card/Card';
@@ -74,8 +75,51 @@ const Caret = ({ expanded }: { expanded: boolean }) => (
       'shrink-0 text-text-950 transition-transform duration-200',
       expanded ? 'rotate-90' : 'rotate-0'
     )}
+    // Decorativo: o estado aberto/fechado já sai em `aria-expanded`.
+    aria-hidden="true"
   />
 );
+
+/**
+ * Header of a row that may or may not expand. With children it is a toggle
+ * `Button` exposing `aria-expanded`; without them it is a plain `div`.
+ *
+ * Um botão desabilitado sem filhos aparecia ao leitor de tela como controle
+ * indisponível, sem nada a fazer — e saía da ordem de Tab de um jeito que
+ * parecia defeito. Uma linha que não abre não é controle.
+ */
+const RowHeader = ({
+  hasChildren,
+  expanded,
+  onToggle,
+  className,
+  children,
+}: {
+  hasChildren: boolean;
+  expanded: boolean;
+  onToggle: () => void;
+  className: string;
+  children: ReactNode;
+}) => {
+  if (!hasChildren) {
+    return <div className={cn(className, 'cursor-default')}>{children}</div>;
+  }
+
+  return (
+    <Button
+      variant="raw"
+      type="button"
+      onClick={onToggle}
+      className={cn(
+        className,
+        'cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-950'
+      )}
+      aria-expanded={expanded}
+    >
+      {children}
+    </Button>
+  );
+};
 
 /** Percentage at the end of a row, rounded as every level draws it. */
 const ProgressPercent = ({
@@ -134,29 +178,31 @@ const SubtopicCard = ({
 
   return (
     <div className="flex flex-col rounded-xl border border-border-200 bg-background">
-      <button
-        type="button"
-        onClick={() => hasChildren && setIsExpanded(!isExpanded)}
-        disabled={!hasChildren}
-        className={cn(
-          'flex w-full items-center gap-4 rounded-xl p-4 text-left',
-          'focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-950',
-          hasChildren ? 'cursor-pointer' : 'cursor-default'
-        )}
-        aria-expanded={hasChildren ? isExpanded : undefined}
+      <RowHeader
+        hasChildren={hasChildren}
+        expanded={isExpanded}
+        onToggle={() => setIsExpanded(!isExpanded)}
+        className="flex w-full items-center gap-4 rounded-xl p-4 text-left"
       >
-        <Text size="sm" weight="bold" className="min-w-0 flex-1 text-text-950">
+        {/* `Text as="span"` e não `p`: dentro de um botão só cabe conteúdo
+            de frase. */}
+        <Text
+          as="span"
+          size="sm"
+          weight="bold"
+          className="block min-w-0 flex-1 text-text-950"
+        >
           {item.subtopic.name}
         </Text>
         {hasNoData ? (
-          <Text size="xs" className="shrink-0 text-text-500">
+          <Text as="span" size="xs" className="block shrink-0 text-text-500">
             {noDataMessage}
           </Text>
         ) : (
           <ProgressPercent progress={item.progress} className="text-text-600" />
         )}
         {hasChildren && <Caret expanded={isExpanded} />}
-      </button>
+      </RowHeader>
 
       {hasChildren && (
         <Collapsible
@@ -197,28 +243,30 @@ const TopicCard = ({
       data-testid={`lesson-item-${item.topic.id}`}
       className="flex flex-col rounded-xl bg-background"
     >
-      <button
-        type="button"
-        onClick={() => hasChildren && setIsExpanded(!isExpanded)}
-        disabled={!hasChildren}
-        className={cn(
-          'flex w-full items-center gap-2 rounded-xl p-4 text-left',
-          'focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-950',
-          hasChildren ? 'cursor-pointer' : 'cursor-default'
-        )}
-        aria-expanded={hasChildren ? isExpanded : undefined}
+      <RowHeader
+        hasChildren={hasChildren}
+        expanded={isExpanded}
+        onToggle={() => setIsExpanded(!isExpanded)}
+        className="flex w-full items-center gap-2 rounded-xl p-4 text-left"
       >
         <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <Text size="lg" weight="bold" className="text-text-950">
+          <Text
+            as="span"
+            size="lg"
+            weight="bold"
+            className="block text-text-950"
+          >
             {item.topic.name}
           </Text>
           {hasNoData ? (
-            <Text size="xs" className="text-text-500">
+            <Text as="span" size="xs" className="block text-text-500">
               {noDataMessage}
             </Text>
           ) : (
             <div className="flex items-center gap-2">
-              <div className="flex-1">
+              {/* Barra só visual: dentro do botão o `<progress>` vira ruído no
+                  nome acessível, e o percentual ao lado já diz o valor. */}
+              <div className="flex-1" aria-hidden="true">
                 <ProgressBar
                   value={item.progress}
                   variant="green"
@@ -233,7 +281,7 @@ const TopicCard = ({
           )}
         </div>
         {hasChildren && <Caret expanded={isExpanded} />}
-      </button>
+      </RowHeader>
 
       {hasChildren && (
         <Collapsible
@@ -259,7 +307,15 @@ const TopicCard = ({
  * Loading skeleton for the modal content
  */
 const LoadingSkeleton = () => (
-  <div data-testid="lesson-progress-skeleton" className="flex flex-col gap-4">
+  // `role="status"` + texto `sr-only`: os skeletons são só visuais.
+  <div
+    data-testid="lesson-progress-skeleton"
+    className="flex flex-col gap-4"
+    role="status"
+  >
+    <Text as="span" className="sr-only">
+      Carregando progresso do estudante...
+    </Text>
     <Skeleton variant="text" width="12rem" height={24} />
     <div className="flex flex-row gap-3">
       <SkeletonCircle width={107} height={107} />
@@ -285,12 +341,21 @@ const ErrorContent = ({
   message: string;
   prefix?: string;
 }) => (
-  <div className="flex flex-col items-center justify-center py-8 gap-3">
+  // `role="alert"`: a falha substitui o conteúdo e precisa ser anunciada.
+  <div
+    className="flex flex-col items-center justify-center py-8 gap-3"
+    role="alert"
+  >
     <Text
       as="span"
       className="size-12 rounded-full bg-error-100 flex items-center justify-center"
     >
-      <XCircleIcon size={24} className="text-error-700" weight="fill" />
+      <XCircleIcon
+        size={24}
+        className="text-error-700"
+        weight="fill"
+        aria-hidden="true"
+      />
     </Text>
     <Text size="md" className="text-error-700 text-center">
       {prefix ? `${prefix}: ${message}` : message}
@@ -329,7 +394,12 @@ const ProgressContent = ({
 
       <CardActivitiesResults
         icon={
-          <MedalIcon size={16} weight="regular" className="text-text-950" />
+          <MedalIcon
+            size={16}
+            weight="regular"
+            className="text-text-950"
+            aria-hidden="true"
+          />
         }
         title={labels.bestResultLabel}
         subTitle={data.bestResult || '-'}
@@ -340,7 +410,12 @@ const ProgressContent = ({
 
       <CardActivitiesResults
         icon={
-          <SealWarningIcon size={16} weight="regular" className="text-white" />
+          <SealWarningIcon
+            size={16}
+            weight="regular"
+            className="text-white"
+            aria-hidden="true"
+          />
         }
         title={labels.biggestDifficultyLabel}
         subTitle={data.biggestDifficulty || '-'}
@@ -352,7 +427,8 @@ const ProgressContent = ({
 
     {data.lessonProgress.length > 0 && (
       <div className="flex flex-col gap-4 pt-4">
-        <Text size="lg" weight="bold" className="text-text-950">
+        {/* Título de seção dentro do modal: `h3`, abaixo do `h2` do título. */}
+        <Text as="h3" size="lg" weight="bold" className="text-text-950">
           {labels.lessonProgressTitle}
         </Text>
         <div className="flex flex-col gap-2">

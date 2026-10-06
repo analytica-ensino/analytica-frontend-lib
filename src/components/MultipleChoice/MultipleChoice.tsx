@@ -12,6 +12,7 @@ import {
   ROW_INTERACTION_CLASSES,
   STRETCHED_LABEL_CLASSES,
 } from '../Alternative/choiceRowClasses';
+import Text from '../Text/Text';
 
 interface Choice {
   value: string;
@@ -73,14 +74,18 @@ const MultipleChoiceList = ({
           <Badge
             variant="solid"
             action="success"
-            iconLeft={<CheckCircleIcon />}
+            iconLeft={<CheckCircleIcon aria-hidden="true" />}
           >
             Resposta correta
           </Badge>
         );
       case OptionStatus.INCORRECT:
         return (
-          <Badge variant="solid" action="error" iconLeft={<XCircleIcon />}>
+          <Badge
+            variant="solid"
+            action="error"
+            iconLeft={<XCircleIcon aria-hidden="true" />}
+          >
             Resposta incorreta
           </Badge>
         );
@@ -110,7 +115,8 @@ const MultipleChoiceList = ({
     );
 
     return (
-      <div className={checkboxClasses}>
+      // Puramente decorativo: o estado vem do `aria-checked` da linha.
+      <div className={checkboxClasses} aria-hidden="true">
         {isSelected && <CheckIcon size={16} weight="bold" />}
       </div>
     );
@@ -123,18 +129,32 @@ const MultipleChoiceList = ({
           const isSelected = actualValue?.includes(choice.value) || false;
           const statusStyles = getStatusStyles(choice.status);
           const statusBadge = getStatusBadge(choice.status);
+          const isDisabled = choice.disabled || disabled;
 
+          /*
+           * Mesmo padrão do resultado de Alternative: a linha inteira é um único
+           * ponto de leitura (role="checkbox" + aria-checked), só de leitura e
+           * fora da ordem do Tab. O conteúdo vira o nome, na ordem: posição,
+           * enunciado da alternativa, status e o que o aluno marcou.
+           */
           return (
             <div
               key={`readonly-${choice.value}-${i}`}
+              role="checkbox"
+              aria-checked={isSelected}
+              aria-readonly="true"
+              aria-disabled={isDisabled ? true : undefined}
               className={cn(
                 'flex flex-row justify-between gap-2 items-start p-2 rounded-lg transition-all',
                 statusStyles,
                 choice.disabled ? 'opacity-50 cursor-not-allowed' : ''
               )}
             >
+              <Text as="span" className="sr-only">
+                {`Alternativa ${i + 1} de ${choices.length}`}
+              </Text>
               <div className="flex items-center gap-2 flex-1">
-                {renderVisualCheckbox(isSelected, choice.disabled || disabled)}
+                {renderVisualCheckbox(isSelected, isDisabled)}
                 <HtmlMathRenderer
                   content={choice.label}
                   className={cn(
@@ -143,15 +163,18 @@ const MultipleChoiceList = ({
                       (choice.status && choice.status != OptionStatus.NEUTRAL)
                       ? 'text-text-950'
                       : 'text-text-600',
-                    choice.disabled || disabled
-                      ? 'cursor-not-allowed'
-                      : 'cursor-default'
+                    isDisabled ? 'cursor-not-allowed' : 'cursor-default'
                   )}
                 />
               </div>
               {statusBadge && (
                 <div className="flex-shrink-0">{statusBadge}</div>
               )}
+              {/* Deixa explícito o que o aluno escolheu, independente de o
+                  leitor anunciar o estado do aria-checked. */}
+              <Text as="span" className="sr-only">
+                {isSelected ? 'Você marcou' : 'Não marcada'}
+              </Text>
             </div>
           );
         })}

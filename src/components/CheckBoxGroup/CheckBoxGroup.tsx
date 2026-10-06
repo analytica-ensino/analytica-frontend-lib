@@ -654,18 +654,11 @@ export const CheckboxGroup = ({
     category: CategoryConfig,
     isEnabled: boolean
   ) => {
-    const allSelected = areAllFilteredItemsSelected(category.key);
-    const someSelected = isMinimalOneCheckBoxIsSelected(category.key);
-
     return (
-      <div className="flex items-center justify-between w-full p-2">
+      <div className="flex items-center justify-between w-full h-10 p-2">
         <div className="flex items-center gap-3">
-          <CheckBox
-            checked={allSelected}
-            disabled={!isEnabled}
-            indeterminate={someSelected && !allSelected}
-            onChange={() => toggleAllInCategory(category.key)}
-          />
+          {/* Reserva o lugar do "selecionar todos", que fica fora do botão. */}
+          <Text as="span" aria-hidden="true" className="w-5 h-5 shrink-0" />
           <Text
             size="sm"
             weight="medium"
@@ -679,6 +672,38 @@ export const CheckboxGroup = ({
             {getBadgeText(category)}
           </Badge>
         )}
+      </div>
+    );
+  };
+
+  /**
+   * Renders the category's "select all" checkbox, overlaid on the accordion
+   * header instead of nested in its trigger button.
+   *
+   * @param category - The category configuration
+   * @param isEnabled - Whether the category is enabled
+   * @returns The positioned checkbox
+   */
+  const renderSelectAllCheckbox = (
+    category: CategoryConfig,
+    isEnabled: boolean
+  ) => {
+    const allSelected = areAllFilteredItemsSelected(category.key);
+    const someSelected = isMinimalOneCheckBoxIsSelected(category.key);
+
+    // Controle interativo dentro de `<button>` é HTML inválido: o leitor de
+    // tela achata o botão e o checkbox some, e o clique nele também abria o
+    // acordeão. Ele vive fora do botão, sobreposto ao mesmo lugar (o trigger
+    // reserva o espaço), e ganha nome próprio.
+    return (
+      <div className="absolute left-4 top-0 z-10 flex h-10 items-center">
+        <CheckBox
+          checked={allSelected}
+          disabled={!isEnabled}
+          indeterminate={someSelected && !allSelected}
+          onChange={() => toggleAllInCategory(category.key)}
+          aria-label={`Selecionar todos em ${category.label}`}
+        />
       </div>
     );
   };
@@ -749,7 +774,8 @@ export const CheckboxGroup = ({
       displayGroups.every((group) => !group.itens || group.itens.length === 0);
 
     return (
-      <div key={category.key}>
+      <div key={category.key} className="relative">
+        {renderSelectAllCheckbox(category, isEnabled)}
         <CardAccordation
           value={category.key}
           disabled={!isEnabled}

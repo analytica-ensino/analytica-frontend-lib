@@ -167,19 +167,33 @@ const Badge = ({
       </div>
     );
   }
+  // Com texto visível o ícone é só decorativo: escondê-lo evita que o
+  // leitor de tela anuncie "imagem" antes/depois do rótulo do badge.
+  // Badge só de ícone mantém o ícone exposto (o nome vem do consumidor).
+  // O invólucro já é `flex`, então trocar span por div não muda o visual.
+  const iconAriaHidden = Boolean(children) || children === 0 ? true : undefined;
+
   return (
     <div
       className={cn(baseClasses, variantClasses, sizeClasses, className)}
       {...props}
     >
       {iconLeft && (
-        <span className={cn(baseClassesIcon, sizeClassesIcon)}>{iconLeft}</span>
+        <div
+          className={cn(baseClassesIcon, sizeClassesIcon)}
+          aria-hidden={iconAriaHidden}
+        >
+          {iconLeft}
+        </div>
       )}
       {children}
       {iconRight && (
-        <span className={cn(baseClassesIcon, sizeClassesIcon)}>
+        <div
+          className={cn(baseClassesIcon, sizeClassesIcon)}
+          aria-hidden={iconAriaHidden}
+        >
           {iconRight}
-        </span>
+        </div>
       )}
     </div>
   );

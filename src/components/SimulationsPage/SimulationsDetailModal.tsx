@@ -474,6 +474,7 @@ export function SimulationNoteRow({
   };
 
   if (loading) {
+    // O `SkeletonCard` já é `role="status"` e anuncia o carregamento.
     return <SkeletonCard className="h-14" />;
   }
 
@@ -484,7 +485,8 @@ export function SimulationNoteRow({
           <Text size="md" weight="bold" className="text-text-950">
             Observação
           </Text>
-          <Text size="sm" className="text-error-600">
+          {/* `role="alert"`: a falha precisa ser anunciada na hora. */}
+          <Text size="sm" className="text-error-600" role="alert">
             {loadError}
           </Text>
         </div>
@@ -516,7 +518,7 @@ export function SimulationNoteRow({
           rows={3}
         />
         {error && (
-          <Text size="sm" className="text-error-600">
+          <Text size="sm" className="text-error-600" role="alert">
             {error}
           </Text>
         )}
@@ -606,12 +608,13 @@ export function SimulationAnswers({
   ) => Promise<void>;
 }) {
   if (!detail || detail.loading) {
+    // O `SkeletonCard` já é `role="status"` e anuncia o carregamento.
     return <SkeletonCard className="h-40" />;
   }
 
   if (detail.error) {
     return (
-      <Text size="sm" className="text-error-600">
+      <Text size="sm" className="text-error-600" role="alert">
         {detail.error}
       </Text>
     );
@@ -773,7 +776,14 @@ export function SimulationsDetailModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Simulados" size="xl">
       {student && (
-        <div className="flex max-h-[70vh] flex-col gap-6 overflow-y-auto pr-1">
+        // Área rolável focável e nomeada: sem `tabIndex` quem usa só teclado
+        // não consegue rolar quando não há controle focável no trecho cortado.
+        <div
+          className="flex max-h-[70vh] flex-col gap-6 overflow-y-auto pr-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-950"
+          role="region"
+          aria-label={`Simulados de ${student.name}`}
+          tabIndex={0}
+        >
           <StudentSummaryHeader
             name={student.name}
             location={[
@@ -790,7 +800,7 @@ export function SimulationsDetailModal({
             </>
           )}
           {listError && (
-            <Text size="sm" className="text-error-600">
+            <Text size="sm" className="text-error-600" role="alert">
               {listError}
             </Text>
           )}

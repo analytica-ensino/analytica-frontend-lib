@@ -92,8 +92,13 @@ export function SimulationsPage({ api, noSearchImage }: SimulationsPageProps) {
         label: 'Estudante',
         render: (_value, row) => (
           <span className="flex items-center gap-2">
-            <UserCircleIcon size={24} weight="fill" className="text-info-700" />
-            <Text size="sm" className="text-text-950">
+            <UserCircleIcon
+              size={24}
+              weight="fill"
+              className="text-info-700"
+              aria-hidden="true"
+            />
+            <Text as="span" size="sm" className="text-text-950">
               {row.name}
             </Text>
           </span>
@@ -128,7 +133,13 @@ export function SimulationsPage({ api, noSearchImage }: SimulationsPageProps) {
       },
       {
         key: 'actions',
-        label: '',
+        // Sem texto visível (design), mas com nome para o leitor de tela:
+        // coluna sem cabeçalho é anunciada como vazia.
+        label: (
+          <Text as="span" className="sr-only">
+            Ações
+          </Text>
+        ),
         render: (_value, row) => (
           <div className="flex justify-end">
             <Button
@@ -140,6 +151,9 @@ export function SimulationsPage({ api, noSearchImage }: SimulationsPageProps) {
                   name: row.name,
                 })
               }
+              // Todas as linhas têm o mesmo botão: o nome do estudante no nome
+              // acessível diz de quem é cada um fora da tabela.
+              aria-label={`Ver simulados de ${row.name}`}
             >
               Ver simulados
             </Button>
@@ -153,7 +167,7 @@ export function SimulationsPage({ api, noSearchImage }: SimulationsPageProps) {
   return (
     <PageContainer innerClassName="max-w-[1150px]">
       <div className="mb-4 flex flex-col gap-1">
-        <Text size="2xl" weight="bold" className="text-text-950">
+        <Text as="h1" size="2xl" weight="bold" className="text-text-950">
           Simulados
         </Text>
         <Text size="sm" className="text-text-600">

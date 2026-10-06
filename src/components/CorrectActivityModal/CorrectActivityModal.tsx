@@ -3,6 +3,7 @@ import {
   useRef,
   useEffect,
   useCallback,
+  useId,
   type ReactNode,
 } from 'react';
 import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
@@ -58,6 +59,25 @@ import {
 } from '../../utils/questionRenderer/index';
 import useToastStore from '../Toast/utils/ToastStore';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
+
+/**
+ * Builds the accessible name of the link to an attachment stored on the server.
+ * Keeps the visible text ("Anexado") at the start, adds the file name taken
+ * from the URL when there is one and warns that the link opens a new tab.
+ * @param url - Attachment URL
+ * @returns Accessible name for the attachment link
+ */
+export const getAttachmentLinkLabel = (url: string): string => {
+  const lastSegment = url.split(/[?#]/)[0].split('/').pop() ?? '';
+  let fileName = lastSegment;
+  try {
+    fileName = decodeURIComponent(lastSegment);
+  } catch {
+    // URL com escape inválido: usa o trecho cru, que ainda identifica o arquivo.
+  }
+  const namePart = fileName.trim() ? `: ${fileName.trim()}` : '';
+  return `Anexado${namePart} (abre em nova aba)`;
+};
 
 /**
  * Props for the CorrectActivityModal component
@@ -168,6 +188,7 @@ const CorrectActivityModal = ({
     null
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const observationHeadingId = useId();
 
   // Toast store for notifications
   const addToast = useToastStore((state) => state.addToast);
@@ -727,8 +748,14 @@ const CorrectActivityModal = ({
         )}
 
         {/* Is correct radio group */}
-        <div className="space-y-2">
-          <Text className="text-sm font-semibold text-text-950">
+        {/* `fieldset` + `legend`: sem eles o leitor de tela anuncia só "Sim" /
+            "Não", sem a pergunta nem a questão. O "Questão N" fica `sr-only`
+            porque o cabeçalho do acordeão já o mostra visualmente. */}
+        <fieldset className="space-y-2 border-0 p-0 m-0 min-w-0">
+          <Text as="legend" className="text-sm font-semibold text-text-950 p-0">
+            <Text as="span" className="sr-only">
+              Questão {questionData.questionNumber} —{' '}
+            </Text>
             Resposta está correta?
           </Text>
           <div className="flex gap-4">
@@ -767,14 +794,25 @@ const CorrectActivityModal = ({
               }}
             />
           </div>
-        </div>
+        </fieldset>
 
         {/* Teacher feedback textarea */}
         <div className="space-y-2">
-          <Text className="text-sm font-semibold text-text-950">
+          <Text
+            as="label"
+            htmlFor={`teacher-feedback-${questionData.questionNumber}`}
+            className="text-sm font-semibold text-text-950"
+          >
             Incluir observação
+            {/* Vários acordeões abertos têm campos iguais: o número da
+                questão desambigua o nome do campo para o leitor de tela. */}
+            <Text as="span" className="sr-only">
+              {' '}
+              da questão {questionData.questionNumber}
+            </Text>
           </Text>
           <TextArea
+            id={`teacher-feedback-${questionData.questionNumber}`}
             value={correction.teacherFeedback}
             onChange={(e) => {
               updateEssayCorrection(
@@ -833,6 +871,12 @@ const CorrectActivityModal = ({
      */
     const getFileNameFromUrl = (_url: string): string => 'Anexado';
 
+    // O texto visível é só "Anexado": o nome acessível acrescenta o arquivo e
+    // avisa da nova aba, que de outro modo pega o usuário de surpresa.
+    const existingAttachmentLinkLabel = existingAttachment
+      ? getAttachmentLinkLabel(existingAttachment)
+      : undefined;
+
     /**
      * Render attachment input section for expanded state
      * @returns JSX element for attachment input
@@ -841,7 +885,11 @@ const CorrectActivityModal = ({
       if (attachedFiles.length > 0) {
         return (
           <div className="flex items-center justify-center gap-2 px-5 h-10 bg-secondary-500 rounded-full min-w-0 max-w-[150px]">
-            <PaperclipIcon size={18} className="text-text-800 flex-shrink-0" />
+            <PaperclipIcon
+              size={18}
+              className="text-text-800 flex-shrink-0"
+              aria-hidden="true"
+            />
             <span className="text-base font-medium text-text-800 truncate">
               {attachedFiles[0].file.name}
             </span>
@@ -851,7 +899,7 @@ const CorrectActivityModal = ({
               className="text-text-700 hover:text-text-800 flex-shrink-0"
               aria-label={`Remover ${attachedFiles[0].file.name}`}
             >
-              <XIcon size={18} />
+              <XIcon size={18} aria-hidden="true" />
             </button>
           </div>
         );
@@ -865,10 +913,12 @@ const CorrectActivityModal = ({
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-5 h-10 bg-secondary-500 rounded-full min-w-0 max-w-[150px] hover:bg-secondary-600 transition-colors"
+              aria-label={existingAttachmentLinkLabel}
             >
               <PaperclipIcon
                 size={18}
                 className="text-text-800 flex-shrink-0"
+                aria-hidden="true"
               />
               <span className="text-base font-medium text-text-800 truncate">
                 {getFileNameFromUrl(existingAttachment)}
@@ -881,7 +931,7 @@ const CorrectActivityModal = ({
               onClick={() => fileInputRef.current?.click()}
               className="flex items-center gap-2"
             >
-              <PaperclipIcon size={18} />
+              <PaperclipIcon size={18} aria-hidden="true" />
               Trocar
             </Button>
           </div>
@@ -896,7 +946,7 @@ const CorrectActivityModal = ({
           onClick={() => fileInputRef.current?.click()}
           className="flex items-center gap-2"
         >
-          <PaperclipIcon size={18} />
+          <PaperclipIcon size={18} aria-hidden="true" />
           Anexar
         </Button>
       );
@@ -907,7 +957,7 @@ const CorrectActivityModal = ({
       return (
         <div className="bg-background border border-border-200 rounded-lg p-4 space-y-2">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <Text size="md" weight="bold" className="text-text-950">
+            <Text as="h3" size="md" weight="bold" className="text-text-950">
               Observação
             </Text>
             <div className="flex items-center gap-3">
@@ -917,6 +967,7 @@ const CorrectActivityModal = ({
                   <PaperclipIcon
                     size={18}
                     className="text-text-800 flex-shrink-0"
+                    aria-hidden="true"
                   />
                   <span className="text-base font-medium text-text-800 truncate">
                     {savedFiles[0].file.name}
@@ -930,10 +981,12 @@ const CorrectActivityModal = ({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-5 h-10 bg-secondary-500 rounded-full min-w-0 max-w-[150px] hover:bg-secondary-600 transition-colors"
+                  aria-label={existingAttachmentLinkLabel}
                 >
                   <PaperclipIcon
                     size={18}
                     className="text-text-800 flex-shrink-0"
+                    aria-hidden="true"
                   />
                   <span className="text-base font-medium text-text-800 truncate">
                     {getFileNameFromUrl(existingAttachment)}
@@ -947,7 +1000,7 @@ const CorrectActivityModal = ({
                 onClick={handleEditObservation}
                 className="flex items-center gap-2 flex-shrink-0"
               >
-                <PencilSimpleIcon size={16} />
+                <PencilSimpleIcon size={16} aria-hidden="true" />
                 Editar
               </Button>
             </div>
@@ -965,10 +1018,19 @@ const CorrectActivityModal = ({
     if (isObservationExpanded) {
       return (
         <div className="bg-background border border-border-200 rounded-lg p-4 space-y-3">
-          <Text size="md" weight="bold" className="text-text-950">
+          <Text
+            as="h3"
+            id={observationHeadingId}
+            size="md"
+            weight="bold"
+            className="text-text-950"
+          >
             Observação
           </Text>
+          {/* Nomeado pelo título "Observação" logo acima: sem isso o campo
+              só tinha placeholder, que some ao digitar e não é nome. */}
           <textarea
+            aria-labelledby={observationHeadingId}
             value={observation}
             onChange={(e) => setObservation(e.target.value)}
             placeholder="Escreva uma observação para o estudante"
@@ -1021,7 +1083,7 @@ const CorrectActivityModal = ({
     // State: Closed (default)
     return (
       <div className="bg-background border border-border-200 rounded-lg p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-        <Text size="md" weight="bold" className="text-text-950">
+        <Text as="h3" size="md" weight="bold" className="text-text-950">
           Observação
         </Text>
         <Button type="button" size="small" onClick={handleOpenObservation}>
@@ -1052,7 +1114,7 @@ const CorrectActivityModal = ({
               size="small"
               onClick={onViewScannedAnswerSheet}
             >
-              <ImageIcon size={18} className="mr-2" />
+              <ImageIcon size={18} className="mr-2" aria-hidden="true" />
               Ver gabarito escaneado
             </Button>
           </div>
@@ -1077,7 +1139,9 @@ const CorrectActivityModal = ({
 
         {/* Questions List */}
         <div className="space-y-2">
-          <Text className="text-sm font-bold text-text-950">Respostas</Text>
+          <Text as="h3" className="text-sm font-bold text-text-950">
+            Respostas
+          </Text>
           {/* A student can reach this modal with nothing answered: an in-person
               exam whose essay arrived before the answer sheet was scanned, or a
               digital activity never handed in. Saying so beats an empty list. */}

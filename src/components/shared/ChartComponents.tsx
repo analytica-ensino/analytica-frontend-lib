@@ -47,7 +47,7 @@ export const LegendItem = ({
   label: string;
 }) => (
   <div className="flex flex-row items-center gap-2">
-    <div className={cn('w-2 h-2 rounded-full', color)} />
+    <div className={cn('w-2 h-2 rounded-full', color)} aria-hidden="true" />
     <Text size="xs" weight="medium" className="text-text-600">
       {label}
     </Text>
@@ -106,9 +106,21 @@ export const DataBar = ({
             colorClass
           )}
           style={{ height: `${barHeight}px` }}
+          aria-hidden="true"
         />
       </div>
-      <Text size="xs" weight="medium" className="text-text-600 text-center">
+      {/* A altura da barra e o balão de hover só existem para quem enxerga:
+          o leitor de tela recebe rótulo e valor juntos neste texto sr-only,
+          e o rótulo visual fica oculto para não ser lido duas vezes. */}
+      <Text as="span" className="sr-only">
+        {`${label}: ${value.toLocaleString('pt-BR')}`}
+      </Text>
+      <Text
+        size="xs"
+        weight="medium"
+        className="text-text-600 text-center"
+        aria-hidden="true"
+      >
         {label}
       </Text>
     </div>
@@ -426,6 +438,7 @@ export const LegendRow = ({
     <div
       className={cn('w-2 h-2 rounded-full shrink-0', !color && colorClass)}
       style={color ? { backgroundColor: color } : undefined}
+      aria-hidden="true"
     />
     <Text size="sm" weight="medium" className="text-text-950 flex-1">
       {label}

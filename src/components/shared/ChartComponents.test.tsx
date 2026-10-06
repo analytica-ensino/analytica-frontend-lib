@@ -59,6 +59,20 @@ describe('LegendItem', () => {
 // ─── DataBar ──────────────────────────────────────────────────
 
 describe('DataBar', () => {
+  it('exposes label and value as sr-only text and hides the visual label', () => {
+    render(
+      <DataBar
+        label="Corretas"
+        value={1500}
+        maxValue={2000}
+        colorClass="bg-success-200"
+        chartHeight={100}
+      />
+    );
+    expect(screen.getByText('Corretas: 1.500')).toHaveClass('sr-only');
+    expect(screen.getByText('Corretas')).toHaveAttribute('aria-hidden', 'true');
+  });
+
   it('renders the label', () => {
     render(
       <DataBar

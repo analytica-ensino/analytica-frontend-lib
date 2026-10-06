@@ -122,7 +122,7 @@ describe('UnifiedDraftModelPage - items per page', () => {
       <UnifiedDraftModelPage {...createProps(onParamsChange)} />
     );
 
-    fireEvent.change(screen.getByLabelText('Items por página'), {
+    fireEvent.change(screen.getByLabelText('Itens por página'), {
       target: { value: '100' },
     });
 

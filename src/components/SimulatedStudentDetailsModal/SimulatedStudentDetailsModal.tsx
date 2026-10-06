@@ -1,4 +1,10 @@
-import { useEffect, useState, useCallback, type ReactNode } from 'react';
+import {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  type ReactNode,
+} from 'react';
 import ReportDetailModal from '../ReportDetailModal/ReportDetailModal';
 import Text from '../Text/Text';
 import ProgressBar from '../ProgressBar/ProgressBar';
@@ -71,6 +77,12 @@ export function SimulatedStudentDetailsModal({
     id: string;
     name: string;
   } | null>(null);
+  // Âncora dentro do corpo do modal para alcançar o título (o `<h2>` do
+  // `Modal`) sem depender de API nova dele.
+  const bodyRef = useRef<HTMLDivElement>(null);
+  // Só a navegação entre níveis move o foco: a abertura já é tratada pelo
+  // `Modal`, e roubar o foco ali brigaria com ele.
+  const hasNavigatedRef = useRef(false);
 
   // Fetch subjects when modal opens
   useEffect(() => {
@@ -97,6 +109,7 @@ export function SimulatedStudentDetailsModal({
     (subject: SubjectPerformanceItem) => {
       if (!userInstitutionId) return;
 
+      hasNavigatedRef.current = true;
       setSelectedSubject({ id: subject.id, name: subject.name });
       fetchDetails({
         simulationType,
@@ -112,6 +125,7 @@ export function SimulatedStudentDetailsModal({
   const handleBack = useCallback(() => {
     if (!userInstitutionId) return;
 
+    hasNavigatedRef.current = true;
     setSelectedSubject(null);
     fetchDetails({
       simulationType,
@@ -120,6 +134,16 @@ export function SimulatedStudentDetailsModal({
       subjectId: null,
     });
   }, [userInstitutionId, simulationType, period, fetchDetails]);
+
+  // Ao trocar de nível o botão clicado some (a linha da matéria ou o "voltar")
+  // e o foco cairia no `<body>`. Levá-lo ao título do modal — que já é
+  // `tabIndex={-1}` e agora diz o nível novo — situa o leitor de tela e anuncia
+  // a troca.
+  useEffect(() => {
+    if (!hasNavigatedRef.current) return;
+    hasNavigatedRef.current = false;
+    focusDialogTitle(bodyRef.current);
+  }, [selectedSubject]);
 
   // O nome que o TÍTULO do modal exibe no nível 2 — e, por isso, o que a aba de
   // resumo da planilha carrega. Sai do estado local, não de
@@ -135,31 +159,48 @@ export function SimulatedStudentDetailsModal({
     );
   }, [fileName, data, selectedSubjectName]);
 
-  // Build modal title with back button when in level 2
-  const modalTitle = selectedSubject ? (
-    <div className="flex items-center gap-2">
-      {/* `data-print-hide`: navegar é controle de tela, não conteúdo do
-          relatório, e no caminho PDF este botão está DENTRO da região impressa.
-          Fica no próprio <Button> porque ele É o item do flex — escondido, o
-          `gap-2` não separa mais nada, que é o que o contrato do print.css
-          quer evitar. O nome da matéria ao lado continua saindo no papel. */}
-      <Button
-        onClick={handleBack}
-        variant="raw"
-        className="p-1 hover:bg-background-100 rounded-md transition-colors"
-        aria-label="Voltar para lista de componentes curriculares"
-        data-print-hide
-      >
-        <ArrowLeftIcon size={20} className="text-text-600" />
-      </Button>
-      <Text>{selectedSubject.name}</Text>
-    </div>
-  ) : (
-    `Desempenho de ${studentName || 'Estudante'}`
-  );
+  // Título só texto: ele vira o `<h2>` que nomeia o diálogo, e um botão dentro
+  // dele fazia o nome do diálogo começar por "Voltar para lista...". O botão de
+  // voltar mora no corpo (ver `renderBackButton`).
+  const modalTitle = selectedSubject
+    ? selectedSubject.name
+    : `Desempenho de ${studentName || 'Estudante'}`;
 
-  const renderStatusMessage = (message: ReactNode, className: string) => (
-    <div className="flex items-center justify-center py-8">
+  /**
+   * Back button shown on level 2, rendered at the top of the modal body.
+   * @returns The back button row, or null on level 1
+   */
+  const renderBackButton = (): ReactNode => {
+    if (!selectedSubject) return null;
+
+    return (
+      // `data-print-hide` no container: navegar é controle de tela, não
+      // conteúdo do relatório, e escondê-lo junto do wrapper colapsa o `gap`.
+      <div className="flex" data-print-hide>
+        <Button
+          onClick={handleBack}
+          variant="raw"
+          className="flex items-center gap-2 p-1 hover:bg-background-100 rounded-md transition-colors"
+          aria-label="Voltar para lista de componentes curriculares"
+        >
+          <ArrowLeftIcon
+            size={20}
+            className="text-text-600"
+            aria-hidden="true"
+          />
+        </Button>
+      </div>
+    );
+  };
+
+  const renderStatusMessage = (
+    message: ReactNode,
+    className: string,
+    role?: 'status' | 'alert'
+  ) => (
+    // `status` anuncia o carregamento sem interromper; `alert` anuncia o erro
+    // na hora — sem eles a troca de conteúdo passa despercebida.
+    <div className="flex items-center justify-center py-8" role={role}>
       <Text size="sm" className={className}>
         {message}
       </Text>
@@ -211,11 +252,11 @@ export function SimulatedStudentDetailsModal({
   // e, com eles, um botão de download que aparece e some conforme o dado chega.
   const renderModalContent = (): ReactNode => {
     if (loading) {
-      return renderStatusMessage('Carregando...', 'text-text-500');
+      return renderStatusMessage('Carregando...', 'text-text-500', 'status');
     }
 
     if (error) {
-      return renderStatusMessage(error, 'text-error-500');
+      return renderStatusMessage(error, 'text-error-500', 'alert');
     }
 
     if (!data) {
@@ -269,9 +310,25 @@ export function SimulatedStudentDetailsModal({
       fileName={fileName}
       onDownloadExcel={handleDownloadExcel}
     >
-      {renderModalContent()}
+      <div ref={bodyRef} className="flex flex-col gap-4">
+        {renderBackButton()}
+        {renderModalContent()}
+      </div>
     </ReportDetailModal>
   );
+}
+
+/**
+ * Moves focus to the title of the dialog that contains the given element.
+ * The `Modal` renders its title as an `<h2 tabIndex={-1}>` referenced by the
+ * dialog's `aria-labelledby`.
+ * @param element - Any element rendered inside the dialog body
+ */
+function focusDialogTitle(element: HTMLElement | null) {
+  const dialog = element?.closest('dialog');
+  const titleId = dialog?.getAttribute('aria-labelledby');
+  if (!titleId) return;
+  dialog?.ownerDocument.getElementById(titleId)?.focus();
 }
 
 /**
@@ -303,21 +360,34 @@ function SubjectItem({
         <div
           className="w-3 h-3 rounded-full flex-shrink-0"
           style={{ backgroundColor: subject.color }}
+          aria-hidden="true"
         />
       )}
 
       {/* Subject info */}
+      {/* Textos como `Text as="span"`: dentro de um botão só cabe conteúdo
+          de frase. */}
       <div className="flex-1 min-w-0">
-        <Text size="sm" weight="semibold" className="text-text-950 truncate">
+        <Text
+          as="span"
+          size="sm"
+          weight="semibold"
+          className="block text-text-950 truncate"
+        >
           {subject.name}
         </Text>
-        <Text size="xs" className="text-text-500">
+        <Text as="span" size="xs" className="block text-text-500">
           {subject.questionsCount} {questionsLabel}
+        </Text>
+        {/* O `<progress>` dentro do botão vira ruído (ou some) no nome
+            acessível; o percentual chega ao leitor de tela por este texto. */}
+        <Text as="span" className="sr-only">
+          {Math.round(subject.performance.correctPercentage)}% de acertos
         </Text>
       </div>
 
-      {/* Progress bar */}
-      <div className="w-32 flex-shrink-0">
+      {/* Progress bar — visual only, the percentage is in the sr-only text */}
+      <div className="w-32 flex-shrink-0" aria-hidden="true">
         <ProgressBar
           value={subject.performance.correctPercentage}
           variant="green"
@@ -327,7 +397,11 @@ function SubjectItem({
       </div>
 
       {/* Arrow indicator */}
-      <CaretRightIcon size={16} className="text-text-400 flex-shrink-0" />
+      <CaretRightIcon
+        size={16}
+        className="text-text-400 flex-shrink-0"
+        aria-hidden="true"
+      />
     </button>
   );
 }

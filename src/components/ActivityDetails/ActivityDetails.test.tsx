@@ -1,5 +1,11 @@
 import type { HTMLAttributes, ReactNode, Ref } from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import {
   PRESENCIAL_DELIVERY_STATUS,
@@ -566,11 +572,12 @@ const createPendingPromise = <T,>(): Promise<T> => new Promise<T>(() => {});
 /**
  * The one "Corrigir atividade" a teacher can click: the button of a row
  * awaiting correction. The rows not answered yet render the same label
- * disabled, so a text query alone matches more than one.
+ * disabled, so a text query alone matches more than one. Every button is
+ * named after its student ("Corrigir atividade de <nome>").
  */
 const getEnabledCorrectButton = () =>
   screen
-    .queryAllByRole('button', { name: 'Corrigir atividade' })
+    .queryAllByRole('button', { name: /^Corrigir atividade de / })
     .find((button) => !(button as HTMLButtonElement).disabled);
 
 describe('ActivityDetails', () => {
@@ -926,12 +933,12 @@ describe('ActivityDetails', () => {
 
       await waitFor(() => {
         expect(
-          screen.getAllByRole('button', { name: 'Corrigir atividade' })
+          screen.getAllByRole('button', { name: /^Corrigir atividade de / })
         ).toHaveLength(3);
       });
 
       const buttons = screen.getAllByRole('button', {
-        name: 'Corrigir atividade',
+        name: /^Corrigir atividade de /,
       }) as HTMLButtonElement[];
       expect(buttons.filter((button) => button.disabled)).toHaveLength(2);
       expect(buttons.filter((button) => !button.disabled)).toHaveLength(1);
@@ -1066,6 +1073,10 @@ describe('ActivityDetails', () => {
       await waitFor(() => {
         expect(screen.getByText('Ver atividade')).toBeInTheDocument();
       });
+      // The scrollable list is a focusable, named region for keyboard users
+      expect(
+        screen.getByRole('region', { name: 'Questões da atividade' })
+      ).toHaveAttribute('tabindex', '0');
       // The modal lists the loaded question cards
       expect(screen.getByText('Questao um')).toBeInTheDocument();
       expect(screen.getByText('Questao dois')).toBeInTheDocument();
@@ -2690,6 +2701,59 @@ describe('ActivityDetails', () => {
     });
   });
 
+  describe('Accessibility', () => {
+    it('renders the breadcrumb as a navigation list with the current page marked', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      const nav = await screen.findByRole('navigation', {
+        name: 'Trilha de navegação',
+      });
+      const items = within(nav).getAllByRole('listitem');
+      expect(items).toHaveLength(2);
+      expect(within(items[1]).getByText('Prova de Matemática')).toHaveAttribute(
+        'aria-current',
+        'page'
+      );
+      expect(items[1].querySelector('svg')).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
+    });
+
+    it('renders the activity title as h1 and the completion ring as a labelled image', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      expect(
+        await screen.findByRole('heading', {
+          level: 1,
+          name: 'Prova de Matemática',
+        })
+      ).toBeInTheDocument();
+      const ring = screen.getByRole('img', { name: '75% concluído' });
+      expect(ring.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('names each row action after its student', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      expect(
+        await screen.findByRole('button', {
+          name: 'Ver detalhes de João Silva',
+        })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', {
+          name: 'Corrigir atividade de Maria Santos',
+        })
+      ).toBeEnabled();
+      expect(
+        screen.getByRole('button', {
+          name: 'Corrigir atividade de Pedro Oliveira',
+        })
+      ).toBeDisabled();
+    });
+  });
+
   describe('Presencial Mode', () => {
     const mockActivityDataPresencial: ActivityDetailsData = {
       activity: {
@@ -2741,6 +2805,23 @@ describe('ActivityDetails', () => {
 
     beforeEach(() => {
       mockFetchActivityDetails.mockResolvedValue(mockActivityDataPresencial);
+    });
+
+    it('renders the section titles as h2 and names "Ver respostas" after the student', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      expect(
+        await screen.findByRole('heading', {
+          level: 2,
+          name: 'Resultados da atividade',
+        })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { level: 2, name: 'Resultados' })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Ver respostas de Carlos Lima' })
+      ).toBeEnabled();
     });
 
     it.each(['Respondido em', 'Duração', 'Baixar gabarito'])(

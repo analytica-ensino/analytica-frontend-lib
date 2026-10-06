@@ -23,11 +23,11 @@ function openFormatChooser(): void {
 /**
  * Escolhe um formato e confirma.
  *
- * Os cartões são botões com `aria-label` PDF/Excel; "Baixar" é o botão de
+ * Os cartões são radios (`radiogroup`) com `aria-label` PDF/Excel; "Baixar" é o botão de
  * confirmação do rodapé (o de fora se chama "Baixar relatório").
  */
 function chooseFormatAndConfirm(format: 'PDF' | 'Excel'): void {
-  fireEvent.click(screen.getByRole('button', { name: format }));
+  fireEvent.click(screen.getByRole('radio', { name: format }));
   fireEvent.click(screen.getByRole('button', { name: 'Baixar' }));
 }
 
@@ -165,8 +165,8 @@ describe('ReportDetailModal', () => {
     expect(
       screen.getByText('Como deseja baixar o relatório?')
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'PDF' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Excel' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'PDF' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Excel' })).toBeInTheDocument();
   });
 
   describe('caminho PDF', () => {
@@ -313,10 +313,10 @@ describe('ReportDetailModal', () => {
 
       expect(printAsPdfMock).toHaveBeenCalledTimes(1);
       expect(
-        screen.queryByRole('button', { name: 'PDF' })
+        screen.queryByRole('radio', { name: 'PDF' })
       ).not.toBeInTheDocument();
       expect(
-        screen.queryByRole('button', { name: 'Excel' })
+        screen.queryByRole('radio', { name: 'Excel' })
       ).not.toBeInTheDocument();
     });
   });

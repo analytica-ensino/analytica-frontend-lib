@@ -713,7 +713,27 @@ describe('StatCard', () => {
       />
     );
 
-    expect(screen.getByText('-')).toBeInTheDocument();
+    expect(screen.getByText('-')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByText('sem dados')).toHaveClass('sr-only');
     expect(screen.queryByText('6,4')).not.toBeInTheDocument();
+  });
+
+  it('exposes label before value as a description list term/definition', () => {
+    const { container } = render(
+      <StatCard item={{ label: 'Nota média', value: '6,4', variant: 'high' }} />
+    );
+
+    const list = container.firstChild as HTMLElement;
+    expect(list.tagName).toBe('DL');
+    const term = screen.getByRole('term');
+    const definition = screen.getByRole('definition');
+    expect(term).toHaveTextContent('Nota média');
+    expect(definition).toHaveTextContent('6,4');
+    // Label comes first in the DOM; the value is lifted visually by CSS order
+    expect(
+      term.compareDocumentPosition(definition) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(definition).toHaveClass('order-first');
   });
 });

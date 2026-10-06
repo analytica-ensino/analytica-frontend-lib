@@ -759,10 +759,12 @@ describe('CardPerformance', () => {
     render(<CardPerformance {...baseProps} progress={80} />);
 
     // O label visível da barra já começa com o percentual; o nome padrão sairia
-    // "80% : 80%".
+    // "80% : 80%". Agora o nome traz o título do card.
     expect(
-      screen.getByRole('progressbar', { name: 'Progresso: 80%' })
+      screen.getByRole('progressbar', { name: 'Desempenho de Teste: 80%' })
     ).toBeInTheDocument();
+    // O percentual visível fica só visual.
+    expect(screen.getByText('80%')).toHaveAttribute('aria-hidden', 'true');
   });
 
   it('usa o labelProgress no nome acessível quando ele existe', () => {
@@ -775,7 +777,9 @@ describe('CardPerformance', () => {
     );
 
     expect(
-      screen.getByRole('progressbar', { name: 'de acertos: 80%' })
+      screen.getByRole('progressbar', {
+        name: 'Desempenho de Teste: 80% de acertos',
+      })
     ).toBeInTheDocument();
   });
 
@@ -4551,6 +4555,295 @@ describe('CardReadingFluency', () => {
       fireEvent.keyDown(card, { key: 'Enter' });
       fireEvent.keyDown(card, { key: ' ' });
       expect(handleClick).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe('Acessibilidade dos cards', () => {
+  describe('CardBase', () => {
+    it('repassa aria-label para o elemento role="button"', () => {
+      render(
+        <CardBase onClick={jest.fn()} aria-label="Abrir card">
+          conteúdo
+        </CardBase>
+      );
+      expect(
+        screen.getByRole('button', { name: 'Abrir card' })
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe('CardStatus', () => {
+    it('monta o nome "Questão 01, Em branco, Ver resultado" quando clicável', () => {
+      render(
+        <CardStatus
+          header="Questão 01"
+          status="unanswered"
+          onClick={jest.fn()}
+        />
+      );
+      expect(
+        screen.getByRole('button', {
+          name: 'Questão 01, Em branco, Ver resultado',
+        })
+      ).toBeInTheDocument();
+    });
+
+    it('inclui o label e aceita actionLabel customizado', () => {
+      render(
+        <CardStatus
+          header="Questão 02"
+          status="correct"
+          label="Nota 10"
+          actionLabel="Ver questão"
+          onClick={jest.fn()}
+        />
+      );
+      expect(
+        screen.getByRole('button', {
+          name: 'Questão 02, Correta, Nota 10, Ver questão',
+        })
+      ).toBeInTheDocument();
+    });
+
+    it('omite o status quando não informado', () => {
+      render(<CardStatus header="Questão 03" onClick={jest.fn()} />);
+      expect(
+        screen.getByRole('button', { name: 'Questão 03, Ver resultado' })
+      ).toBeInTheDocument();
+    });
+
+    it('respeita aria-label do consumidor', () => {
+      render(
+        <CardStatus
+          header="Questão 04"
+          status="incorrect"
+          onClick={jest.fn()}
+          aria-label="Nome próprio"
+        />
+      );
+      expect(
+        screen.getByRole('button', { name: 'Nome próprio' })
+      ).toBeInTheDocument();
+    });
+
+    it('não define aria-label quando não é clicável', () => {
+      render(
+        <CardStatus header="Questão 05" status="correct" data-testid="cs" />
+      );
+      expect(screen.getByTestId('cs')).not.toHaveAttribute('aria-label');
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('CardResults', () => {
+    const props = {
+      header: 'Matemática',
+      icon: 'MathOperations',
+      correct_answers: 3,
+      incorrect_answers: 1,
+    };
+
+    it('monta o nome com as contagens e a ação quando clicável', () => {
+      render(<CardResults {...props} onClick={jest.fn()} />);
+      expect(
+        screen.getByRole('button', {
+          name: 'Matemática, 3 corretas, 1 incorretas, Ver resultado',
+        })
+      ).toBeInTheDocument();
+    });
+
+    it('aceita actionLabel e aria-label do consumidor', () => {
+      const { rerender } = render(
+        <CardResults {...props} onClick={jest.fn()} actionLabel="Abrir" />
+      );
+      expect(
+        screen.getByRole('button', {
+          name: 'Matemática, 3 corretas, 1 incorretas, Abrir',
+        })
+      ).toBeInTheDocument();
+      rerender(
+        <CardResults {...props} onClick={jest.fn()} aria-label="Custom" />
+      );
+      expect(
+        screen.getByRole('button', { name: 'Custom' })
+      ).toBeInTheDocument();
+    });
+
+    it('esconde o ícone da matéria e a seta e não nomeia card não clicável', () => {
+      render(<CardResults {...props} data-testid="cr" color="#FF0000" />);
+      const card = screen.getByTestId('cr');
+      expect(card).not.toHaveAttribute('aria-label');
+      const iconWrapper = screen.getByText('Matemática').closest('div')
+        ?.parentElement?.previousElementSibling;
+      expect(iconWrapper).toHaveAttribute('aria-hidden', 'true');
+      expect(
+        card.querySelectorAll('svg[aria-hidden="true"]').length
+      ).toBeGreaterThan(0);
+    });
+  });
+
+  describe('CardPerformance', () => {
+    it('não vira role="button" na variante button (evita botão aninhado)', () => {
+      render(
+        <CardPerformance
+          header="Matemática"
+          progress={50}
+          onClickButton={jest.fn()}
+          data-testid="cp"
+        />
+      );
+      expect(screen.getByTestId('cp')).not.toHaveAttribute('role');
+      expect(screen.getAllByRole('button')).toHaveLength(1);
+    });
+
+    it('não vira role="button" na variante caret sem onClickButton', () => {
+      render(
+        <CardPerformance
+          header="Matemática"
+          actionVariant="caret"
+          data-testid="cp"
+        />
+      );
+      expect(screen.getByTestId('cp')).not.toHaveAttribute('role');
+      expect(screen.getByTestId('caret-icon')).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
+    });
+
+    it('vira role="button" na variante caret com onClickButton', () => {
+      render(
+        <CardPerformance
+          header="Matemática"
+          actionVariant="caret"
+          onClickButton={jest.fn()}
+          data-testid="cp"
+        />
+      );
+      expect(screen.getByTestId('cp')).toHaveAttribute('role', 'button');
+    });
+  });
+
+  describe('CardProgress e CardTopic', () => {
+    it('CardProgress nomeia a barra com o título e esconde o percentual visível', () => {
+      render(<CardProgress header="Álgebra" progress={45.4} icon={<span />} />);
+      expect(
+        screen.getByRole('progressbar', { name: 'Álgebra: 45%' })
+      ).toBeInTheDocument();
+      expect(screen.getByText('45%')).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('CardTopic nomeia a barra, esconde o percentual e o separador', () => {
+      render(
+        <CardTopic
+          header="Frações"
+          progress={30}
+          showPercentage
+          subHead={['Matemática', 'Aritmética']}
+          data-testid="ct"
+        />
+      );
+      expect(
+        screen.getByRole('progressbar', { name: 'Frações: 30%' })
+      ).toBeInTheDocument();
+      expect(screen.getByText('30%')).toHaveAttribute('aria-hidden', 'true');
+      expect(screen.getByText('•')).toHaveAttribute('aria-hidden', 'true');
+      expect(screen.getByTestId('ct')).not.toHaveClass('cursor-pointer');
+    });
+
+    it('CardTopic só tem cursor-pointer quando clicável', () => {
+      render(
+        <CardTopic header="Frações" onClick={jest.fn()} data-testid="ct" />
+      );
+      expect(screen.getByTestId('ct')).toHaveClass('cursor-pointer');
+    });
+  });
+
+  describe('CardQuestions', () => {
+    it('inclui o título no nome do botão', () => {
+      render(<CardQuestions header="Questionário 1" state="done" />);
+      expect(
+        screen.getByRole('button', { name: 'Ver Resultado: Questionário 1' })
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe('CardActivitiesResults', () => {
+    it('esconde o ícone decorativo', () => {
+      render(
+        <CardActivitiesResults
+          icon={<span data-testid="icon" />}
+          title="Acertos"
+          subTitle="10"
+          header="Header"
+          extended
+          action="success"
+        />
+      );
+      expect(screen.getByTestId('icon').parentElement).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
+    });
+  });
+
+  describe('CardSimulationHistory', () => {
+    const simulation = {
+      id: '1',
+      title: 'Simulado Enem #42',
+      type: 'enem' as const,
+      info: '45 de 90 corretas',
+      canDelete: true,
+    };
+    const data = [{ date: '12 Fev', simulations: [simulation] }];
+
+    it('não aninha o botão de excluir dentro do role="button"', () => {
+      render(
+        <CardSimulationHistory
+          data={data}
+          onSimulationClick={jest.fn()}
+          onDeleteClick={jest.fn()}
+        />
+      );
+      const deleteButton = screen.getByRole('button', {
+        name: 'Excluir simulado Simulado Enem #42',
+      });
+      expect(deleteButton.parentElement?.closest('[role="button"]')).toBeNull();
+      expect(screen.getByTestId('caret-icon')).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
+    });
+
+    it('navega com Enter e Espaço e ignora outras teclas', () => {
+      const onSimulationClick = jest.fn();
+      render(
+        <CardSimulationHistory
+          data={data}
+          onSimulationClick={onSimulationClick}
+        />
+      );
+      const navButton = screen
+        .getByText('Simulado Enem #42')
+        .closest('[role="button"]') as HTMLElement;
+      expect(navButton).toHaveAttribute('tabindex', '0');
+      fireEvent.keyDown(navButton, { key: 'Enter' });
+      fireEvent.keyDown(navButton, { key: ' ' });
+      fireEvent.keyDown(navButton, { key: 'Tab' });
+      expect(onSimulationClick).toHaveBeenCalledTimes(2);
+      expect(onSimulationClick).toHaveBeenCalledWith(simulation);
+    });
+
+    it('não quebra ao interagir sem onSimulationClick', () => {
+      render(<CardSimulationHistory data={data} />);
+      const navButton = screen
+        .getByText('Simulado Enem #42')
+        .closest('[role="button"]') as HTMLElement;
+      expect(() => {
+        fireEvent.click(navButton);
+        fireEvent.keyDown(navButton, { key: 'Enter' });
+      }).not.toThrow();
     });
   });
 });

@@ -1,5 +1,6 @@
-import React, {
+import {
   forwardRef,
+  type Ref,
   HTMLAttributes,
   TdHTMLAttributes,
   ThHTMLAttributes,
@@ -13,6 +14,7 @@ import React, {
   ReactNode,
 } from 'react';
 import { cn } from '../../utils/utils';
+import Text from '../Text/Text';
 import { ArrowUpIcon } from '@phosphor-icons/react/dist/csr/ArrowUp';
 import { ArrowDownIcon } from '@phosphor-icons/react/dist/csr/ArrowDown';
 import NoSearchResult from '../NoSearchResult/NoSearchResult';
@@ -348,11 +350,12 @@ const getEmptyStateContent = (
  */
 const renderTableWrapper = (
   variant: TableVariant,
-  tableRef: React.Ref<HTMLTableElement>,
+  tableRef: Ref<HTMLTableElement>,
   className: string | undefined,
   children: ReactNode,
   stateContent: ReactNode,
-  tableProps: HTMLAttributes<HTMLTableElement>
+  tableProps: HTMLAttributes<HTMLTableElement>,
+  isLoading = false
 ) => {
   return (
     <div
@@ -367,11 +370,30 @@ const renderTableWrapper = (
           'analytica-table w-full caption-bottom text-sm border-separate border-spacing-0',
           className
         )}
+        // `aria-busy` avisa que a tabela está sendo preenchida; o leitor de tela
+        // espera em vez de ler um cabeçalho sem linhas como se fosse o final.
+        aria-busy={isLoading || undefined}
         {...tableProps}
       >
         {renderHeaderElements(children)}
       </table>
-      <div className="py-8 flex justify-center">{stateContent}</div>
+      {/*
+       * Carregando, vazio e sem resultado aparecem no lugar das linhas sem que
+       * o foco se mova: só uma região viva faz o leitor de tela anunciar a
+       * troca ("Nenhum resultado encontrado") a quem acabou de buscar.
+       */}
+      <div
+        role="status"
+        aria-live="polite"
+        className="py-8 flex justify-center"
+      >
+        {isLoading && (
+          <Text as="span" className="sr-only">
+            Carregando dados da tabela
+          </Text>
+        )}
+        {stateContent}
+      </div>
     </div>
   );
 };
@@ -419,7 +441,8 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
         className,
         children,
         loadingContent,
-        props
+        props,
+        true
       );
     }
 
@@ -474,10 +497,6 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
           )}
           {...props}
         >
-          {/* Render fallback caption only if no TableCaption provided */}
-          {!Children.toArray(children).some(
-            (child) => isValidElement(child) && child.type === TableCaption
-          ) && <caption className="sr-only">My Table</caption>}
           {children}
         </table>
       </div>

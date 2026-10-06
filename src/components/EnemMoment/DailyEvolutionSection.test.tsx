@@ -56,8 +56,17 @@ function renderSection(
   );
 }
 
+/** The days table on screen — not the chart's sr-only data table. */
+const daysTable = () =>
+  screen
+    .getAllByRole('table')
+    .find((table) => !table.classList.contains('sr-only')) as HTMLElement;
+
+/** The visual legend only, ignoring the sr-only data table headers. */
+const LEGEND_ONLY = { ignore: 'script, style, th' };
+
 const rowTexts = () =>
-  within(screen.getByRole('table'))
+  within(daysTable())
     .getAllByRole('row')
     .slice(1)
     .map((row) =>
@@ -79,9 +88,9 @@ function search(value: string) {
 
 const sortByDay = () =>
   fireEvent.click(
-    within(screen.getByRole('columnheader', { name: /Dia/ })).getByRole(
-      'button'
-    )
+    within(
+      within(daysTable()).getByRole('columnheader', { name: /Dia/ })
+    ).getByRole('button')
   );
 
 describe('DailyEvolutionSection', () => {
@@ -102,9 +111,9 @@ describe('DailyEvolutionSection', () => {
     renderSection();
 
     expect(screen.getByText('910 simulados totais')).toBeInTheDocument();
-    expect(screen.getByText('Momento 1')).toBeInTheDocument();
+    expect(screen.getByText('Momento 1', LEGEND_ONLY)).toBeInTheDocument();
     expect(screen.getByText('410 simulados')).toBeInTheDocument();
-    expect(screen.getByText('Momento 2')).toBeInTheDocument();
+    expect(screen.getByText('Momento 2', LEGEND_ONLY)).toBeInTheDocument();
     expect(screen.getByText('500 simulados')).toBeInTheDocument();
   });
 
@@ -116,7 +125,7 @@ describe('DailyEvolutionSection', () => {
       })),
     });
 
-    expect(screen.getByText('Momento 1')).toBeInTheDocument();
+    expect(screen.getByText('Momento 1', LEGEND_ONLY)).toBeInTheDocument();
     expect(screen.queryByText('Momento 2')).not.toBeInTheDocument();
   });
 
@@ -140,7 +149,7 @@ describe('DailyEvolutionSection', () => {
       'day-bar-2026-09-28',
       'day-bar-2026-09-29',
     ]);
-    expect(bars[0]).toHaveAttribute('aria-label', '21/09: 100 simulados');
+    expect(bars[0]).not.toHaveAttribute('aria-label');
     expect(
       screen.getByTestId('day-bar-2026-09-21-day-1').style.backgroundColor
     ).toBe('var(--color-info-300)');
@@ -152,6 +161,25 @@ describe('DailyEvolutionSection', () => {
       screen.queryByTestId('day-bar-2026-09-21-day-2')
     ).not.toBeInTheDocument();
     expect(screen.getByText('Dia 21/09')).toBeInTheDocument();
+  });
+
+  it('exposes the chart as an image described by an sr-only data table', () => {
+    renderSection();
+
+    const chart = screen.getByRole('img', {
+      name: 'Simulados realizados por dia',
+    });
+    const table = screen.getByRole('table', {
+      name: 'Dados do gráfico: Simulados realizados por dia',
+    });
+    expect(chart).toHaveAttribute('aria-describedby', table.id);
+    const firstRow = within(table).getAllByRole('row')[1];
+    expect(
+      within(firstRow)
+        .getAllByRole('cell')
+        .map((cell) => cell.textContent)
+    ).toEqual(['100 simulados', '0 simulados', '100 simulados']);
+    expect(within(firstRow).getByRole('rowheader')).toHaveTextContent('21/09');
   });
 
   it('sizes each segment against the tallest day', () => {

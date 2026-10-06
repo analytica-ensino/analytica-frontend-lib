@@ -90,24 +90,46 @@ export interface StatCardProps {
 
 export const StatCard = ({ item, showPlaceholder = false }: StatCardProps) => {
   return (
-    <div
+    // `dl` com o rótulo (`dt`) antes do valor (`dd`) no DOM: o leitor de tela
+    // anuncia "Acertos: 85%" e não um número solto seguido de um rótulo. O
+    // valor continua visualmente em cima via `order-first`.
+    <dl
       className={`rounded-xl py-[17px] px-6 min-h-[105px] flex flex-col justify-center items-start gap-1 ${VARIANT_STYLES[item.variant]}`}
     >
       <Text
-        size="4xl"
-        weight="bold"
-        className={`${VALUE_TEXT_COLORS[item.variant]} leading-[42px] tracking-[0.2px] self-stretch`}
-      >
-        {showPlaceholder ? '-' : item.value}
-      </Text>
-      <Text
+        as="dt"
         size="xs"
         weight="bold"
         className="uppercase text-[8px] leading-[9px] text-text-800 whitespace-nowrap"
       >
         {item.label}
       </Text>
-    </div>
+      <Text
+        as="dd"
+        size="4xl"
+        weight="bold"
+        className={`${VALUE_TEXT_COLORS[item.variant]} order-first leading-[42px] tracking-[0.2px] self-stretch`}
+      >
+        {showPlaceholder ? (
+          <>
+            {/* Herda tamanho/cor do `dd`: só esconde o traço do leitor. */}
+            <Text
+              as="span"
+              weight="bold"
+              aria-hidden="true"
+              className="text-[length:inherit] text-inherit"
+            >
+              -
+            </Text>
+            <Text as="span" className="sr-only">
+              sem dados
+            </Text>
+          </>
+        ) : (
+          item.value
+        )}
+      </Text>
+    </dl>
   );
 };
 

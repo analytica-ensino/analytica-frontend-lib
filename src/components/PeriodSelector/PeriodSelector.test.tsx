@@ -11,6 +11,7 @@ jest.mock('../Menu/Menu', () => ({
     variant,
     className,
     onValueChange,
+    semantics,
   }: {
     children: React.ReactNode;
     defaultValue: string;
@@ -18,6 +19,7 @@ jest.mock('../Menu/Menu', () => ({
     variant?: string;
     className?: string;
     onValueChange?: (value: string) => void;
+    semantics?: string;
   }) => {
     const content = React.Children.map(children, (child) => {
       if (!React.isValidElement(child)) return child;
@@ -55,6 +57,7 @@ jest.mock('../Menu/Menu', () => ({
         data-variant={variant ?? ''}
         data-class-name={className ?? ''}
         data-has-on-change={Boolean(onValueChange)}
+        data-semantics={semantics ?? ''}
       >
         {content}
       </div>
@@ -63,11 +66,17 @@ jest.mock('../Menu/Menu', () => ({
   MenuContent: ({
     children,
     className,
+    'aria-label': ariaLabel,
   }: {
     children: React.ReactNode;
     className?: string;
+    'aria-label'?: string;
   }) => (
-    <ul data-testid="menu-content" data-class-name={className ?? ''}>
+    <ul
+      data-testid="menu-content"
+      data-class-name={className ?? ''}
+      aria-label={ariaLabel}
+    >
       {children}
     </ul>
   ),
@@ -91,6 +100,20 @@ jest.mock('../Menu/Menu', () => ({
 }));
 
 describe('PeriodSelector', () => {
+  // É uma escolha única entre períodos: grupo de rádios, não menu.
+  it('announces the options as a labelled radio group', () => {
+    render(<PeriodSelector value={Period.ONE_MONTH} onChange={jest.fn()} />);
+
+    expect(screen.getByTestId('menu')).toHaveAttribute(
+      'data-semantics',
+      'radio'
+    );
+    expect(screen.getByTestId('menu-content')).toHaveAttribute(
+      'aria-label',
+      'Período'
+    );
+  });
+
   it('renders all default period options', () => {
     render(<PeriodSelector value={Period.ONE_MONTH} onChange={jest.fn()} />);
 

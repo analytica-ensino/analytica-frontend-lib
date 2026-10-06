@@ -1,4 +1,5 @@
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Tooltip } from '../Tooltip/Tooltip';
 import { cn } from '../../utils/utils';
 
@@ -119,6 +120,22 @@ export const TruncatedText = <T extends ElementType = 'span'>({
   ...rest
 }: TruncatedTextProps<T>) => {
   const Component: ElementType = as ?? 'span';
+  const textRef = useRef<HTMLElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  // Só o texto cortado entra na ordem do Tab: é a única forma de quem usa
+  // teclado chegar ao tooltip com o texto completo. Texto inteiro na tela não
+  // precisa de parada de foco extra (seria um Tab vazio).
+  useLayoutEffect(() => {
+    const node = textRef.current;
+    if (!node) return;
+    const measure = () => setIsTruncated(node.scrollWidth > node.clientWidth);
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [children]);
 
   const resolvedTooltipContent =
     tooltipContent ?? (typeof children === 'string' ? children : '');
@@ -132,6 +149,8 @@ export const TruncatedText = <T extends ElementType = 'span'>({
       className={cn('inline-flex min-w-0 max-w-full', wrapperClassName)}
     >
       <Component
+        ref={textRef}
+        tabIndex={isTruncated && resolvedTooltipContent ? 0 : undefined}
         className={cn(
           'font-primary truncate block min-w-0 max-w-full',
           SIZE_CLASS_MAP[size],

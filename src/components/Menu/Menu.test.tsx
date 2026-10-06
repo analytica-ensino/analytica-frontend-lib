@@ -661,21 +661,32 @@ describe('MenuItem — estado selecionado acessível', () => {
     expect(descriptionOf(done)).toBe('selecionado');
   });
 
-  // O span de estado vive dentro do `<li>`, então entraria no nome acessível
-  // de quem deriva o nome do conteúdo. Só é emitido para itens com
-  // `aria-label` explícito — aí o nome não vem do conteúdo e não há vazamento.
-  it('não descreve itens sem aria-label, para não vazar no nome', () => {
+  // O estado mora em textos ocultos fora do `<li>`, então também vale para
+  // item que deriva o nome do conteúdo — sem vazar "selecionado" no nome.
+  it('descreve itens sem aria-label sem vazar o estado no nome', () => {
     render(
       <Menu defaultValue="home">
         <MenuContent>
           <MenuItem value="home">Home</MenuItem>
+          <MenuItem value="other">Outro</MenuItem>
         </MenuContent>
       </Menu>
     );
 
-    const item = screen.getByRole('menuitem');
-    expect(item).not.toHaveAttribute('aria-describedby');
+    const item = screen.getByRole('menuitem', { name: 'Home' });
     expect(item).toHaveAccessibleName('Home');
+    expect(item).toHaveAccessibleDescription('selecionado');
+    expect(
+      screen.getByRole('menuitem', { name: 'Outro' })
+    ).toHaveAccessibleDescription('não selecionado');
+  });
+
+  it('exige um Menu em volta do item', () => {
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    expect(() => render(<MenuItem value="x">X</MenuItem>)).toThrow(
+      'MenuItem must be inside Menu'
+    );
+    jest.restoreAllMocks();
   });
 
   it('mantém o nome acessível do item rotulado livre do estado', () => {
@@ -701,6 +712,363 @@ describe('MenuItem — estado selecionado acessível', () => {
       'aria-describedby',
       'extra'
     );
+  });
+});
+
+describe('Menu — semantics="tabs"', () => {
+  const renderTabs = (onValueChange = jest.fn()) =>
+    render(
+      <Menu defaultValue="a" semantics="tabs" onValueChange={onValueChange}>
+        <MenuContent aria-label="Visões">
+          <MenuItem value="a" variant="menu2">
+            Alunos
+          </MenuItem>
+          <MenuItem value="b" variant="menu2" disabled>
+            Bloqueada
+          </MenuItem>
+          <MenuItem value="c" variant="menu2">
+            Habilidades
+          </MenuItem>
+          <MenuItem value="d" variant="menu2">
+            Turmas
+          </MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+  it('renderiza tablist com abas e aria-selected', () => {
+    renderTabs();
+
+    expect(screen.getByRole('tablist', { name: 'Visões' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Alunos' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+    expect(screen.getByRole('tab', { name: 'Habilidades' })).toHaveAttribute(
+      'aria-selected',
+      'false'
+    );
+    expect(screen.queryByRole('menuitem')).not.toBeInTheDocument();
+    // Sem textos ocultos de estado: aria-selected já anuncia a seleção.
+    expect(screen.getByRole('tab', { name: 'Alunos' })).not.toHaveAttribute(
+      'aria-describedby'
+    );
+  });
+
+  it('usa roving tabindex: só a aba selecionada entra no Tab', () => {
+    renderTabs();
+
+    expect(screen.getByRole('tab', { name: 'Alunos' })).toHaveAttribute(
+      'tabindex',
+      '0'
+    );
+    expect(screen.getByRole('tab', { name: 'Habilidades' })).toHaveAttribute(
+      'tabindex',
+      '-1'
+    );
+    expect(screen.getByRole('tab', { name: 'Bloqueada' })).toHaveAttribute(
+      'tabindex',
+      '-1'
+    );
+  });
+
+  it('move foco e seleção com setas, Home e End, pulando desabilitados', () => {
+    const onValueChange = jest.fn();
+    renderTabs(onValueChange);
+    const alunos = screen.getByRole('tab', { name: 'Alunos' });
+    alunos.focus();
+
+    fireEvent.keyDown(alunos, { key: 'ArrowRight' });
+    const habilidades = screen.getByRole('tab', { name: 'Habilidades' });
+    expect(habilidades).toHaveFocus();
+    expect(habilidades).toHaveAttribute('aria-selected', 'true');
+    expect(habilidades).toHaveAttribute('tabindex', '0');
+    expect(onValueChange).toHaveBeenLastCalledWith('c');
+
+    fireEvent.keyDown(habilidades, { key: 'End' });
+    expect(screen.getByRole('tab', { name: 'Turmas' })).toHaveFocus();
+    expect(onValueChange).toHaveBeenLastCalledWith('d');
+
+    fireEvent.keyDown(screen.getByRole('tab', { name: 'Turmas' }), {
+      key: 'ArrowRight',
+    });
+    expect(alunos).toHaveFocus();
+    expect(onValueChange).toHaveBeenLastCalledWith('a');
+
+    fireEvent.keyDown(alunos, { key: 'ArrowLeft' });
+    expect(screen.getByRole('tab', { name: 'Turmas' })).toHaveFocus();
+
+    fireEvent.keyDown(screen.getByRole('tab', { name: 'Turmas' }), {
+      key: 'Home',
+    });
+    expect(alunos).toHaveFocus();
+    expect(onValueChange).toHaveBeenLastCalledWith('a');
+  });
+
+  it('ignora setas verticais e outras teclas em abas', () => {
+    const onValueChange = jest.fn();
+    renderTabs(onValueChange);
+    const alunos = screen.getByRole('tab', { name: 'Alunos' });
+    alunos.focus();
+
+    fireEvent.keyDown(alunos, { key: 'ArrowDown' });
+    fireEvent.keyDown(alunos, { key: 'a' });
+
+    expect(alunos).toHaveFocus();
+    expect(onValueChange).not.toHaveBeenCalled();
+  });
+
+  it('torna a primeira aba habilitada alcançável quando nada está selecionado', () => {
+    render(
+      <Menu defaultValue="nenhum" semantics="tabs">
+        <MenuContent>
+          <MenuItem value="x" disabled>
+            X
+          </MenuItem>
+          <MenuItem value="y">Y</MenuItem>
+          <MenuItem value="z">Z</MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    expect(screen.getByRole('tab', { name: 'Y' })).toHaveAttribute(
+      'tabindex',
+      '0'
+    );
+    expect(screen.getByRole('tab', { name: 'Z' })).toHaveAttribute(
+      'tabindex',
+      '-1'
+    );
+  });
+
+  it('cai para a seleção quando o item não é filho direto do conteúdo', () => {
+    render(
+      <Menu defaultValue="y" semantics="tabs">
+        <MenuItem value="x">X</MenuItem>
+        <MenuItem value="y">Y</MenuItem>
+      </Menu>
+    );
+
+    expect(screen.getByRole('tab', { name: 'Y' })).toHaveAttribute(
+      'tabindex',
+      '0'
+    );
+    expect(screen.getByRole('tab', { name: 'X' })).toHaveAttribute(
+      'tabindex',
+      '-1'
+    );
+  });
+
+  it('não navega quando nenhum irmão está habilitado', () => {
+    const onValueChange = jest.fn();
+    render(
+      <Menu defaultValue="x" semantics="tabs" onValueChange={onValueChange}>
+        <MenuContent>
+          <MenuItem value="x" disabled>
+            X
+          </MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    fireEvent.keyDown(screen.getByRole('tab', { name: 'X' }), {
+      key: 'ArrowRight',
+    });
+    expect(onValueChange).not.toHaveBeenCalled();
+  });
+});
+
+describe('Menu — semantics="radio"', () => {
+  it('renderiza radiogroup com aria-checked e navega com setas verticais', () => {
+    const onValueChange = jest.fn();
+    render(
+      <Menu defaultValue="7d" semantics="radio" onValueChange={onValueChange}>
+        <MenuContent aria-label="Período">
+          <MenuItem value="7d">7 dias</MenuItem>
+          <MenuItem value="1m">1 mês</MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    expect(
+      screen.getByRole('radiogroup', { name: 'Período' })
+    ).toBeInTheDocument();
+    const seven = screen.getByRole('radio', { name: '7 dias' });
+    expect(seven).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByRole('radio', { name: '1 mês' })).toHaveAttribute(
+      'aria-checked',
+      'false'
+    );
+
+    seven.focus();
+    fireEvent.keyDown(seven, { key: 'ArrowDown' });
+    expect(screen.getByRole('radio', { name: '1 mês' })).toHaveFocus();
+    expect(screen.getByRole('radio', { name: '1 mês' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    );
+    expect(onValueChange).toHaveBeenLastCalledWith('1m');
+
+    fireEvent.keyDown(screen.getByRole('radio', { name: '1 mês' }), {
+      key: 'ArrowUp',
+    });
+    expect(seven).toHaveFocus();
+    expect(onValueChange).toHaveBeenLastCalledWith('7d');
+  });
+});
+
+describe('Menu — trilha de navegação (breadcrumb)', () => {
+  it('renderiza nav > ol > li com aria-current no item atual', () => {
+    const onBack = jest.fn();
+    render(
+      <Menu value="atual" defaultValue="atual" variant="breadcrumb">
+        <MenuContent variant="breadcrumb">
+          <MenuItem
+            variant="breadcrumb"
+            value="provas"
+            onClick={onBack}
+            separator
+          >
+            Provas
+          </MenuItem>
+          <MenuItem variant="breadcrumb" value="atual">
+            Prova 1
+          </MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    const nav = screen.getByRole('navigation', { name: 'Trilha de navegação' });
+    expect(nav.querySelector('ol')).not.toBeNull();
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem')).not.toBeInTheDocument();
+
+    const current = screen.getByText('Prova 1');
+    expect(current).toHaveAttribute('aria-current', 'page');
+    expect(
+      screen.queryByRole('button', { name: 'Prova 1' })
+    ).not.toBeInTheDocument();
+
+    expect(screen.getByTestId('separator')).toHaveAttribute(
+      'aria-hidden',
+      'true'
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Provas' }));
+    expect(onBack).toHaveBeenCalledTimes(1);
+    // Com onClick do consumidor, o item atual não muda.
+    expect(screen.getByText('Prova 1')).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('detecta a trilha pelos itens e seleciona sem onClick do consumidor', () => {
+    const onValueChange = jest.fn();
+    render(
+      <Menu defaultValue="b" variant="breadcrumb" onValueChange={onValueChange}>
+        <MenuContent aria-label="Caminho" data-testid="trail">
+          <MenuItem variant="breadcrumb" value="a" separator>
+            Início
+          </MenuItem>
+          <MenuItem variant="breadcrumb" value="b">
+            Aula
+          </MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    expect(
+      screen.getByRole('navigation', { name: 'Caminho' })
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('trail').tagName).toBe('OL');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Início' }));
+    expect(onValueChange).toHaveBeenCalledWith('a');
+    expect(screen.getByText('Início')).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('button', { name: 'Aula' })).toBeInTheDocument();
+  });
+
+  it('desabilita o botão de item desabilitado', () => {
+    const onValueChange = jest.fn();
+    render(
+      <Menu defaultValue="b" onValueChange={onValueChange}>
+        <MenuContent variant="breadcrumb">
+          <MenuItem variant="breadcrumb" value="a" disabled>
+            Início
+          </MenuItem>
+          <MenuItem variant="breadcrumb" value="b">
+            Aula
+          </MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    const button = screen.getByRole('button', { name: 'Início' });
+    expect(button).toBeDisabled();
+    fireEvent.click(button);
+    expect(onValueChange).not.toHaveBeenCalled();
+  });
+
+  it('não vira trilha quando a semântica é explícita (abas)', () => {
+    render(
+      <Menu defaultValue="a" variant="breadcrumb" semantics="tabs">
+        <MenuContent variant="breadcrumb">
+          <MenuItem variant="breadcrumb" value="a">
+            A
+          </MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'A' })).toBeInTheDocument();
+  });
+
+  it('funciona fora de um Menu sem quebrar o MenuContent', () => {
+    render(
+      <MenuContent data-testid="loose">
+        <li>solto</li>
+      </MenuContent>
+    );
+    expect(screen.getByTestId('loose')).toHaveAttribute('role', 'menu');
+  });
+});
+
+describe('MenuOverflow — acessibilidade', () => {
+  beforeEach(() => {
+    window.HTMLElement.prototype.scrollBy = jest.fn();
+  });
+
+  it('nomeia os botões de rolagem em português e repassa semântica e rótulo', () => {
+    render(
+      <MenuOverflow
+        defaultValue="a"
+        semantics="radio"
+        aria-label="Componente curricular"
+      >
+        <MenuItem value="a" variant="menu-overflow">
+          Todos
+        </MenuItem>
+      </MenuOverflow>
+    );
+
+    expect(
+      screen.getByRole('radiogroup', { name: 'Componente curricular' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Todos' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    );
+
+    const list = screen.getByRole('radiogroup');
+    Object.defineProperty(list, 'scrollWidth', { value: 1000 });
+    Object.defineProperty(list, 'clientWidth', { value: 500 });
+    Object.defineProperty(list, 'scrollLeft', { value: 100 });
+    fireEvent.scroll(list);
+
+    const left = screen.getByRole('button', { name: 'Rolar para a esquerda' });
+    const right = screen.getByRole('button', { name: 'Rolar para a direita' });
+    expect(left).toHaveAttribute('type', 'button');
+    expect(right).toHaveAttribute('type', 'button');
   });
 });
 

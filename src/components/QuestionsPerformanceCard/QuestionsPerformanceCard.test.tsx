@@ -46,7 +46,10 @@ describe('QuestionsPerformanceCard', () => {
 
     expect(screen.getByText('Total')).toBeInTheDocument();
     expect(screen.queryByText('Respondidas')).not.toBeInTheDocument();
-    expect(bar('total')).toHaveAttribute('aria-label', 'Total: 20');
+    expect(bar('total')).not.toHaveAttribute('aria-label');
+    expect(
+      within(screen.getByTestId('questions-legend')).getByText('20')
+    ).toBeInTheDocument();
   });
 
   it('paints the blank bar with the design grey', () => {
@@ -267,6 +270,9 @@ describe('QuestionsPerformanceCard — subtemas', () => {
     render(<QuestionsPerformanceCard data={data} subtopics={subtopics} />);
 
     expect(screen.getByText('Todos os temas')).toBeInTheDocument();
+    expect(
+      screen.getByRole('combobox', { name: /Selecionar tema/ })
+    ).toBeInTheDocument();
   });
 
   it('offers no tema select when the subject has no subtema with data', () => {
@@ -285,7 +291,9 @@ describe('QuestionsPerformanceCard — subtemas', () => {
     fireEvent.click(screen.getByText('Termodinâmica'));
 
     // Termologia alone: 1 correct, 8 incorrect, 1 blank.
-    expect(bar('total')).toHaveAttribute('aria-label', 'Total: 10');
+    expect(
+      within(screen.getByTestId('questions-legend')).getByText('10')
+    ).toBeInTheDocument();
     expect(screen.getByText('Termologia')).toBeInTheDocument();
     expect(screen.queryByText('Ondas')).not.toBeInTheDocument();
   });
@@ -354,12 +362,29 @@ describe('QuestionsBars', () => {
   it('draws the four bars and their shares of the total', () => {
     render(<QuestionsBars values={values} />);
 
-    expect(screen.getByTestId('questions-bar-total')).toHaveAttribute(
-      'aria-label',
-      'Total: 40'
-    );
+    expect(
+      within(screen.getByTestId('questions-legend')).getByText('40')
+    ).toBeInTheDocument();
     expect(screen.getByText('50% do total')).toBeInTheDocument();
     expect(screen.getByText('10% do total')).toBeInTheDocument();
+  });
+
+  it('exposes the chart as an image described by the legend cards', () => {
+    render(<QuestionsBars values={values} />);
+
+    const chart = screen.getByRole('img', {
+      name: 'Gráfico de barras das questões',
+    });
+    const legend = screen.getByTestId('questions-legend');
+    expect(chart).toHaveAttribute('aria-describedby', legend.id);
+    // Both axes are decorative: the legend already carries the numbers
+    expect(
+      screen.getByText('Corretas').closest('[aria-hidden]')
+    ).toHaveAttribute('aria-hidden', 'true');
+    expect(chart.firstElementChild?.firstElementChild).toHaveAttribute(
+      'aria-hidden',
+      'true'
+    );
   });
 
   it('puts what the caller adds under the legend', () => {
@@ -373,8 +398,13 @@ describe('QuestionsBars', () => {
 
 describe('RateCell', () => {
   it('writes the rate with one decimal, pt-BR', () => {
-    render(<RateCell rate={60.25} />);
+    const { container } = render(<RateCell rate={60.25} />);
 
     expect(screen.getByText('60,3%')).toBeInTheDocument();
+    // The bar repeats the written rate, so it is hidden from screen readers
+    expect(container.querySelector('progress')).toHaveAttribute(
+      'aria-hidden',
+      'true'
+    );
   });
 });

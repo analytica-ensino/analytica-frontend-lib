@@ -3,8 +3,9 @@ import { CaretLeftIcon } from '@phosphor-icons/react/dist/csr/CaretLeft';
 import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 import { cn } from '../../utils/utils';
+import Text from '../Text/Text';
 
-export interface TablePaginationProps extends HTMLAttributes<HTMLDivElement> {
+export interface TablePaginationProps extends HTMLAttributes<HTMLElement> {
   /**
    * Total number of items
    */
@@ -95,10 +96,14 @@ const TablePagination = ({
   };
 
   const isFirstPage = currentPage === 1;
-  const isLastPage = currentPage === totalPages;
+  // `>=` e não `===`: sem páginas (totalPages 0) não há "próxima" para ir.
+  const isLastPage = currentPage >= totalPages;
 
   return (
-    <div
+    // Landmark de navegação: quem navega por regiões encontra a paginação
+    // direto, e o nome a distingue de outros `nav` da página.
+    <nav
+      aria-label="Paginação"
       className={cn(
         'flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full bg-background-50 rounded-xl p-4',
         'sm:justify-between',
@@ -120,7 +125,7 @@ const TablePagination = ({
               value={itemsPerPage}
               onChange={handleItemsPerPageChange}
               className="w-24 h-9 py-0 px-3 pr-8 bg-background border border-border-300 rounded appearance-none cursor-pointer font-normal text-sm leading-[21px] text-text-900"
-              aria-label="Items por página"
+              aria-label="Itens por página"
             >
               {itemsPerPageOptions.map((option) => (
                 <option key={option} value={option}>
@@ -131,18 +136,25 @@ const TablePagination = ({
             <CaretDownIcon
               size={14}
               weight="regular"
+              aria-hidden="true"
               className="absolute right-3 top-1/2 -translate-y-1/2 text-background-600 pointer-events-none"
             />
           </div>
         )}
 
-        {/* Page info */}
-        <span className="font-normal text-xs leading-[14px] text-text-950">
+        {/* Page info — região viva: trocar de página não move o foco, então
+            é ela que confirma ao leitor de tela para onde se foi. */}
+        <Text
+          as="span"
+          aria-live="polite"
+          className="font-normal text-xs leading-[14px] text-text-950"
+        >
           Página {currentPage} de {totalPages}
-        </span>
+        </Text>
 
         {/* Previous button */}
         <button
+          type="button"
           onClick={handlePrevious}
           disabled={isFirstPage}
           className={cn(
@@ -153,7 +165,12 @@ const TablePagination = ({
           )}
           aria-label="Página anterior"
         >
-          <CaretLeftIcon size={12} weight="bold" className="text-primary-950" />
+          <CaretLeftIcon
+            size={12}
+            weight="bold"
+            className="text-primary-950"
+            aria-hidden="true"
+          />
           <span className="font-medium text-xs leading-[14px] text-primary-950">
             Anterior
           </span>
@@ -161,6 +178,7 @@ const TablePagination = ({
 
         {/* Next button */}
         <button
+          type="button"
           onClick={handleNext}
           disabled={isLastPage}
           className={cn(
@@ -178,10 +196,11 @@ const TablePagination = ({
             size={12}
             weight="bold"
             className="text-primary-950"
+            aria-hidden="true"
           />
         </button>
       </div>
-    </div>
+    </nav>
   );
 };
 

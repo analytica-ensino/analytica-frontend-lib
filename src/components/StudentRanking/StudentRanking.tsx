@@ -77,11 +77,18 @@ const StudentCard = ({
         backgroundClass
       )}
     >
-      {/* Position badge */}
+      {/* Position badge — `aria-label` num elemento sem papel é ignorado: a
+          posição vai por extenso num texto sr-only e o número visual fica
+          oculto para não ser lido duas vezes. */}
       <Text
+        as="span"
+        className="sr-only"
+      >{`Posição ${student.position}:`}</Text>
+      <Text
+        as="span"
         size="xs"
         weight="bold"
-        aria-label={`Posição ${student.position}`}
+        aria-hidden="true"
         className={cn(
           'w-5 h-5 rounded-full flex items-center justify-center text-text',
           BADGE_BACKGROUND_CLASSES[variant]
@@ -92,6 +99,7 @@ const StudentCard = ({
 
       {/* Student name */}
       <Text
+        as="span"
         size="sm"
         weight="bold"
         className="flex-1 min-w-0 text-text-950 tracking-[0.2px] truncate"
@@ -102,17 +110,28 @@ const StudentCard = ({
       {/* The row's own badge, or the percentage one */}
       {student.badge}
       {student.badge === undefined && showPercentage && (
-        <Text
-          size="xs"
-          weight="bold"
-          aria-label={`Desempenho ${student.percentage}%`}
-          className={cn(
-            'flex flex-row items-center h-[22px] px-2 gap-1 rounded text-text',
-            PERCENTAGE_BADGE_CLASSES[variant]
-          )}
-        >
-          <TrendIcon size={16} weight="bold" aria-hidden="true" />
-          {student.percentage}%
+        <>
+          <Text as="span" className="sr-only">
+            Desempenho
+          </Text>
+          <Text
+            as="span"
+            size="xs"
+            weight="bold"
+            className={cn(
+              'flex flex-row items-center h-[22px] px-2 gap-1 rounded text-text',
+              PERCENTAGE_BADGE_CLASSES[variant]
+            )}
+          >
+            <TrendIcon size={16} weight="bold" aria-hidden="true" />
+            {student.percentage}%
+          </Text>
+        </>
+      )}
+      {/* Diz ao leitor de tela o que o botão faz, depois dos dados da linha. */}
+      {onClick && (
+        <Text as="span" className="sr-only">
+          Ver detalhes
         </Text>
       )}
     </Row>
@@ -165,18 +184,28 @@ export const RankingCard = ({
   <BaseRankingCard
     title={title}
     variant={variant}
-    items={students}
     headerIcon={headerIcon}
     emptyText={emptyText}
     footer={footer}
-    renderItem={(student, v, index) => (
-      <StudentCard
-        key={`${v}-${index}-${student.position}`}
-        student={student}
-        variant={v}
-        showPercentage={showPercentage}
-        onClick={onStudentClick ? () => onStudentClick(student, v) : undefined}
-      />
+    // The whole ranking is handed as a single item so it can be rendered as an
+    // ordered list (`ol`/`li`): screen readers then announce "lista, 3 itens"
+    // and each row's place in it, which a stack of divs does not.
+    items={students.length > 0 ? [students] : []}
+    renderItem={(list, v) => (
+      <ol key={`${v}-list`} className="flex flex-col gap-2">
+        {list.map((student, index) => (
+          <li key={`${v}-${index}-${student.position}`}>
+            <StudentCard
+              student={student}
+              variant={v}
+              showPercentage={showPercentage}
+              onClick={
+                onStudentClick ? () => onStudentClick(student, v) : undefined
+              }
+            />
+          </li>
+        ))}
+      </ol>
     )}
     className={className}
     {...props}

@@ -327,4 +327,36 @@ describe('Badge', () => {
       expect(dot).not.toBeInTheDocument();
     });
   });
+  describe('Accessibility', () => {
+    it('hides left and right icon wrappers when badge has text', () => {
+      render(
+        <Badge iconLeft={<TestIcon />} iconRight={<span data-testid="right" />}>
+          Em branco
+        </Badge>
+      );
+      expect(screen.getByTestId('test-icon').parentElement).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
+      expect(screen.getByTestId('right').parentElement).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
+    });
+
+    it('hides icon when children is the number 0', () => {
+      render(<Badge iconLeft={<TestIcon />}>{0}</Badge>);
+      expect(screen.getByTestId('test-icon').parentElement).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
+    });
+
+    it('keeps icon exposed on icon-only badge', () => {
+      render(<Badge iconLeft={<TestIcon />} aria-label="Pesquisar" />);
+      expect(screen.getByTestId('test-icon').parentElement).not.toHaveAttribute(
+        'aria-hidden'
+      );
+    });
+  });
 });
