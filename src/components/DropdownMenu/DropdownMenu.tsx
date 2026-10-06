@@ -278,7 +278,7 @@ const getTabStops = (content: Element): HTMLElement[] =>
  */
 const trapTabKey = (event: globalThis.KeyboardEvent, content: Element) => {
   const active = document.activeElement;
-  if (!active || active.closest(OWNING_POPUP_SELECTOR) !== content) return;
+  if (active?.closest(OWNING_POPUP_SELECTOR) !== content) return;
 
   const stops = getTabStops(content);
   if (stops.length === 0) return;
