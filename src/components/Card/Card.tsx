@@ -633,12 +633,14 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
                 card: sem o aria-hidden o leitor os repetiria depois do nome. O
                 "Ver Aula" fica fora disso — é focável, e nada focável pode
                 viver dentro de subárvore escondida. */}
-            <p
+            <Text
               aria-hidden="true"
-              className="text-lg font-bold text-text-950 truncate flex-1 min-w-0"
+              size="lg"
+              weight="bold"
+              className="truncate flex-1 min-w-0"
             >
               {header}
-            </p>
+            </Text>
             {actionVariant === 'button' && (
               <Button
                 variant="outline"
@@ -664,7 +666,9 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
                 variant={progressVariant}
               />
             ) : (
-              <p className="text-xs text-text-600 truncate">{description}</p>
+              <Text size="xs" color="text-text-600" className="truncate">
+                {description}
+              </Text>
             )}
           </div>
         </div>
@@ -1912,8 +1916,13 @@ const CardSimulationHistory = forwardRef<
                         showDelete ? 'pr-4' : ''
                       )}
                     >
-                      <button
-                        type="button"
+                      {/* `variant="raw"`: o card tem fundo, raio e layout
+                          próprios da arte, então aqui o Button entra só pelo
+                          elemento (tipo `button` já por padrão) — qualquer
+                          variante estilizada traria o pílula/centralizado para
+                          ser desfeito classe a classe. */}
+                      <Button
+                        variant="raw"
                         onClick={() => onSimulationClick?.(simulation)}
                         aria-label={accessibleLabel}
                         className="flex flex-1 min-w-0 flex-row justify-between items-center gap-2 p-4 text-left cursor-pointer"
@@ -1965,7 +1974,7 @@ const CardSimulationHistory = forwardRef<
                           data-testid="caret-icon"
                           aria-hidden="true"
                         />
-                      </button>
+                      </Button>
 
                       {/* Irmão do botão do card, não filho: botão dentro de
                           botão é HTML inválido, o leitor de tela não alcança o
