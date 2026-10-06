@@ -48,7 +48,12 @@ export const BreadcrumbMenu = ({
       variant="breadcrumb"
       className={className}
     >
-      <MenuContent className="w-full flex flex-row flex-wrap gap-2 !px-0">
+      {/* `variant` também aqui: sem ele o container cairia no papel de abas
+          (`tablist`) e os `<li role="menuitem">` do breadcrumb ficariam órfãos. */}
+      <MenuContent
+        variant="breadcrumb"
+        className="w-full flex flex-row flex-wrap gap-2 !px-0"
+      >
         {breadcrumbs.map((breadcrumb, index) => {
           const isLast = index === breadcrumbs.length - 1;
           const hasSeparator = !isLast;

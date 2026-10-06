@@ -606,9 +606,22 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
     const hasProgress = progress !== undefined;
     // Só o card com seta é clicável como um todo. Na variante "button" o card
     // não pode virar role="button", senão o botão "Ver Aula" fica aninhado
-    // dentro de outro botão (WCAG 4.1.2) e some para o leitor de tela.
+    // dentro de outro botão (WCAG 4.1.2) e some para o leitor de tela. Sem
+    // `onClickButton` — o card de estado vazio "Selecione um componente
+    // curricular…" — também não há o que clicar.
     const isCardClickable = actionVariant === 'caret' && !!onClickButton;
     const progressText = `${progress}% ${labelProgress}`.trim();
+
+    /**
+     * O card também não tinha nome acessível: como controle era anunciado só
+     * "botão", e como bloco o rótulo precisa de `role="group"` para chegar ao
+     * leitor de tela. O rótulo junta o assunto com o estado — é o que diferencia
+     * um card do outro numa lista deles — e, por estar aqui, dispensa a leitura
+     * do conteúdo visual, que vai todo em `aria-hidden` abaixo.
+     */
+    const accessibleLabel = hasProgress
+      ? `${header}: ${progressText}`
+      : `${header}: ${description}`;
 
     return (
       <CardBase
@@ -616,18 +629,29 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
         layout="horizontal"
         padding="medium"
         minHeight="none"
-        className={cn(
-          actionVariant == 'caret' ? 'cursor-pointer' : '',
-          className
-        )}
+        className={cn(isCardClickable ? 'cursor-pointer' : '', className)}
         onClick={isCardClickable ? () => onClickButton(valueButton) : undefined}
+        // Spread condicional, não `role={isCardClickable ? undefined : 'group'}`:
+        // um `role` explícito como `undefined` ainda chega no spread do CardBase
+        // e apagaria o `role="button"` que ele dá ao card clicável.
+        {...(isCardClickable ? {} : { role: 'group' })}
+        aria-label={accessibleLabel}
         {...props}
       >
         <div className="w-full flex flex-col justify-between gap-2">
           <div className="flex flex-row justify-between items-center gap-2">
-            <p className="text-lg font-bold text-text-950 truncate flex-1 min-w-0">
+            {/* Título, barra, percentual e caret já estão no `aria-label` do
+                card: sem o aria-hidden o leitor os repetiria depois do nome. O
+                "Ver Aula" fica fora disso — é focável, e nada focável pode
+                viver dentro de subárvore escondida. */}
+            <Text
+              aria-hidden="true"
+              size="lg"
+              weight="bold"
+              className="truncate flex-1 min-w-0"
+            >
               {header}
-            </p>
+            </Text>
             {actionVariant === 'button' && (
               <Button
                 variant="outline"
@@ -640,12 +664,13 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
             )}
           </div>
 
-          <div className="w-full">
+          <div aria-hidden="true" className="w-full">
             {hasProgress ? (
               <ProgressBar
                 value={progress}
-                // O label visível repete o percentual que já está no nome da
-                // barra; fica só visual para não ser anunciado duas vezes.
+                // O label visível repete o percentual que já está no rótulo
+                // do card, e a barra inteira está fora da leitura (o wrapper
+                // acima é `aria-hidden`): o número é anunciado uma vez só.
                 label={
                   <Text as="span" size="xs" weight="medium" aria-hidden="true">
                     {`${progress}% ${labelProgress}`}
@@ -655,7 +680,9 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
                 variant={progressVariant}
               />
             ) : (
-              <p className="text-xs text-text-600 truncate">{description}</p>
+              <Text size="xs" color="text-text-600" className="truncate">
+                {description}
+              </Text>
             )}
           </div>
         </div>
@@ -1924,6 +1951,21 @@ const CardSimulationHistory = forwardRef<
                 {section.simulations.map((simulation) => {
                   const typeStyles = SIMULATION_TYPE_STYLES[simulation.type];
 
+                  /**
+                   * O card não tinha nome acessível próprio: o nome saía da
+                   * leitura do conteúdo, emendando título, selos e acertos. O
+                   * rótulo junta o que está na arte — título, tipo, situação e
+                   * acertos — na ordem em que se lê o card.
+                   */
+                  const accessibleLabel = [
+                    simulation.title,
+                    typeStyles.text,
+                    simulation.statusBadge?.label,
+                    simulation.info,
+                  ]
+                    .filter(Boolean)
+                    .join(' — ');
+
                   return (
                     <CardBase
                       key={simulation.id}
@@ -1947,10 +1989,15 @@ const CardSimulationHistory = forwardRef<
                             'flex flex-wrap flex-col justify-between sm:flex-row gap-2 flex-1 min-w-0 text-left',
                             'after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-indicator-info'
                           )}
+                          aria-label={accessibleLabel}
                           onClick={() => onSimulationClick?.(simulation)}
                         >
+                          {/* Tudo aqui já está no `aria-label` do botão: sem o
+                              aria-hidden o leitor repetiria título, selos e
+                              acertos depois de anunciar o nome do card. */}
                           <Text
                             as="span"
+                            aria-hidden="true"
                             size="lg"
                             weight="bold"
                             className="block text-text-950 truncate"
@@ -1958,7 +2005,11 @@ const CardSimulationHistory = forwardRef<
                             {simulation.title}
                           </Text>
 
-                          <Text as="span" className="flex items-center gap-2">
+                          <Text
+                            as="span"
+                            aria-hidden="true"
+                            className="flex items-center gap-2"
+                          >
                             <Badge
                               variant="examsOutlined"
                               action={typeStyles.badge}
