@@ -2664,6 +2664,17 @@ describe('Quiz', () => {
           expect(
             screen.getByLabelText('Questão anterior').closest('button')
           ).toBeDisabled();
+          // Rodapé nomeado e posição atual anunciada em texto
+          expect(
+            screen.getByRole('contentinfo', {
+              name: 'Navegação entre questões',
+            })
+          ).toBeInTheDocument();
+          expect(
+            screen.getByText(
+              `Questão 1 de ${defaultStoreState.getTotalQuestions()}`
+            )
+          ).toHaveClass('sr-only');
           expect(
             screen.getByLabelText('Próxima questão').closest('button')
           ).toBeEnabled();
@@ -3361,8 +3372,11 @@ describe('Quiz', () => {
 
         await clickElementAsync(finishButton);
 
-        // Verify default placeholder is rendered
+        // Verify default placeholder is rendered (decorative, hidden from AT)
         expect(screen.getByText('Imagem de resultado')).toBeInTheDocument();
+        expect(
+          screen.getByText('Imagem de resultado').parentElement
+        ).toHaveAttribute('aria-hidden', 'true');
       });
 
       it('should forward ref correctly', () => {
@@ -3658,7 +3672,9 @@ describe('Quiz', () => {
       clickElement(finishButton);
 
       // Verificar se o modal de questionário todos incorretos está aberto
-      expect(screen.getByText('😕 Não foi dessa vez...')).toBeInTheDocument();
+      expect(screen.getByText('Não foi dessa vez...')).toBeInTheDocument();
+      expect(screen.getByText('😕')).toHaveAttribute('aria-hidden', 'true');
+      expect(screen.getByText('💪')).toHaveAttribute('aria-hidden', 'true');
       expect(screen.getByText('Tentar depois')).toBeInTheDocument();
       expect(screen.getByText('Repetir questionário')).toBeInTheDocument();
       // Sem placeholder de imagem cinza.
@@ -3696,7 +3712,7 @@ describe('Quiz', () => {
 
       clickElement(screen.getByText('Finalizar'));
 
-      expect(screen.getByText('😕 Não foi dessa vez...')).toBeInTheDocument();
+      expect(screen.getByText('Não foi dessa vez...')).toBeInTheDocument();
       // Sem opções de refazer quando canRetry é falso.
       expect(
         screen.queryByText('Repetir questionário')
@@ -3739,7 +3755,8 @@ describe('Quiz', () => {
 
       clickElement(screen.getByText('Finalizar'));
 
-      expect(screen.getByText('🎉 Parabéns!')).toBeInTheDocument();
+      expect(screen.getByText('Parabéns!')).toBeInTheDocument();
+      expect(screen.getByText('🎉')).toHaveAttribute('aria-hidden', 'true');
       expect(
         screen.getByText('Você concluiu o módulo Cinemática.')
       ).toBeInTheDocument();
@@ -3798,7 +3815,7 @@ describe('Quiz', () => {
 
       clickElement(screen.getByText('Finalizar'));
 
-      expect(await screen.findByText('🎉 Parabéns!')).toBeInTheDocument();
+      expect(await screen.findByText('Parabéns!')).toBeInTheDocument();
       expect(handleFinishSimulated).toHaveBeenCalled();
     });
 

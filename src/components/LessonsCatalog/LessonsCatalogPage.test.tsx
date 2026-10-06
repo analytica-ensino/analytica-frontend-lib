@@ -280,9 +280,12 @@ describe('LessonsCatalogPage', () => {
     // Só o componente curricular ("Biologia"), sem a aula do termo anterior —
     // que nesse instante nem está na tela. Sem o guard seriam 2.
     await waitFor(() =>
-      expect(screen.getByRole('status')).toHaveTextContent(
-        '1 resultado encontrado'
-      )
+      // Há outras regiões vivas na tela (ex.: skeletons); a contagem é a atômica.
+      expect(
+        screen
+          .getAllByRole('status')
+          .find((region) => region.getAttribute('aria-atomic') === 'true')
+      ).toHaveTextContent('1 resultado encontrado')
     );
   });
 

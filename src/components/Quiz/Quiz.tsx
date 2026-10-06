@@ -484,7 +484,11 @@ const QuizResultModal = ({
           <div className="w-[282px] h-auto">{image}</div>
         ) : (
           showImagePlaceholder && (
-            <div className="w-[282px] h-[200px] bg-gray-100 rounded-md flex items-center justify-center">
+            // Placeholder puramente visual (sem imagem real): fora da leitura.
+            <div
+              className="w-[282px] h-[200px] bg-gray-100 rounded-md flex items-center justify-center"
+              aria-hidden="true"
+            >
               <Text as="span" size="sm" color="text-gray-500">
                 Imagem de resultado
               </Text>
@@ -799,6 +803,11 @@ const QuizFooter = forwardRef<
             'w-full px-2 bg-background lg:max-w-[1000px] not-lg:max-w-[calc(100vw-32px)] border-t border-border-50 fixed bottom-0 min-h-[80px] flex flex-row justify-between items-center',
             className
           )}
+          // No modo resultado o rodapé é a navegação entre questões; o nome
+          // distingue esta região das demais para quem navega por marcos.
+          aria-label={
+            variant === 'default' ? undefined : 'Navegação entre questões'
+          }
           {...props}
         >
           {variant === 'default' ? (
@@ -905,6 +914,10 @@ const QuizFooter = forwardRef<
                   isMobile ? 'justify-center' : 'flex-1 justify-end'
                 )}
               >
+                {/* Posição atual anunciada em texto: os botões só têm setas. */}
+                <Text as="span" className="sr-only">
+                  {`Questão ${currentQuestionIndex + 1} de ${totalQuestions}`}
+                </Text>
                 <Button
                   variant="outline"
                   action="primary"
@@ -913,7 +926,7 @@ const QuizFooter = forwardRef<
                   disabled={isFirstQuestion}
                   onClick={goToPreviousQuestion}
                 >
-                  <CaretLeftIcon size={18} />
+                  <CaretLeftIcon size={18} aria-hidden="true" />
                 </Button>
                 <Button
                   variant="outline"
@@ -923,7 +936,7 @@ const QuizFooter = forwardRef<
                   disabled={isLastQuestion}
                   onClick={goToNextQuestion}
                 >
-                  <CaretRightIcon size={18} />
+                  <CaretRightIcon size={18} aria-hidden="true" />
                 </Button>
               </div>
             </div>
@@ -1080,7 +1093,15 @@ const QuizFooter = forwardRef<
           isOpen={isModalOpen('modalQuestionnaireAllCorrect')}
           onClose={closeModal}
           image={resultImageComponent}
-          title="🎉 Parabéns!"
+          // Emoji decorativo: o leitor anunciaria o nome dele antes do título.
+          title={
+            <>
+              <Text as="span" size="lg" weight="bold" aria-hidden="true">
+                🎉
+              </Text>{' '}
+              Parabéns!
+            </>
+          }
           description={
             <Text as="p" size="sm" color="text-text-500">
               {moduleName
@@ -1102,7 +1123,14 @@ const QuizFooter = forwardRef<
           onClose={closeModal}
           image={resultIncorrectImageComponent}
           showImagePlaceholder={false}
-          title="😕 Não foi dessa vez..."
+          title={
+            <>
+              <Text as="span" size="lg" weight="bold" aria-hidden="true">
+                😕
+              </Text>{' '}
+              Não foi dessa vez...
+            </>
+          }
           description={
             <>
               <Text as="p" size="sm" color="text-text-500">
@@ -1117,8 +1145,15 @@ const QuizFooter = forwardRef<
 
               {quiz?.canRetry && (
                 <Text as="p" size="sm" color="text-text-500">
-                  Clique em Repetir Questionário e mostre do que você é capaz!
-                  💪
+                  Clique em Repetir Questionário e mostre do que você é capaz!{' '}
+                  <Text
+                    as="span"
+                    size="sm"
+                    color="text-text-500"
+                    aria-hidden="true"
+                  >
+                    💪
+                  </Text>
                 </Text>
               )}
             </>

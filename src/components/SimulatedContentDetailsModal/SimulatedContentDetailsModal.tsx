@@ -91,14 +91,22 @@ const TABLE_COLUMNS = [
       const student = row as unknown as ContentStudentItem;
       return (
         <div className="flex items-center justify-center gap-2">
+          {/* A barra leva o nome com o aluno e o valor; o percentual visível ao
+              lado sai da árvore de acessibilidade para não ser lido duas vezes. */}
           <div className="w-20 shrink-0">
             <ProgressBar
               value={student.performance}
               variant="green"
               size="small"
+              accessibleLabel={`Desempenho de ${student.name}: ${formatPercentageRounded(student.performance)}`}
             />
           </div>
-          <Text size="sm" weight="semibold" className="w-10 text-text-600">
+          <Text
+            size="sm"
+            weight="semibold"
+            className="w-10 text-text-600"
+            aria-hidden="true"
+          >
             {formatPercentageRounded(student.performance)}
           </Text>
         </div>
@@ -237,28 +245,36 @@ export function SimulatedContentDetailsModal({
     }
   }, [api, buildParams, data, contentDisplayName, fileName]);
 
-  // Build modal title
-  const modalTitle = (
-    <div className="flex items-center gap-2">
-      {/* `data-print-hide`: fechar é controle de tela, não conteúdo do
-          relatório, e no caminho PDF este botão está DENTRO da região impressa.
-          Fica no próprio <Button> porque ele É o item do flex — escondido, o
-          `gap-2` não separa mais nada. O texto ao lado continua saindo. */}
+  // Título só texto: ele vira o `<h2>` que nomeia o diálogo, e o botão de seta
+  // dentro dele fazia o nome do diálogo começar por "Fechar modal". A seta mora
+  // no corpo (ver `backButton`).
+  const modalTitle = 'Desempenho competência';
+
+  // A seta também fecha o modal, mas se chama "Voltar": dois botões "Fechar
+  // modal" no mesmo diálogo confundem quem navega pela lista de botões.
+  // `data-print-hide` no container: é controle de tela, não conteúdo do
+  // relatório, e escondê-lo junto do wrapper colapsa o `gap`.
+  const backButton = (
+    <div className="flex" data-print-hide>
       <Button
         onClick={onClose}
         variant="raw"
         className="p-1 hover:bg-background-100 rounded-md transition-colors"
-        aria-label="Fechar modal"
-        data-print-hide
+        aria-label="Voltar"
       >
-        <ArrowLeftIcon size={20} className="text-text-600" />
+        <ArrowLeftIcon size={20} className="text-text-600" aria-hidden="true" />
       </Button>
-      <Text>Desempenho competência</Text>
     </div>
   );
 
-  const renderStatusMessage = (message: ReactNode, className: string) => (
-    <div className="flex items-center justify-center py-8">
+  const renderStatusMessage = (
+    message: ReactNode,
+    className: string,
+    role?: 'status' | 'alert'
+  ) => (
+    // `alert` anuncia o erro na hora: sem ele a troca de conteúdo passa
+    // despercebida para o leitor de tela.
+    <div className="flex items-center justify-center py-8" role={role}>
       <Text size="sm" className={className}>
         {message}
       </Text>
@@ -266,7 +282,12 @@ export function SimulatedContentDetailsModal({
   );
 
   const renderLoading = (): ReactNode => (
+    // `<output>` (região viva nativa) com texto `sr-only`: os skeletons são só
+    // visuais.
     <div className="flex flex-col gap-4" data-testid="content-details-loading">
+      <output className="sr-only">
+        Carregando desempenho da competência...
+      </output>
       {/* Header skeleton */}
       <div className="p-4 bg-background-50 rounded-xl">
         <SkeletonRounded className="h-5 w-48 mb-2" />
@@ -373,7 +394,7 @@ export function SimulatedContentDetailsModal({
     }
 
     if (error) {
-      return renderStatusMessage(error, 'text-error-500');
+      return renderStatusMessage(error, 'text-error-500', 'alert');
     }
 
     if (!data) {
@@ -398,7 +419,10 @@ export function SimulatedContentDetailsModal({
       isDownloading={isDownloading}
       error={downloadError}
     >
-      {renderModalContent()}
+      <div className="flex flex-col gap-4">
+        {backButton}
+        {renderModalContent()}
+      </div>
     </ReportDetailModal>
   );
 }

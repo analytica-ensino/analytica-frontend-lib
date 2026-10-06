@@ -91,17 +91,14 @@ function renderSection(
 
 /** Total | corretas | incorretas | em branco, as the bars draw them. */
 const barValues = () =>
-  ['total', 'corretas', 'incorretas', 'emBranco']
-    .map((key) =>
-      screen
-        .getByTestId(`questions-bar-${key}`)
-        .getAttribute('aria-label')!
-        .replace(/^.*: /, '')
-    )
+  // The legend cards carry each bar's count (the bars themselves are drawn
+  // inside an image described by these cards).
+  Array.from(screen.getByTestId('questions-legend').children)
+    .map((card) => card.children[1].textContent)
     .join('|');
 
-/** The "Nota média" card: its value, then its label. */
-const scoreCard = () => screen.getByText('Nota média').parentElement!;
+/** The "Nota média" card: its label (`dt`), then its value (`dd`). */
+const scoreCard = () => screen.getByText('Nota média').closest('dl')!;
 
 const bodyRows = () =>
   within(screen.getByRole('table')).getAllByRole('row').slice(1);
@@ -159,7 +156,7 @@ describe('KnowledgeAreaSection', () => {
   it('shows the score derived from the hit rate, not the corrected one', () => {
     renderSection();
 
-    expect(scoreCard()).toHaveTextContent('5,5Nota média');
+    expect(scoreCard()).toHaveTextContent('Nota média5,5');
   });
 
   it('lists the first componentes in the order the API sent', () => {
@@ -192,10 +189,10 @@ describe('KnowledgeAreaSection', () => {
     expect(
       within(cells[0]).getByLabelText('Língua Portuguesa')
     ).toBeInTheDocument();
-    expect(within(cells[6]).getByRole('progressbar')).toHaveAttribute(
-      'value',
-      '60'
-    );
+    // The bar repeats the written rate, so it is hidden from AT
+    expect(
+      within(cells[6]).getByRole('progressbar', { hidden: true })
+    ).toHaveAttribute('value', '60');
   });
 
   it('shows every componente behind "Mostrar todos", and folds back', () => {
@@ -271,7 +268,7 @@ describe('KnowledgeAreaSection', () => {
 
     // The area's row, not the 300 its componentes add up to.
     expect(barValues()).toBe('290|185|95|10');
-    expect(scoreCard()).toHaveTextContent('6,4Nota média');
+    expect(scoreCard()).toHaveTextContent('Nota média6,4');
     expect(
       screen.getByText('4 componentes curriculares totais')
     ).toBeInTheDocument();
@@ -288,7 +285,7 @@ describe('KnowledgeAreaSection', () => {
 
     pickArea('Ciências Humanas e suas Tecnologias');
 
-    expect(scoreCard()).toHaveTextContent('—Nota média');
+    expect(scoreCard()).toHaveTextContent('Nota média—');
     expect(
       screen.getByText('1 componente curricular total')
     ).toBeInTheDocument();
@@ -336,7 +333,7 @@ describe('KnowledgeAreaSection', () => {
     pickArea('Todas as áreas do conhecimento');
 
     expect(barValues()).toBe('380|210|152|18');
-    expect(scoreCard()).toHaveTextContent('5,5Nota média');
+    expect(scoreCard()).toHaveTextContent('Nota média5,5');
   });
 
   it('falls back to every area when the one picked leaves the cut', () => {
@@ -362,7 +359,7 @@ describe('KnowledgeAreaSection', () => {
       data: { ...data, totals: { ...data.totals, averageScore: null } },
     });
 
-    expect(scoreCard()).toHaveTextContent('—Nota média');
+    expect(scoreCard()).toHaveTextContent('Nota média—');
   });
 
   it('shows a skeleton while it loads', () => {

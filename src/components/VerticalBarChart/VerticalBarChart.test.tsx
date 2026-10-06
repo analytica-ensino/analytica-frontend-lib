@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { VerticalBarChart } from './VerticalBarChart';
 
@@ -53,13 +53,27 @@ describe('VerticalBarChart', () => {
       expect(wrapper).toHaveClass('custom-class');
     });
 
-    it('should have accessible aria-label', () => {
-      const { container } = render(
+    it('exposes the chart as an image described by a data table', () => {
+      render(
         <VerticalBarChart data={mockData} title="Atividades por período" />
       );
 
-      const wrapper = container.firstChild as HTMLElement;
-      expect(wrapper).toHaveAttribute('aria-label', 'Atividades por período');
+      const chart = screen.getByRole('img', { name: 'Atividades por período' });
+      const table = screen.getByRole('table', {
+        name: 'Dados do gráfico: Atividades por período',
+      });
+      expect(chart).toHaveAttribute('aria-describedby', table.id);
+      expect(
+        within(table).getByRole('rowheader', { name: 'SEG' })
+      ).toBeTruthy();
+      expect(within(table).getByRole('cell', { name: '150' })).toBeTruthy();
+    });
+
+    it('hides the X-axis labels from assistive technologies', () => {
+      render(<VerticalBarChart data={mockData} title="Test" />);
+      expect(
+        screen.getByTestId('label-SEG').parentElement?.parentElement
+      ).toHaveAttribute('aria-hidden', 'true');
     });
   });
 
@@ -78,7 +92,8 @@ describe('VerticalBarChart', () => {
       ];
       render(<VerticalBarChart data={zeroData} title="Test" />);
 
-      expect(screen.getByText('0')).toBeInTheDocument();
+      // One "0" tick on the Y axis plus one per row of the sr-only table
+      expect(screen.getAllByText('0')).toHaveLength(3);
     });
   });
 
@@ -99,11 +114,11 @@ describe('VerticalBarChart', () => {
       expect(bar).toHaveStyle({ backgroundColor: '#ff0000' });
     });
 
-    it('should set aria-label on bars', () => {
+    it('should not set aria-label on role-less bars', () => {
       render(<VerticalBarChart data={mockData} title="Test" />);
 
       const bar = screen.getByTestId('bar-SEG');
-      expect(bar).toHaveAttribute('aria-label', 'SEG: 150');
+      expect(bar).not.toHaveAttribute('aria-label');
     });
   });
 

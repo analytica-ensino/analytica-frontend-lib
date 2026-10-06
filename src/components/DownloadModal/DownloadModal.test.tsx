@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
-import type { ReactNode } from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 const mockOnClose = jest.fn();
@@ -31,39 +31,49 @@ jest.mock('../Modal/Modal', () => ({
     ) : null,
 }));
 
-jest.mock('../Button/Button', () => ({
-  __esModule: true,
-  default: ({
-    children,
-    onClick,
-    disabled,
-    'data-testid': testId,
-  }: {
-    children?: ReactNode;
-    onClick?: () => void;
-    disabled?: boolean;
-    variant?: string;
-    action?: string;
-    size?: string;
-    iconLeft?: ReactNode;
-    'data-testid'?: string;
-  }) => (
-    <button onClick={onClick} disabled={disabled} data-testid={testId}>
+jest.mock('../Button/Button', () => {
+  const { forwardRef } = jest.requireActual<typeof import('react')>('react');
+  const MockButton = forwardRef<
+    HTMLButtonElement,
+    ButtonHTMLAttributes<HTMLButtonElement> & {
+      variant?: string;
+      action?: string;
+      size?: string;
+      iconLeft?: ReactNode;
+      'data-testid'?: string;
+    }
+  >(({ children, variant, action, size, iconLeft, ...rest }, ref) => (
+    <button
+      ref={ref}
+      data-variant={variant}
+      data-action={action}
+      data-size={size}
+      {...rest}
+    >
+      {iconLeft}
       {children}
     </button>
-  ),
-}));
+  ));
+  MockButton.displayName = 'MockButton';
+  return { __esModule: true, default: MockButton };
+});
 
 jest.mock('../Text/Text', () => ({
   __esModule: true,
   default: ({
     children,
     className,
+    role,
   }: {
     children?: ReactNode;
     className?: string;
     size?: string;
-  }) => <span className={className}>{children}</span>,
+    role?: string;
+  }) => (
+    <span className={className} role={role}>
+      {children}
+    </span>
+  ),
 }));
 
 jest.mock('../Skeleton/Skeleton', () => ({
@@ -530,6 +540,97 @@ describe('DownloadModal', () => {
       ).not.toBeInTheDocument();
       expect(mockOnDownloadPdf).not.toHaveBeenCalled();
       expect(mockOnClose).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('accessibility', () => {
+    const renderChooser = (
+      props: Partial<{ isDownloading: boolean; error: string | null }> = {}
+    ) =>
+      render(
+        <DownloadModal
+          isOpen={true}
+          onClose={mockOnClose}
+          isDownloading={props.isDownloading ?? false}
+          error={props.error ?? null}
+          onDownloadPdf={mockOnDownloadPdf}
+          onDownloadExcel={mockOnDownloadExcel}
+        />
+      );
+
+    it('exposes the formats as a radio group with named radios', () => {
+      renderChooser();
+
+      const group = screen.getByRole('radiogroup', {
+        name: 'Formato do arquivo',
+      });
+      const pdf = within(group).getByRole('radio', { name: 'PDF' });
+      const excel = within(group).getByRole('radio', { name: 'Excel' });
+      expect(pdf).toHaveAttribute('aria-checked', 'false');
+      expect(excel).toHaveAttribute('aria-checked', 'false');
+      // Roving tabindex: first option reachable while none is checked
+      expect(pdf).toHaveAttribute('tabindex', '0');
+      expect(excel).toHaveAttribute('tabindex', '-1');
+
+      fireEvent.click(excel);
+      expect(excel).toHaveAttribute('aria-checked', 'true');
+      expect(excel).toHaveAttribute('tabindex', '0');
+      expect(pdf).toHaveAttribute('tabindex', '-1');
+    });
+
+    it('moves the selection with the arrow keys, wrapping around', () => {
+      renderChooser();
+
+      const pdf = screen.getByRole('radio', { name: 'PDF' });
+      const excel = screen.getByRole('radio', { name: 'Excel' });
+
+      fireEvent.keyDown(pdf, { key: 'ArrowRight' });
+      expect(excel).toHaveAttribute('aria-checked', 'true');
+      expect(excel).toHaveFocus();
+
+      fireEvent.keyDown(excel, { key: 'ArrowDown' });
+      expect(pdf).toHaveAttribute('aria-checked', 'true');
+      expect(pdf).toHaveFocus();
+
+      fireEvent.keyDown(pdf, { key: 'ArrowLeft' });
+      expect(excel).toHaveAttribute('aria-checked', 'true');
+
+      fireEvent.keyDown(excel, { key: 'ArrowUp' });
+      expect(pdf).toHaveAttribute('aria-checked', 'true');
+
+      // Other keys are ignored
+      fireEvent.keyDown(pdf, { key: 'a' });
+      expect(pdf).toHaveAttribute('aria-checked', 'true');
+    });
+
+    it('keeps the only format selected when PDF is alone (async)', () => {
+      render(
+        <DownloadModal
+          isOpen={true}
+          onClose={mockOnClose}
+          isDownloading={false}
+          error={null}
+          onDownloadPdf={mockOnDownloadPdf}
+          asyncPdf
+        />
+      );
+
+      const pdf = screen.getByRole('radio', { name: 'PDF' });
+      fireEvent.keyDown(pdf, { key: 'ArrowRight' });
+      expect(pdf).toHaveAttribute('aria-checked', 'true');
+    });
+
+    it('announces the error as an alert', () => {
+      renderChooser({ error: 'Falha ao gerar' });
+
+      expect(screen.getByRole('alert')).toHaveTextContent('Falha ao gerar');
+    });
+
+    it('announces the download progress as a status', () => {
+      renderChooser({ isDownloading: true });
+
+      expect(screen.getByRole('status')).toHaveTextContent('Gerando arquivo…');
+      expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument();
     });
   });
 });

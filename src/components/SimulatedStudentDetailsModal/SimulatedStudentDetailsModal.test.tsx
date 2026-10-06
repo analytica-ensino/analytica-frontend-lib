@@ -209,6 +209,86 @@ describe('SimulatedStudentDetailsModal', () => {
     ).toBeInTheDocument();
   });
 
+  describe('Acessibilidade', () => {
+    it('anuncia o carregamento como status e o erro como alerta', () => {
+      mockHookState.loading = true;
+      const { rerenderModal } = renderModal();
+
+      expect(screen.getByRole('status')).toHaveTextContent('Carregando...');
+
+      mockHookState.loading = false;
+      mockHookState.error = 'Erro ao carregar';
+      rerenderModal();
+
+      expect(screen.getByRole('alert')).toHaveTextContent('Erro ao carregar');
+    });
+
+    it('nomeia o diálogo só com o título, sem o botão de voltar', () => {
+      mockHookState.data = createSubjectsData();
+      const { rerenderModal } = renderModal();
+
+      expect(
+        screen.getByRole('dialog', { name: 'Desempenho de Maria Silva' })
+      ).toBeInTheDocument();
+
+      fireEvent.click(screen.getByText('Matematica'));
+      mockHookState.data = createContentsData();
+      rerenderModal();
+
+      expect(
+        screen.getByRole('dialog', { name: 'Matematica' })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { level: 2, name: 'Matematica' })
+      ).not.toContainElement(
+        screen.getByRole('button', {
+          name: 'Voltar para lista de componentes curriculares',
+        })
+      );
+    });
+
+    it('leva o foco ao título do nível novo ao descer e ao voltar', () => {
+      mockHookState.data = createSubjectsData();
+      const { rerenderModal } = renderModal();
+
+      fireEvent.click(screen.getByText('Matematica'));
+      mockHookState.data = createContentsData();
+      rerenderModal();
+
+      expect(
+        screen.getByRole('heading', { level: 2, name: 'Matematica' })
+      ).toHaveFocus();
+
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: 'Voltar para lista de componentes curriculares',
+        })
+      );
+
+      expect(
+        screen.getByRole('heading', {
+          level: 2,
+          name: 'Desempenho de Maria Silva',
+        })
+      ).toHaveFocus();
+    });
+
+    it('dá à linha da matéria um nome com o percentual e esconde a barra', () => {
+      mockHookState.data = createSubjectsData();
+      renderModal();
+
+      const row = screen.getByRole('button', {
+        name: 'Matematica 12 questões 75% de acertos',
+      });
+      // Conteúdo de frase dentro do botão: os textos são `span`, não `p`.
+      expect(screen.getByText('Matematica').tagName).toBe('SPAN');
+      expect(screen.getByText('12 questões').tagName).toBe('SPAN');
+      expect(
+        row.querySelector('progress')?.closest('[aria-hidden="true"]')
+      ).not.toBeNull();
+    });
+  });
+
   it('resets hook state when modal closes', () => {
     mockHookState.data = createSubjectsData();
 
@@ -251,7 +331,7 @@ describe('SimulatedStudentDetailsModal', () => {
 
     /** Escolhe um formato e confirma no rodapé do seletor. */
     const chooseFormatAndConfirm = (format: 'PDF' | 'Excel') => {
-      fireEvent.click(screen.getByRole('button', { name: format }));
+      fireEvent.click(screen.getByRole('radio', { name: format }));
       fireEvent.click(screen.getByRole('button', { name: 'Baixar' }));
     };
 
@@ -311,8 +391,8 @@ describe('SimulatedStudentDetailsModal', () => {
 
       openFormatChooser();
 
-      expect(screen.getByRole('button', { name: 'PDF' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Excel' })).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: 'PDF' })).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: 'Excel' })).toBeInTheDocument();
     });
 
     it('imprime o modal no caminho PDF, com o nome do arquivo do dia, e NÃO gera Excel', () => {
@@ -452,10 +532,13 @@ describe('SimulatedStudentDetailsModal', () => {
       expect(
         screen.getByTestId('report-detail-download-btn').parentElement
       ).toHaveAttribute('data-print-hide');
+      // A marca fica no container do botão, para o `gap` colapsar junto.
       expect(
-        screen.getByLabelText('Voltar para lista de componentes curriculares')
-      ).toHaveAttribute('data-print-hide');
-      // O nome da matéria ao lado do botão de voltar é conteúdo, e sai no papel.
+        screen
+          .getByLabelText('Voltar para lista de componentes curriculares')
+          .closest('[data-print-hide]')
+      ).not.toBeNull();
+      // O nome da matéria, no título, é conteúdo e sai no papel.
       expect(screen.getByText('Matematica')).not.toHaveAttribute(
         'data-print-hide'
       );

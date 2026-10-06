@@ -79,6 +79,33 @@ const selectedIndex = (answer: Answer): number => {
 };
 
 /**
+ * Builds the sentence read by screen readers for one answer key row.
+ *
+ * @param sequence - Question number in the exam
+ * @param markedIndex - Index of the marked alternative, or -1 when blank
+ * @param statusLabel - Verdict label (e.g. "correta"), or null when blank
+ * @returns The spoken summary of the row
+ *
+ * @example
+ * ```typescript
+ * getAnswerRowSpokenText(1, 2, 'correta'); // 'Questão 1: marcou C — Correta'
+ * getAnswerRowSpokenText(2, -1, null); // 'Questão 2: não respondeu'
+ * ```
+ */
+const getAnswerRowSpokenText = (
+  sequence: number,
+  markedIndex: number,
+  statusLabel: string | null
+): string => {
+  const marking =
+    markedIndex >= 0 ? `marcou ${LETTERS[markedIndex]}` : 'não respondeu';
+  const verdict = statusLabel
+    ? ` — ${statusLabel.charAt(0).toUpperCase()}${statusLabel.slice(1)}`
+    : '';
+  return `Questão ${sequence}: ${marking}${verdict}`;
+};
+
+/**
  * Uma linha do gabarito: o número da questão, as cinco bolhas e o veredito.
  *
  * @param answer - Resposta do aluno
@@ -97,35 +124,61 @@ const AnswerRow = ({
     STATUS_PRESENTATION[answer.answerStatus] ??
     STATUS_PRESENTATION[ANSWER_STATUS.NAO_RESPONDIDO];
   const { Icon } = presentation;
+  const isBlank =
+    presentation === STATUS_PRESENTATION[ANSWER_STATUS.NAO_RESPONDIDO];
+  // Em branco sem bolha marcada já está dito em "não respondeu".
+  const spokenText = getAnswerRowSpokenText(
+    sequence,
+    marked,
+    isBlank && marked < 0 ? null : presentation.label
+  );
 
+  /*
+   * A linha é lida como uma frase só ("Questão 1: marcou C — Correta"). Número,
+   * bolhas e ícone são a versão visual da mesma informação e ficam fora da
+   * árvore: antes o leitor lia "1, A, B, C…" e um svg com aria-label sem role,
+   * que nem todo leitor anuncia.
+   */
   return (
     <li className="flex items-center gap-3 border border-border-100 rounded-lg px-3 py-2">
-      <span className="w-6 h-6 shrink-0 rounded-full bg-primary-700 text-white text-xs font-semibold flex items-center justify-center">
-        {sequence}
-      </span>
+      <Text as="span" className="sr-only">
+        {spokenText}
+      </Text>
 
-      <span className="flex items-center gap-1 flex-1">
+      <Text
+        as="span"
+        size="xs"
+        weight="semibold"
+        color="text-white"
+        aria-hidden="true"
+        className="w-6 h-6 shrink-0 rounded-full bg-primary-700 flex items-center justify-center"
+      >
+        {sequence}
+      </Text>
+
+      <div aria-hidden="true" className="flex items-center gap-1 flex-1">
         {LETTERS.map((letter, index) => {
           const isMarked = index === marked;
           const tone = isMarked
             ? presentation.bubbleClass
             : 'border-border-200 text-text-600';
           return (
-            <span
+            <Text
+              as="span"
               key={letter}
-              aria-hidden={!isMarked}
-              className={`w-6 h-6 rounded-full border text-xs flex items-center justify-center ${tone}`}
+              size="xs"
+              className={`w-6 h-6 rounded-full border flex items-center justify-center ${tone}`}
             >
               {letter}
-            </span>
+            </Text>
           );
         })}
-      </span>
+      </div>
 
       <Icon
         size={18}
         className={`${presentation.iconClass} shrink-0`}
-        aria-label={`Questão ${sequence}: ${presentation.label}`}
+        aria-hidden="true"
       />
     </li>
   );

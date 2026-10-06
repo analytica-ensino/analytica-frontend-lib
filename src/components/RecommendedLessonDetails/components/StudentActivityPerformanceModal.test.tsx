@@ -1081,4 +1081,77 @@ describe('StudentActivityPerformanceModal', () => {
       });
     });
   });
+
+  describe('Accessibility', () => {
+    it('announces the loading state as a status', () => {
+      render(
+        <StudentActivityPerformanceModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={null}
+          loading={true}
+        />
+      );
+
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'Carregando desempenho do estudante...'
+      );
+    });
+
+    it('announces the error as an alert', () => {
+      render(
+        <StudentActivityPerformanceModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={null}
+          error="Erro ao carregar dados"
+        />
+      );
+
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Erro ao carregar dados'
+      );
+    });
+
+    it('names each lesson progress bar with the lesson and its value', () => {
+      render(
+        <StudentActivityPerformanceModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={mockPerformanceData}
+        />
+      );
+
+      expect(
+        screen.getByRole('progressbar', {
+          name: 'Progresso em Aula 1 - Introdução: 100%',
+        })
+      ).toBeInTheDocument();
+      expect(screen.getByText('100%')).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('groups the essay verdict in a fieldset and names the feedback field', () => {
+      render(
+        <StudentActivityPerformanceModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={mockPerformanceData}
+          apiClient={mockApiClient}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Atividade 1').closest('button')!);
+      fireEvent.click(screen.getByText('Questão 2').closest('button')!);
+
+      const group = screen.getByRole('group', {
+        name: 'Questão 2 — Resposta está correta?',
+      });
+      expect(group.tagName).toBe('FIELDSET');
+      expect(
+        screen.getByRole('textbox', {
+          name: 'Incluir observação da questão 2',
+        })
+      ).toBeInTheDocument();
+    });
+  });
 });

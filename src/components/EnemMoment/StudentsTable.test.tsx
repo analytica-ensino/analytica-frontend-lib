@@ -128,7 +128,10 @@ describe('createStudentColumns', () => {
     expect(cellOf(byKey('className'), row)).toBe('A');
     render(<>{cellOf(byKey('hitRate'), row)}</>);
     expect(screen.getByText('60,2%')).toBeInTheDocument();
-    expect(screen.getByRole('progressbar')).toHaveAttribute('value', '60.2');
+    expect(screen.getByRole('progressbar', { hidden: true })).toHaveAttribute(
+      'value',
+      '60.2'
+    );
   });
 
   it('names the student beside the avatar', () => {
@@ -741,7 +744,8 @@ describe('StudentsTableSection', () => {
   });
 
   describe('while a page loads', () => {
-    const busyArea = () => screen.getByRole('table').closest('[aria-busy]')!;
+    const busyArea = () =>
+      screen.getByRole('table').parentElement!.closest('[aria-busy]')!;
 
     it('shows a skeleton on the first load', () => {
       const { container } = renderSection({ rows: [], loading: true });

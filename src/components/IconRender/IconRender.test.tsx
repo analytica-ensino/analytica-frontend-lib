@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react';
 import { cloneElement } from 'react';
+import type { SVGProps } from 'react';
 import { IconRender } from './IconRender';
 
 // Mock component for testing ReactElement icons
@@ -7,6 +8,11 @@ const MockIcon = ({ size, color }: { size?: number; color?: string }) => (
   <svg data-testid="mock-icon" width={size} height={size} style={{ color }}>
     <circle cx="12" cy="12" r="10" fill="currentColor" />
   </svg>
+);
+
+// Mock icon that forwards svg attributes (like real Phosphor icons do)
+const A11yMockIcon = (props: SVGProps<SVGSVGElement>) => (
+  <svg data-testid="a11y-mock-icon" {...props} />
 );
 
 describe('IconRender', () => {
@@ -180,6 +186,69 @@ describe('IconRender', () => {
         );
         expect(container.firstChild).toBeInTheDocument();
       });
+    });
+  });
+  describe('Accessibility', () => {
+    it('should hide Phosphor icon from assistive technologies when aria-hidden', () => {
+      const { container } = render(
+        <IconRender iconName="Heart" aria-hidden="true" />
+      );
+      const icon = container.firstChild as HTMLElement;
+      expect(icon).toHaveAttribute('aria-hidden', 'true');
+      expect(icon).not.toHaveAttribute('role');
+    });
+
+    it('should hide custom icon when aria-hidden is boolean true', () => {
+      const { container } = render(
+        <IconRender iconName="Chat_PT" aria-hidden />
+      );
+      expect(container.firstChild).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('should hide fallback icons (empty and unknown names)', () => {
+      const { container: empty } = render(
+        <IconRender iconName="" aria-hidden />
+      );
+      expect(empty.firstChild).toHaveAttribute('aria-hidden', 'true');
+      const { container: unknown } = render(
+        <IconRender iconName="Unknown" aria-hidden />
+      );
+      expect(unknown.firstChild).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('should forward aria-hidden to cloned ReactElement icons', () => {
+      const { getByTestId } = render(
+        <IconRender iconName={<A11yMockIcon />} aria-hidden />
+      );
+      expect(getByTestId('a11y-mock-icon')).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
+    });
+
+    it('should expose role img with aria-label when meaningful', () => {
+      const { getByRole } = render(
+        <IconRender iconName="Heart" aria-label="Favorito" />
+      );
+      expect(getByRole('img', { name: 'Favorito' })).toBeInTheDocument();
+    });
+
+    it('should ignore aria-label when aria-hidden is truthy', () => {
+      const { container } = render(
+        <IconRender iconName="Heart" aria-hidden aria-label="Favorito" />
+      );
+      const icon = container.firstChild as HTMLElement;
+      expect(icon).toHaveAttribute('aria-hidden', 'true');
+      expect(icon).not.toHaveAttribute('aria-label');
+    });
+
+    it('should not add a11y attributes by default or when aria-hidden is false', () => {
+      const { container } = render(
+        <IconRender iconName="Heart" aria-hidden={false} />
+      );
+      const icon = container.firstChild as HTMLElement;
+      expect(icon).not.toHaveAttribute('aria-hidden');
+      expect(icon).not.toHaveAttribute('role');
     });
   });
 });

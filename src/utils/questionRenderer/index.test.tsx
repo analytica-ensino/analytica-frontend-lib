@@ -965,6 +965,43 @@ describe('questionRenderer', () => {
       expect(container).toBeInTheDocument();
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
       expect(screen.getByText('Gabarito:')).toBeInTheDocument();
+      // Resultado e gabarito em texto para o leitor de tela
+      expect(screen.getByText('— correta')).toHaveClass('sr-only');
+      expect(screen.getByText('Resposta esperada:')).toHaveClass('sr-only');
+    });
+
+    it('should announce an incorrect fill answer with sr-only text', () => {
+      const additionalContent = 'O Brasil está localizado na {opt1}.';
+      const question = createQuestion(
+        'q1',
+        'Complete o texto:',
+        QUESTION_TYPE.PREENCHER_LACUNAS,
+        [
+          { id: 'opt1', option: 'América' },
+          { id: 'opt2', option: 'Europa' },
+        ],
+        [],
+        additionalContent
+      );
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_INCORRETA,
+        null,
+        [],
+        [
+          { id: 'opt1', option: 'América', isCorrect: true },
+          { id: 'opt2', option: 'Europa', isCorrect: false },
+        ],
+        null,
+        additionalContent,
+        { opt1: 'opt2' }
+      );
+
+      const Wrapper = () => renderQuestionFill({ question, result });
+      render(<Wrapper />);
+
+      expect(screen.getByText('— incorreta')).toHaveClass('sr-only');
     });
 
     it('should display [Não respondido] when there is no answer for placeholder', () => {

@@ -271,7 +271,7 @@ describe('SimulatedContentDetailsModal', () => {
      * de montar a planilha.
      */
     const chooseFormatAndConfirm = async (format: 'PDF' | 'Excel') => {
-      fireEvent.click(screen.getByRole('button', { name: format }));
+      fireEvent.click(screen.getByRole('radio', { name: format }));
       fireEvent.click(screen.getByRole('button', { name: 'Baixar' }));
       // O `fireEvent` já roda dentro de um `act` do Testing Library; este aqui
       // existe só para drenar o que o clique disparou de assíncrono — o caminho
@@ -317,8 +317,8 @@ describe('SimulatedContentDetailsModal', () => {
 
       openFormatChooser();
 
-      expect(screen.getByRole('button', { name: 'PDF' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Excel' })).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: 'PDF' })).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: 'Excel' })).toBeInTheDocument();
     });
 
     it('imprime o modal no caminho PDF, com o nome do arquivo do dia, e NÃO gera Excel', async () => {
@@ -503,14 +503,18 @@ describe('SimulatedContentDetailsModal', () => {
       expect(
         screen.getByTestId('report-detail-download-btn').parentElement
       ).toHaveAttribute('data-print-hide');
-      // Dois botões fecham este modal: o "X" do `Modal` base e o de seta que
-      // este componente põe no título. Os dois são controle e nenhum sai no
+      // Dois botões fecham este modal: o "X" do `Modal` base ("Fechar modal") e
+      // a seta "Voltar", no topo do corpo. Os dois são controle e nenhum sai no
       // papel.
-      const closeButtons = screen.getAllByLabelText('Fechar modal');
-      expect(closeButtons).toHaveLength(2);
-      for (const button of closeButtons) {
-        expect(button).toHaveAttribute('data-print-hide');
-      }
+      expect(screen.getAllByLabelText('Fechar modal')).toHaveLength(1);
+      expect(screen.getByLabelText('Fechar modal')).toHaveAttribute(
+        'data-print-hide'
+      );
+      expect(
+        screen
+          .getByRole('button', { name: 'Voltar' })
+          .closest('[data-print-hide]')
+      ).not.toBeNull();
       expect(
         screen.getByLabelText('Próxima página').closest('[data-print-hide]')
       ).not.toBeNull();
@@ -536,11 +540,42 @@ describe('SimulatedContentDetailsModal', () => {
       renderModal();
 
       // Seis controles, todos escondidos: os DOIS que fecham o modal (o "X" do
-      // `Modal` base e a seta do título, ambos com aria-label "Fechar modal"), o
+      // `Modal` base, "Fechar modal", e a seta "Voltar" do corpo), o
       // "Baixar relatório" e, no rodapé, o seletor de itens por página,
       // "Página anterior" e "Próxima página". O seletor é um `<select>` — uma
       // varredura só de `<button>` o deixaria passar cru para o papel.
       expectPrintRegionControlsHidden(6);
+    });
+
+    it('nomeia o diálogo só com o título e anuncia carregando e erro', () => {
+      mockHookState = { data: null, loading: true, error: null };
+      const { rerenderModal } = renderModal();
+
+      expect(
+        screen.getByRole('dialog', { name: 'Desempenho competência' })
+      ).toBeInTheDocument();
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'Carregando desempenho da competência...'
+      );
+
+      mockHookState = { data: null, loading: false, error: 'Erro ao carregar' };
+      rerenderModal();
+
+      expect(screen.getByRole('alert')).toHaveTextContent('Erro ao carregar');
+    });
+
+    it('nomeia a barra de desempenho com o aluno e esconde o percentual repetido', () => {
+      mockHookState = {
+        data: createMockData({ total: 25 }),
+        loading: false,
+        error: null,
+      };
+      renderModal();
+
+      const bar = screen.getAllByRole('progressbar')[0];
+      expect(bar).toHaveAccessibleName(
+        expect.stringMatching(/^Desempenho de Maria Silva: \d+%$/)
+      );
     });
 
     it('oferece download também nos estados de carregando e de erro', () => {

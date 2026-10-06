@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import {
@@ -12,6 +12,17 @@ import {
   students,
 } from './ExamCards';
 import type { EnemMomentExamData } from './types';
+
+/** Label and value of each bar, read from the chart's sr-only data table. */
+const chartRows = () =>
+  within(screen.getByRole('table', { name: /^Dados do gráfico/ }))
+    .getAllByRole('row')
+    .slice(1)
+    .map((row) =>
+      Array.from(row.children)
+        .map((cell) => cell.textContent)
+        .join(': ')
+    );
 
 const bands = (counts: number[]) =>
   counts.map((count, index) => ({
@@ -108,16 +119,12 @@ describe('ScoreBandChart', () => {
       screen.getByRole('heading', { name: 'Estudantes por faixa de nota' })
     ).toBeInTheDocument();
     expect(screen.getByText('200 estudantes')).toBeInTheDocument();
-    expect(
-      screen
-        .getAllByTestId(/^bar-/)
-        .map((bar) => bar.getAttribute('aria-label'))
-    ).toEqual([
-      '0 a 2: 10',
-      '2 a 4: 40',
-      '4 a 6: 80',
-      '6 a 8: 50',
-      '8 a 10: 20',
+    expect(chartRows()).toEqual([
+      '0 a 2: Média de 0 a 2: 10 estudantes',
+      '2 a 4: Média de 2 a 4: 40 estudantes',
+      '4 a 6: Média de 4 a 6: 80 estudantes',
+      '6 a 8: Média de 6 a 8: 50 estudantes',
+      '8 a 10: Média de 8 a 10: 20 estudantes',
     ]);
     expect(screen.getByTestId('bar-4 a 6')).toHaveClass('bg-info-500');
   });

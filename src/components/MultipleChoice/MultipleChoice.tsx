@@ -12,6 +12,7 @@ import {
   ROW_INTERACTION_CLASSES,
   STRETCHED_LABEL_CLASSES,
 } from '../Alternative/choiceRowClasses';
+import Text from '../Text/Text';
 
 interface Choice {
   value: string;
@@ -73,14 +74,18 @@ const MultipleChoiceList = ({
           <Badge
             variant="solid"
             action="success"
-            iconLeft={<CheckCircleIcon />}
+            iconLeft={<CheckCircleIcon aria-hidden="true" />}
           >
             Resposta correta
           </Badge>
         );
       case OptionStatus.INCORRECT:
         return (
-          <Badge variant="solid" action="error" iconLeft={<XCircleIcon />}>
+          <Badge
+            variant="solid"
+            action="error"
+            iconLeft={<XCircleIcon aria-hidden="true" />}
+          >
             Resposta incorreta
           </Badge>
         );
@@ -110,7 +115,8 @@ const MultipleChoiceList = ({
     );
 
     return (
-      <div className={checkboxClasses}>
+      // Puramente decorativo: o estado sai no texto `sr-only` da linha.
+      <div className={checkboxClasses} aria-hidden="true">
         {isSelected && <CheckIcon size={16} weight="bold" />}
       </div>
     );
@@ -123,7 +129,13 @@ const MultipleChoiceList = ({
           const isSelected = actualValue?.includes(choice.value) || false;
           const statusStyles = getStatusStyles(choice.status);
           const statusBadge = getStatusBadge(choice.status);
+          const isDisabled = choice.disabled || disabled;
 
+          /*
+           * Resultado só de leitura: não há controle para operar, então a linha
+           * não finge ser um checkbox. A leitura sai do texto, na ordem:
+           * posição, enunciado da alternativa, status e o que o aluno marcou.
+           */
           return (
             <div
               key={`readonly-${choice.value}-${i}`}
@@ -133,8 +145,11 @@ const MultipleChoiceList = ({
                 choice.disabled ? 'opacity-50 cursor-not-allowed' : ''
               )}
             >
+              <Text as="span" className="sr-only">
+                {`Alternativa ${i + 1} de ${choices.length}`}
+              </Text>
               <div className="flex items-center gap-2 flex-1">
-                {renderVisualCheckbox(isSelected, choice.disabled || disabled)}
+                {renderVisualCheckbox(isSelected, isDisabled)}
                 <HtmlMathRenderer
                   content={choice.label}
                   className={cn(
@@ -143,15 +158,17 @@ const MultipleChoiceList = ({
                       (choice.status && choice.status != OptionStatus.NEUTRAL)
                       ? 'text-text-950'
                       : 'text-text-600',
-                    choice.disabled || disabled
-                      ? 'cursor-not-allowed'
-                      : 'cursor-default'
+                    isDisabled ? 'cursor-not-allowed' : 'cursor-default'
                   )}
                 />
               </div>
               {statusBadge && (
                 <div className="flex-shrink-0">{statusBadge}</div>
               )}
+              {/* Única fonte do que o aluno escolheu para o leitor de tela. */}
+              <Text as="span" className="sr-only">
+                {isSelected ? 'Você marcou' : 'Não marcada'}
+              </Text>
             </div>
           );
         })}

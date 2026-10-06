@@ -9,6 +9,7 @@ import {
 } from 'react';
 import Table, {
   TableBody,
+  TableCaption,
   TableHead,
   TableRow,
   TableCell,
@@ -33,6 +34,7 @@ export type {
 import Search from '../Search/Search';
 import { FilterModal } from '../Filter/FilterModal';
 import Button from '../Button/Button';
+import Text from '../Text/Text';
 import { FunnelIcon } from '@phosphor-icons/react/dist/csr/Funnel';
 import { cn } from '../../utils/utils';
 
@@ -98,6 +100,17 @@ export const semTetoDeLargura = (classes?: string): string | undefined => {
     .replace(/\s+/g, ' ')
     .trim();
   return semTeto || undefined;
+};
+
+/**
+ * Whether a column header has no visible label (typically an actions column).
+ *
+ * @param label - The column label
+ * @returns `true` for `null`, `undefined`, `false` or a blank string
+ */
+export const isEmptyLabel = (label: ReactNode): boolean => {
+  if (typeof label === 'string') return label.trim() === '';
+  return label === null || label === undefined || label === false;
 };
 
 export function isColumnSortable<T>(
@@ -269,6 +282,17 @@ export interface TableProviderProps<T = Record<string, unknown>> {
   readonly paginationConfig?: PaginationConfig;
   /** Search placeholder text */
   readonly searchPlaceholder?: string;
+  /**
+   * Accessible name of the search field. Defaults to `searchPlaceholder`: a
+   * placeholder alone disappears on typing and is not a reliable label.
+   */
+  readonly searchAriaLabel?: string;
+  /**
+   * Accessible table caption, rendered visually hidden (`sr-only`). Names the
+   * table for screen readers ("Desempenho por estudante"). No caption is
+   * rendered when omitted.
+   */
+  readonly caption?: string;
   /** Additional CSS classes for the search container */
   readonly searchContainerClassName?: string;
   /** Empty state configuration (when table is empty with no search) */
@@ -290,6 +314,14 @@ export interface TableProviderProps<T = Record<string, unknown>> {
    * nothing to open: a student who took no exam, say.
    */
   readonly isRowClickable?: (row: T, index: number) => boolean;
+  /**
+   * With `enableRowClick`, names the keyboard action of each clickable row
+   * (e.g. `row => \`Ver detalhes de ${row.name}\``). A real, visually hidden
+   * `<button>` with this name is rendered in the row's first cell and runs the
+   * same handler as the row click — a clickable `<tr>` alone can't be reached
+   * by keyboard or announced by screen readers.
+   */
+  readonly getRowActionLabel?: (row: T) => string;
 
   /**
    * Content to display in the header area (e.g., action buttons)
@@ -368,6 +400,8 @@ export function TableProvider<T extends Record<string, unknown>>({
   initialFilters = [],
   paginationConfig = {},
   searchPlaceholder = 'Buscar...',
+  searchAriaLabel,
+  caption,
   searchContainerClassName,
   emptyState,
   loadingState,
@@ -376,6 +410,7 @@ export function TableProvider<T extends Record<string, unknown>>({
   onParamsChange,
   onRowClick,
   isRowClickable,
+  getRowActionLabel,
   headerContent,
   containerClassName,
   children,
@@ -661,6 +696,8 @@ export function TableProvider<T extends Record<string, unknown>>({
     onClear: handleSearchClear,
     options: [],
     placeholder: searchPlaceholder,
+    // O placeholder some ao digitar e não é rótulo confiável; o nome fica fixo.
+    'aria-label': searchAriaLabel ?? searchPlaceholder,
     debounceMs: 300,
   };
 
@@ -711,6 +748,7 @@ export function TableProvider<T extends Record<string, unknown>>({
         showEmpty={showEmpty}
         emptyState={effectiveEmptyState}
       >
+        {caption && <TableCaption className="sr-only">{caption}</TableCaption>}
         {/* Table Header */}
         <thead>
           <TableRow
@@ -750,7 +788,15 @@ export function TableProvider<T extends Record<string, unknown>>({
                   className={semTetoDeLargura(header.className)}
                   style={header.width ? { width: header.width } : undefined}
                 >
-                  {header.label}
+                  {isEmptyLabel(header.label) ? (
+                    // Coluna de ações costuma vir sem título; sem nome, o
+                    // leitor anuncia as células dela sem dizer o que são.
+                    <Text as="span" className="sr-only">
+                      Ações
+                    </Text>
+                  ) : (
+                    header.label
+                  )}
                 </TableHead>
               );
             })}
@@ -762,7 +808,14 @@ export function TableProvider<T extends Record<string, unknown>>({
           {loading ? (
             <TableRow>
               <TableCell colSpan={headers.length} className="text-center py-8">
-                <span className="text-text-400 text-sm">Carregando...</span>
+                <Text
+                  as="span"
+                  role="status"
+                  aria-live="polite"
+                  className="text-text-400 text-sm"
+                >
+                  Carregando...
+                </Text>
               </TableCell>
             </TableRow>
           ) : (
@@ -784,13 +837,37 @@ export function TableProvider<T extends Record<string, unknown>>({
                     return String(keyValue);
                   })()
                 : `row-${effectiveIndex}`;
+              const clickable = rowTakesClick(row, effectiveIndex);
+              // Ação de teclado da linha: um botão de verdade, oculto
+              // visualmente, na primeira célula. Nada de tabIndex/role no
+              // `<tr>` — isso quebraria a semântica de tabela. O destaque de
+              // foco vai para a linha inteira via `has-[...]`.
+              const rowAction = clickable && getRowActionLabel && (
+                <Button
+                  variant="raw"
+                  data-row-action
+                  className="sr-only"
+                  onClick={(event) => {
+                    // A linha já trata o clique; sem isto o handler roda 2x.
+                    event.stopPropagation();
+                    handleRowClickInternal(row, effectiveIndex);
+                  }}
+                >
+                  {getRowActionLabel(row)}
+                </Button>
+              );
               return (
                 <TableRow
                   key={rowKeyValue}
                   variant={
                     variant === 'borderless' ? 'defaultBorderless' : 'default'
                   }
-                  clickable={rowTakesClick(row, effectiveIndex)}
+                  clickable={clickable}
+                  className={
+                    rowAction
+                      ? 'has-[[data-row-action]:focus-visible]:outline-2 has-[[data-row-action]:focus-visible]:-outline-offset-2 has-[[data-row-action]:focus-visible]:outline-indicator-info'
+                      : undefined
+                  }
                   onClick={() => handleRowClickInternal(row, effectiveIndex)}
                 >
                   {headers.map((header, cellIndex) => {
@@ -832,6 +909,7 @@ export function TableProvider<T extends Record<string, unknown>>({
                           textAlign: header.align,
                         }}
                       >
+                        {cellIndex === 0 && rowAction}
                         {content}
                       </TableCell>
                     );

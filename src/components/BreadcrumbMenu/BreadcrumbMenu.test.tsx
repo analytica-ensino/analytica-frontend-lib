@@ -153,13 +153,19 @@ describe('BreadcrumbMenu', () => {
 
       renderWithRouter(<BreadcrumbMenu breadcrumbs={breadcrumbs} />);
 
+      await user.click(screen.getByText('Home'));
+      expect(mockNavigate).toHaveBeenCalledWith('/');
+
+      mockNavigate.mockClear();
+
       await user.click(screen.getByText('Page 1'));
       expect(mockNavigate).toHaveBeenCalledWith('/page1');
 
       mockNavigate.mockClear();
 
+      // A página atual não é uma ação: só texto com aria-current.
       await user.click(screen.getByText('Page 2'));
-      expect(mockNavigate).toHaveBeenCalledWith('/page2');
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
@@ -200,13 +206,13 @@ describe('BreadcrumbMenu', () => {
         />
       );
 
-      await user.click(screen.getByText('Page 1'));
-      expect(mockCallback).toHaveBeenCalledWith(breadcrumbs[1], 1);
+      await user.click(screen.getByText('Home'));
+      expect(mockCallback).toHaveBeenCalledWith(breadcrumbs[0], 0);
 
       mockCallback.mockClear();
 
-      await user.click(screen.getByText('Page 2'));
-      expect(mockCallback).toHaveBeenCalledWith(breadcrumbs[2], 2);
+      await user.click(screen.getByText('Page 1'));
+      expect(mockCallback).toHaveBeenCalledWith(breadcrumbs[1], 1);
     });
 
     it('should call both callback and navigate', async () => {
@@ -214,6 +220,7 @@ describe('BreadcrumbMenu', () => {
       const mockCallback = jest.fn();
       const breadcrumbs: BreadcrumbItem[] = [
         { id: 'home', name: 'Home', url: '/' },
+        { id: 'page', name: 'Page', url: '/page' },
       ];
 
       renderWithRouter(
@@ -233,6 +240,7 @@ describe('BreadcrumbMenu', () => {
       const user = userEvent.setup();
       const breadcrumbs: BreadcrumbItem[] = [
         { id: 'home', name: 'Home', url: '/' },
+        { id: 'page', name: 'Page', url: '/page' },
       ];
 
       renderWithRouter(<BreadcrumbMenu breadcrumbs={breadcrumbs} />);
@@ -271,18 +279,24 @@ describe('BreadcrumbMenu', () => {
   });
 
   describe('accessibility', () => {
-    it('should have proper menu role', () => {
+    it('should render a navigation landmark with an ordered list', () => {
       const breadcrumbs: BreadcrumbItem[] = [
         { id: 'home', name: 'Home', url: '/' },
+        { id: 'page', name: 'Page', url: '/page' },
       ];
 
       renderWithRouter(<BreadcrumbMenu breadcrumbs={breadcrumbs} />);
 
-      const menuItems = screen.getAllByRole('menuitem');
-      expect(menuItems).toHaveLength(1);
+      const nav = screen.getByRole('navigation', {
+        name: 'Trilha de navegação',
+      });
+      expect(nav.querySelector('ol')).toBeInTheDocument();
+      expect(screen.getAllByRole('listitem')).toHaveLength(2);
+      expect(screen.queryByRole('menuitem')).not.toBeInTheDocument();
+      expect(screen.getByText('Page')).toHaveAttribute('aria-current', 'page');
     });
 
-    it('should have keyboard navigation support', async () => {
+    it('should activate a previous breadcrumb with the keyboard', async () => {
       const user = userEvent.setup();
       const mockCallback = jest.fn();
       const breadcrumbs: BreadcrumbItem[] = [
@@ -297,17 +311,15 @@ describe('BreadcrumbMenu', () => {
         />
       );
 
-      const menuItems = screen.getAllByRole('menuitem');
-      const homeItem = menuItems[0];
-
-      // Focus and press Enter
-      await user.click(homeItem);
+      await user.tab();
+      expect(screen.getByRole('button', { name: 'Home' })).toHaveFocus();
+      await user.keyboard('{Enter}');
 
       expect(mockCallback).toHaveBeenCalledWith(breadcrumbs[0], 0);
       expect(mockNavigate).toHaveBeenCalledWith('/');
     });
 
-    it('should be focusable with tab', () => {
+    it('should only expose previous breadcrumbs as buttons', () => {
       const breadcrumbs: BreadcrumbItem[] = [
         { id: 'home', name: 'Home', url: '/' },
         { id: 'page', name: 'Page', url: '/page' },
@@ -315,10 +327,8 @@ describe('BreadcrumbMenu', () => {
 
       renderWithRouter(<BreadcrumbMenu breadcrumbs={breadcrumbs} />);
 
-      const menuItems = screen.getAllByRole('menuitem');
-      menuItems.forEach((item) => {
-        expect(item).toHaveAttribute('tabIndex', '0');
-      });
+      expect(screen.getAllByRole('button')).toHaveLength(1);
+      expect(screen.getByRole('button', { name: 'Home' })).toBeInTheDocument();
     });
   });
 
@@ -441,6 +451,7 @@ describe('BreadcrumbMenu', () => {
       const user = userEvent.setup();
       const breadcrumbs: BreadcrumbItem[] = [
         { id: '1', name: 'Search', url: '/search?q=test&filter=active' },
+        { id: '2', name: 'Result', url: '/result' },
       ];
 
       renderWithRouter(<BreadcrumbMenu breadcrumbs={breadcrumbs} />);
@@ -454,6 +465,7 @@ describe('BreadcrumbMenu', () => {
       const user = userEvent.setup();
       const breadcrumbs: BreadcrumbItem[] = [
         { id: '1', name: 'Page', url: '/page#section' },
+        { id: '2', name: 'Section', url: '/section' },
       ];
 
       renderWithRouter(<BreadcrumbMenu breadcrumbs={breadcrumbs} />);

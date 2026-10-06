@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import {
   TimeChart,
@@ -98,6 +98,9 @@ const zeroData: TimeChartData = {
   ],
 };
 
+/** Ignores the sr-only data table headers so only the visual legends count */
+const LEGEND_ONLY = { ignore: 'script, style, th' };
+
 describe('TimeChart', () => {
   describe('Rendering', () => {
     it('renders with default titles', () => {
@@ -120,17 +123,21 @@ describe('TimeChart', () => {
 
     it('renders correct number of legend items for student profile', () => {
       render(<TimeChart data={studentData} />);
-      expect(screen.getAllByText('Atividades')).toHaveLength(2);
-      expect(screen.getAllByText('Videoaulas')).toHaveLength(2);
-      expect(screen.getAllByText('Simulados')).toHaveLength(2);
-      expect(screen.getAllByText('Questionários')).toHaveLength(2);
-      expect(screen.getAllByText('Aulas recomendadas')).toHaveLength(2);
+      expect(screen.getAllByText('Atividades', LEGEND_ONLY)).toHaveLength(2);
+      expect(screen.getAllByText('Videoaulas', LEGEND_ONLY)).toHaveLength(2);
+      expect(screen.getAllByText('Simulados', LEGEND_ONLY)).toHaveLength(2);
+      expect(screen.getAllByText('Questionários', LEGEND_ONLY)).toHaveLength(2);
+      expect(
+        screen.getAllByText('Aulas recomendadas', LEGEND_ONLY)
+      ).toHaveLength(2);
     });
 
     it('renders correct number of legend items for teacher profile', () => {
       render(<TimeChart data={teacherData} />);
-      expect(screen.getAllByText('Atividades')).toHaveLength(2);
-      expect(screen.getAllByText('Aulas recomendadas')).toHaveLength(2);
+      expect(screen.getAllByText('Atividades', LEGEND_ONLY)).toHaveLength(2);
+      expect(
+        screen.getAllByText('Aulas recomendadas', LEGEND_ONLY)
+      ).toHaveLength(2);
     });
 
     it('renders weekday labels', () => {
@@ -142,6 +149,67 @@ describe('TimeChart', () => {
       expect(screen.getByTestId('day-label-SEX')).toBeInTheDocument();
       expect(screen.getByTestId('day-label-SAB')).toBeInTheDocument();
       expect(screen.getByTestId('day-label-DOM')).toBeInTheDocument();
+    });
+
+    it('exposes both charts as images described by sr-only data tables', () => {
+      render(
+        <TimeChart
+          data={teacherData}
+          barChartTitle="Horas por semana"
+          pieChartTitle="Horas por item"
+        />
+      );
+
+      const bar = screen.getByRole('img', { name: 'Horas por semana' });
+      const barTable = screen.getByRole('table', {
+        name: 'Dados do gráfico: Horas por semana',
+      });
+      expect(bar).toHaveAttribute('aria-describedby', barTable.id);
+      expect(
+        within(barTable).getByRole('columnheader', { name: 'Período' })
+      ).toBeInTheDocument();
+      expect(
+        within(barTable).getByRole('rowheader', { name: 'SEG' })
+      ).toBeInTheDocument();
+
+      const pie = screen.getByRole('img', { name: 'Horas por item' });
+      const pieTable = screen.getByRole('table', {
+        name: 'Dados do gráfico: Horas por item',
+      });
+      expect(pie).toHaveAttribute('aria-describedby', pieTable.id);
+      expect(
+        within(pieTable).getByRole('rowheader', { name: 'Atividades' })
+      ).toBeInTheDocument();
+      expect(within(pieTable).getAllByRole('cell')[0].textContent).toMatch(
+        /%$/
+      );
+    });
+
+    it('shows 0% in the pie table when there is no data', () => {
+      render(
+        <TimeChart
+          data={{
+            categories: DEFAULT_CATEGORIES,
+            hoursByPeriod: [
+              { label: 'SEG', activities: 0, recommendedLessons: 0 },
+            ],
+          }}
+        />
+      );
+      const pieTable = screen.getByRole('table', {
+        name: 'Dados do gráfico: Dados de horas por item',
+      });
+      expect(
+        within(pieTable).getAllByRole('cell', { name: '0%' })
+      ).toHaveLength(2);
+    });
+
+    it('does not set aria-label on role-less bar segments', () => {
+      render(<TimeChart data={studentData} />);
+      const segments = screen.getAllByTestId(/^bar-segment-/);
+      for (const segment of segments) {
+        expect(segment).not.toHaveAttribute('aria-label');
+      }
     });
 
     it('renders both chart cards', () => {

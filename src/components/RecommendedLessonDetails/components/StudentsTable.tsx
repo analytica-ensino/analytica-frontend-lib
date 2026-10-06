@@ -75,7 +75,13 @@ export const StudentsTable = ({
               {labels.completionColumn}
             </TableHead>
             <TableHead>{labels.durationColumn}</TableHead>
-            <TableHead className="w-[160px]" />
+            {/* Cabeçalho sem texto visível (design), mas com nome para o leitor
+                de tela: coluna sem nome é anunciada como vazia. */}
+            <TableHead className="w-[160px]">
+              <Text as="span" className="sr-only">
+                Ações
+              </Text>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -96,7 +102,11 @@ export const StudentsTable = ({
                       as="span"
                       className="size-8 rounded-full bg-background-100 flex items-center justify-center shrink-0"
                     >
-                      <UserIcon size={16} className="text-text-500" />
+                      <UserIcon
+                        size={16}
+                        className="text-text-500"
+                        aria-hidden="true"
+                      />
                     </Text>
                     <TruncatedText size="sm" color="text-text-950">
                       {student.name}
@@ -114,7 +124,14 @@ export const StudentsTable = ({
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col gap-1 min-w-[120px]">
-                    <Text size="sm" className="text-primary-700 font-medium">
+                    {/* O percentual visível sai da árvore de acessibilidade: a
+                        barra já o anuncia junto com o nome do aluno, e sem isso
+                        o valor seria lido duas vezes. */}
+                    <Text
+                      size="sm"
+                      className="text-primary-700 font-medium"
+                      aria-hidden="true"
+                    >
                       {student.completionPercentage}%
                     </Text>
                     <ProgressBar
@@ -122,6 +139,7 @@ export const StudentsTable = ({
                       size="small"
                       variant="blue"
                       className="w-full max-w-[100px]"
+                      accessibleLabel={`Conclusão de ${student.name}: ${student.completionPercentage}%`}
                     />
                   </div>
                 </TableCell>
@@ -136,6 +154,9 @@ export const StudentsTable = ({
                       variant="outline"
                       size="extra-small"
                       onClick={() => onCorrectActivity(student.id)}
+                      // Todas as linhas têm o mesmo botão: o nome do aluno no
+                      // nome acessível diz de quem é cada um fora da tabela.
+                      aria-label={`${labels.correctActivity} de ${student.name}`}
                     >
                       {labels.correctActivity}
                     </Button>

@@ -154,4 +154,22 @@ describe('AppLayout', () => {
     expect(root).not.toBeNull();
     expect(root?.className).toContain('overflow-x-hidden');
   });
+
+  it('exposes the menu and the page content as landmarks', () => {
+    render(
+      <AppLayout
+        header={<header>Topo</header>}
+        menuItems={baseItems}
+        activeMenuValue="home"
+        onMenuItemClick={jest.fn()}
+      >
+        <p>Conteúdo</p>
+      </AppLayout>
+    );
+
+    const nav = screen.getByRole('navigation', { name: 'Menu principal' });
+    expect(nav).toHaveTextContent('Painel');
+    expect(screen.getByRole('main')).toHaveTextContent('Conteúdo');
+    expect(screen.getByRole('main')).not.toHaveTextContent('Painel');
+  });
 });

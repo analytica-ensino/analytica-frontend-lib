@@ -669,7 +669,8 @@ describe('Table Components', () => {
         </Table>
       );
 
-      expect(screen.getByRole('img')).toHaveAttribute('src', mockImage);
+      // A ilustração é decorativa (alt vazio), então não tem papel de imagem.
+      expect(document.querySelector('img')).toHaveAttribute('src', mockImage);
       expect(screen.getByText(customTitle)).toBeInTheDocument();
       expect(screen.getByText(customDescription)).toBeInTheDocument();
     });
@@ -806,7 +807,7 @@ describe('Table Components', () => {
       expect(
         screen.getByText('Nenhum resultado encontrado')
       ).toBeInTheDocument();
-      expect(screen.getByAltText('No search results')).toBeInTheDocument();
+      expect(document.querySelector('img')).toBeInTheDocument();
     });
 
     it('should not show NoSearchResult when showNoSearchResult is false', () => {
@@ -825,9 +826,7 @@ describe('Table Components', () => {
         </Table>
       );
       // When showNoSearchResult is false, it should render table normally without special states
-      expect(
-        screen.queryByAltText('No search results')
-      ).not.toBeInTheDocument();
+      expect(document.querySelector('img')).not.toBeInTheDocument();
       expect(
         screen.queryByText('Não há dados para exibir no momento.')
       ).not.toBeInTheDocument();
@@ -881,7 +880,7 @@ describe('Table Components', () => {
       expect(
         screen.getByText('Nenhum resultado encontrado')
       ).toBeInTheDocument();
-      expect(screen.getByAltText('No search results')).toBeInTheDocument();
+      expect(document.querySelector('img')).toBeInTheDocument();
     });
 
     it('should render custom NoSearchResult component', () => {
@@ -1014,9 +1013,7 @@ describe('Table Components', () => {
       expect(
         screen.getByText('Não há dados para exibir no momento.')
       ).toBeInTheDocument();
-      expect(
-        screen.queryByAltText('No search results')
-      ).not.toBeInTheDocument();
+      expect(document.querySelector('img')).not.toBeInTheDocument();
     });
 
     it('should handle empty noSearchResultState image gracefully', () => {
@@ -1455,5 +1452,57 @@ describe('Table Components', () => {
         expect(onSortChange).toHaveBeenCalledTimes(3);
       });
     });
+  });
+});
+
+describe('Table — acessibilidade dos estados', () => {
+  const header = (
+    <TableHeader>
+      <TableRow>
+        <TableHead>Nome</TableHead>
+      </TableRow>
+    </TableHeader>
+  );
+
+  it('não inventa legenda quando nenhuma é passada', () => {
+    const { container } = render(
+      <Table>
+        {header}
+        <TableBody>
+          <TableRow>
+            <TableCell>Ana</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    );
+
+    expect(container.querySelector('caption')).toBeNull();
+    expect(screen.getByRole('table')).not.toHaveAttribute('aria-busy');
+  });
+
+  it('marca a tabela como ocupada e anuncia o carregamento', () => {
+    render(<Table showLoading>{header}</Table>);
+
+    expect(screen.getByRole('table')).toHaveAttribute('aria-busy', 'true');
+    const status = screen.getByRole('status');
+    expect(status).toHaveAttribute('aria-live', 'polite');
+    expect(status).toHaveTextContent('Carregando dados da tabela');
+  });
+
+  it('anuncia o estado vazio numa região viva', () => {
+    render(<Table showEmpty>{header}</Table>);
+
+    expect(screen.getByRole('table')).not.toHaveAttribute('aria-busy');
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Nenhum dado disponível'
+    );
+  });
+
+  it('anuncia a busca sem resultado numa região viva', () => {
+    render(<Table showNoSearchResult>{header}</Table>);
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Nenhum resultado encontrado'
+    );
   });
 });

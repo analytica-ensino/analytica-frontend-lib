@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useId, useMemo } from 'react';
 import { MenuItem, MenuOverflow } from '../Menu/Menu';
 import IconRender from '../IconRender/IconRender';
 import Text from '../Text/Text';
@@ -42,6 +42,7 @@ export function SimulatedSubjectMenu({
     fetchSubjects,
   } = useSimulatedSubjects(api);
   const { isDark } = useTheme();
+  const labelId = useId();
 
   useEffect(() => {
     // Use relatedIds when available (for merged areas), otherwise fallback to single ID
@@ -73,7 +74,7 @@ export function SimulatedSubjectMenu({
 
   return (
     <div className="space-y-2">
-      <Text size="sm" weight="medium" className="text-text-700">
+      <Text id={labelId} size="sm" weight="medium" className="text-text-700">
         {label}
       </Text>
       {/* Keep MenuOverflow mounted to preserve state, use opacity for loading */}
@@ -87,6 +88,8 @@ export function SimulatedSubjectMenu({
           defaultValue="all"
           value={effectiveValue}
           className="max-w-full min-h-fit"
+          semantics="radio"
+          aria-labelledby={labelId}
           onValueChange={onSubjectChange}
         >
           {menuItems.map((subject: SimulatedSubjectItem) => (

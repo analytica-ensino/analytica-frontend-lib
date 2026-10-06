@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useId } from 'react';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import { calculateTicks } from './utils';
+import { ChartDataTable } from '../shared/ChartDataTable';
 import type {
   VerticalBarChartProps,
   BarProps,
@@ -70,7 +71,6 @@ const Bar = ({
           minHeight: item.value > 0 ? '4px' : '0',
           opacity: !anyHovered || isHovered ? 1 : 0.5,
         }}
-        aria-label={`${item.label}: ${item.value}`}
       />
     </div>
   );
@@ -78,7 +78,7 @@ const Bar = ({
 
 const XAxisLabels = ({ data }: XAxisLabelsProps) => (
   // ml-12 (48px) matches w-12 on YAxis for alignment
-  <div className="flex gap-1 ml-12">
+  <div className="flex gap-1 ml-12" aria-hidden="true">
     {data.map((item) => (
       <div key={item.label} className="flex-1 text-center">
         <Text
@@ -123,6 +123,7 @@ export const VerticalBarChart = ({
   const maxValue = Math.max(...data.map((item) => item.value), 0);
   const yAxisTicks = useMemo(() => calculateTicks(maxValue), [maxValue]);
   const chartMaxValue = yAxisTicks[0] || maxValue || 1;
+  const tableId = useId();
 
   return (
     <div
@@ -130,7 +131,6 @@ export const VerticalBarChart = ({
         'flex flex-col gap-4 bg-background border border-border-50 rounded-xl p-5',
         className
       )}
-      aria-label={title}
       {...props}
     >
       <Text
@@ -141,28 +141,43 @@ export const VerticalBarChart = ({
       >
         {title}
       </Text>
-      <div className="flex gap-2">
-        <YAxis ticks={yAxisTicks} chartHeight={chartHeight} />
-        <div
-          className="flex-1 flex items-end gap-1 border-l border-b border-border-100"
-          style={{ height: chartHeight }}
-        >
-          {data.map((item, index) => (
-            <Bar
-              key={`${item.label}-${index}`}
-              item={item}
-              maxValue={chartMaxValue}
-              chartHeight={chartHeight}
-              barColor={barColor}
-              isHovered={hoveredIndex === index}
-              anyHovered={hoveredIndex !== null}
-              onMouseEnter={() => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex(null)}
-            />
-          ))}
+      {/* As barras são divs sem semântica: o gráfico vira uma imagem nomeada
+          pelo título e descrita pela tabela sr-only com os mesmos dados. */}
+      <div
+        role="img"
+        aria-label={title}
+        aria-describedby={tableId}
+        className="flex flex-col gap-4"
+      >
+        <div className="flex gap-2">
+          <YAxis ticks={yAxisTicks} chartHeight={chartHeight} />
+          <div
+            className="flex-1 flex items-end gap-1 border-l border-b border-border-100"
+            style={{ height: chartHeight }}
+          >
+            {data.map((item, index) => (
+              <Bar
+                key={`${item.label}-${index}`}
+                item={item}
+                maxValue={chartMaxValue}
+                chartHeight={chartHeight}
+                barColor={barColor}
+                isHovered={hoveredIndex === index}
+                anyHovered={hoveredIndex !== null}
+                onMouseEnter={() => setHoveredIndex(index)}
+                onMouseLeave={() => setHoveredIndex(null)}
+              />
+            ))}
+          </div>
         </div>
+        <XAxisLabels data={data} />
       </div>
-      <XAxisLabels data={data} />
+      <ChartDataTable
+        id={tableId}
+        caption={`Dados do gráfico: ${title}`}
+        columns={['Rótulo', 'Valor']}
+        rows={data.map((item) => [item.label, item.value])}
+      />
     </div>
   );
 };

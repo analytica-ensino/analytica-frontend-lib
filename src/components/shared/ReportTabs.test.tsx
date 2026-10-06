@@ -56,4 +56,26 @@ describe('ReportTabs', () => {
     expect(tabOf('Momento 1')).not.toHaveAttribute('data-print-hide');
     expect(tabOf('Geral')).toHaveAttribute('data-print-hide');
   });
+
+  it('exposes the strip as tabs with arrow-key navigation', () => {
+    const onValueChange = jest.fn();
+    render(<ReportTabs tabs={tabs} onValueChange={onValueChange} />);
+
+    expect(screen.getByRole('tablist')).toBeInTheDocument();
+    const geral = screen.getByRole('tab', { name: 'Geral' });
+    expect(geral).toHaveAttribute('aria-selected', 'true');
+    expect(geral).toHaveAttribute('tabindex', '0');
+    expect(screen.getByRole('tab', { name: 'Momento 1' })).toHaveAttribute(
+      'tabindex',
+      '-1'
+    );
+
+    geral.focus();
+    fireEvent.keyDown(geral, { key: 'ArrowRight' });
+
+    const m1 = screen.getByRole('tab', { name: 'Momento 1' });
+    expect(m1).toHaveFocus();
+    expect(m1).toHaveAttribute('aria-selected', 'true');
+    expect(onValueChange).toHaveBeenCalledWith('m1');
+  });
 });

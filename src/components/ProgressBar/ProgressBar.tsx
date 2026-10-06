@@ -76,6 +76,7 @@ interface BaseLayoutProps {
   max: number;
   percentage: number;
   variantClasses: VariantClassType;
+  decorative: boolean;
 }
 
 /**
@@ -116,6 +117,7 @@ interface DefaultLayoutProps {
   clampedValue: number;
   max: number;
   percentage: number;
+  decorative: boolean;
 }
 
 /**
@@ -141,6 +143,15 @@ export type ProgressBarProps = {
    * leitor de tela anuncia o número duas vezes.
    */
   accessibleLabel?: string;
+  /**
+   * Marks the bar as purely decorative, hiding the `<progress>` from assistive
+   * technologies (`aria-hidden="true"`). Use it when the same value is already
+   * rendered as text right next to the bar (e.g. a table cell showing "45%"),
+   * so screen readers don't announce it twice. Do not use it when the bar is
+   * the only source of the information.
+   * @default false
+   */
+  decorative?: boolean;
   /** Show percentage text */
   showPercentage?: boolean;
   /**
@@ -370,15 +381,21 @@ const renderStackedHitCountDisplay = (
  * espaços) virava o nome da barra, deixando-a sem nome nenhum em vez de cair no
  * padrão. O valor passado é usado como veio, sem trim.
  *
+ * Com `showHitCount` o nome padrão segue o que está na tela ("Fáceis: 2 de 5")
+ * em vez do percentual: o cabeçalho visual do layout empilhado fica oculto do
+ * leitor de tela, então o `<progress>` precisa carregar a mesma contagem.
+ *
  * @param accessibleLabel - Nome pronto, vindo do consumidor
  * @param label - Texto visível da barra, usado como prefixo quando é string
  * @param percentage - Percentual já calculado
+ * @param hitCount - Valor e máximo quando a barra exibe a contagem "X de Y"
  * @returns O nome a anunciar
  */
 const resolveAccessibleLabel = (
   accessibleLabel: string | undefined,
   label: ReactNode,
-  percentage: number
+  percentage: number,
+  hitCount?: { value: number; max: number }
 ): string => {
   if (accessibleLabel?.trim()) {
     return accessibleLabel;
@@ -386,6 +403,10 @@ const resolveAccessibleLabel = (
 
   const prefix =
     typeof label === 'string' && label.trim() ? label.trim() : 'Progresso';
+
+  if (hitCount) {
+    return `${prefix}: ${Math.round(hitCount.value)} de ${hitCount.max}`;
+  }
 
   return `${prefix}: ${Math.round(percentage)}%`;
 };
@@ -402,6 +423,8 @@ const ProgressBarBase = ({
   variantClasses,
   containerClassName,
   fillClassName,
+  showHitCount,
+  decorative,
 }: {
   clampedValue: number;
   max: number;
@@ -411,6 +434,8 @@ const ProgressBarBase = ({
   variantClasses: VariantClassType;
   containerClassName: string;
   fillClassName: string;
+  showHitCount: boolean;
+  decorative: boolean;
 }) => (
   <div
     className={cn(
@@ -422,7 +447,15 @@ const ProgressBarBase = ({
     <progress
       value={clampedValue}
       max={max}
-      aria-label={resolveAccessibleLabel(accessibleLabel, label, percentage)}
+      aria-label={resolveAccessibleLabel(
+        accessibleLabel,
+        label,
+        percentage,
+        showHitCount ? { value: clampedValue, max } : undefined
+      )}
+      // Barra decorativa: o valor já está escrito ao lado, então ela sai da
+      // árvore de acessibilidade para não ser anunciada duas vezes.
+      aria-hidden={decorative ? true : undefined}
       className="absolute inset-0 w-full h-full opacity-0"
     />
     <div
@@ -452,6 +485,7 @@ const StackedLayout = ({
   percentage,
   variantClasses,
   dimensions,
+  decorative,
 }: StackedLayoutProps) => (
   <div
     className={cn(
@@ -461,8 +495,13 @@ const StackedLayout = ({
       className
     )}
   >
+    {/* Cabeçalho só visual: o <progress> é a única fonte da leitura (o nome
+        dele já traz label + valor), evitando que o leitor repita tudo. */}
     {shouldShowHeader(label, showPercentage, showHitCount) && (
-      <div className="flex flex-row justify-between items-center w-full h-[19px]">
+      <div
+        className="flex flex-row justify-between items-center w-full h-[19px]"
+        aria-hidden="true"
+      >
         {label && (
           <Text
             as="div"
@@ -494,6 +533,8 @@ const StackedLayout = ({
       variantClasses={variantClasses}
       containerClassName="w-full h-2 rounded-lg"
       fillClassName="h-2 rounded-lg shadow-hard-shadow-3"
+      showHitCount={showHitCount}
+      decorative={decorative}
     />
   </div>
 );
@@ -514,6 +555,7 @@ const CompactLayout = ({
   percentage,
   variantClasses,
   dimensions,
+  decorative,
 }: CompactLayoutProps) => {
   const {
     color,
@@ -560,6 +602,8 @@ const CompactLayout = ({
         variantClasses={variantClasses}
         containerClassName="w-full h-1 rounded-full"
         fillClassName="h-1 rounded-full"
+        showHitCount={showHitCount}
+        decorative={decorative}
       />
     </div>
   );
@@ -581,6 +625,7 @@ const DefaultLayout = ({
   clampedValue,
   max,
   percentage,
+  decorative,
 }: DefaultLayoutProps) => {
   const gapClass = size === 'medium' ? 'gap-2' : sizeClasses.spacing;
   const progressBarClass = size === 'medium' ? 'flex-grow' : 'w-full';
@@ -640,6 +685,8 @@ const DefaultLayout = ({
           sizeClasses.borderRadius,
           'shadow-hard-shadow-3'
         )}
+        showHitCount={false}
+        decorative={decorative}
       />
 
       {displayConfig.showPercentage && (
@@ -716,6 +763,7 @@ const ProgressBar = ({
   layout = 'default',
   label,
   accessibleLabel,
+  decorative = false,
   showPercentage = false,
   showHitCount = false,
   className = '',
@@ -744,6 +792,7 @@ const ProgressBar = ({
         max={max}
         percentage={percentage}
         variantClasses={variantClasses}
+        decorative={decorative}
         dimensions={{
           width: stackedWidth ?? 'w-[380px]',
           height: stackedHeight ?? 'h-[35px]',
@@ -766,6 +815,7 @@ const ProgressBar = ({
         max={max}
         percentage={percentage}
         variantClasses={variantClasses}
+        decorative={decorative}
         dimensions={{
           width: compactWidth ?? 'w-[131px]',
           height: compactHeight ?? 'h-[24px]',
@@ -788,6 +838,7 @@ const ProgressBar = ({
       clampedValue={clampedValue}
       max={max}
       percentage={percentage}
+      decorative={decorative}
     />
   );
 };

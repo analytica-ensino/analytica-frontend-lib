@@ -47,11 +47,14 @@ type PhosphorIconComponent = ComponentType<{
   size?: number;
   color?: string;
   weight?: 'thin' | 'light' | 'regular' | 'bold' | 'fill' | 'duotone';
+  'aria-hidden'?: boolean;
+  'aria-label'?: string;
+  role?: string;
 }>;
-type CustomIconComponent = ComponentType<{
+type CustomIconComponent = (props: {
   size: number;
   color: string;
-}>;
+}) => ReactElement;
 
 /**
  * Statically-imported Phosphor icons that the apps render by name.
@@ -135,7 +138,50 @@ export interface IconRenderProps {
    * @default 'regular'
    */
   weight?: 'thin' | 'light' | 'regular' | 'bold' | 'fill' | 'duotone';
+  /**
+   * Hides the icon from assistive technologies. Use it when the icon is
+   * purely decorative (e.g. next to a text that already conveys the meaning).
+   */
+  'aria-hidden'?: boolean | 'true' | 'false';
+  /**
+   * Accessible name for a meaningful standalone icon. When provided the icon
+   * is exposed as `role="img"` (ignored when `aria-hidden` is truthy).
+   */
+  'aria-label'?: string;
 }
+
+/**
+ * Accessibility attributes forwarded to the rendered svg element.
+ */
+type IconA11yProps = {
+  'aria-hidden'?: true;
+  'aria-label'?: string;
+  role?: 'img';
+};
+
+/**
+ * Builds the accessibility attributes for the rendered icon.
+ *
+ * @param ariaHidden - Whether the icon must be hidden from assistive technologies
+ * @param ariaLabel - Accessible name for a meaningful icon
+ * @returns The attributes to spread into the svg element
+ */
+const buildIconA11yProps = (
+  ariaHidden: IconRenderProps['aria-hidden'],
+  ariaLabel?: string
+): IconA11yProps => {
+  // Ícone decorativo: some da árvore de acessibilidade para não ser lido
+  // como "imagem" sem nome ao lado de um texto que já dá o significado.
+  if (ariaHidden === true || ariaHidden === 'true') {
+    return { 'aria-hidden': true };
+  }
+  // Ícone com significado próprio: precisa de role="img" para que o
+  // aria-label seja anunciado de forma consistente pelos leitores de tela.
+  if (ariaLabel) {
+    return { role: 'img', 'aria-label': ariaLabel };
+  }
+  return {};
+};
 
 /**
  * Dynamic icon component that renders icons based on name.
@@ -146,6 +192,8 @@ export interface IconRenderProps {
  * @param color - The color of the icon
  * @param size - The size of the icon in pixels
  * @param weight - The weight/style of the icon (for Phosphor icons)
+ * @param aria-hidden - Hides the icon from assistive technologies
+ * @param aria-label - Accessible name for a meaningful standalone icon
  * @returns JSX element with the corresponding icon
  */
 export const IconRender = ({
@@ -153,29 +201,47 @@ export const IconRender = ({
   color = '#000000',
   size = 24,
   weight = 'regular',
+  'aria-hidden': ariaHidden,
+  'aria-label': ariaLabel,
 }: IconRenderProps): JSX.Element => {
+  const a11yProps = buildIconA11yProps(ariaHidden, ariaLabel);
+
   // Guard against undefined/null iconName
   if (!iconName) {
-    return <QuestionIcon size={size} color={color} weight={weight} />;
+    return (
+      <QuestionIcon size={size} color={color} weight={weight} {...a11yProps} />
+    );
   }
 
   if (typeof iconName === 'string') {
     const PhosphorIcon = PHOSPHOR_ICONS[iconName];
     if (PhosphorIcon) {
-      return <PhosphorIcon size={size} color={color} weight={weight} />;
+      return (
+        <PhosphorIcon
+          size={size}
+          color={color}
+          weight={weight}
+          {...a11yProps}
+        />
+      );
     }
 
     const CustomIcon = CUSTOM_ICONS[iconName];
     if (CustomIcon) {
-      return <CustomIcon size={size} color={color} />;
+      // Os ícones customizados só aceitam size/color; o svg retornado é
+      // clonado para receber os atributos de acessibilidade.
+      return cloneElement(CustomIcon({ size, color }), a11yProps);
     }
 
-    return <QuestionIcon size={size} color={color} weight={weight} />;
+    return (
+      <QuestionIcon size={size} color={color} weight={weight} {...a11yProps} />
+    );
   } else {
     // Clone the ReactElement with icon props, casting to avoid TypeScript errors
     return cloneElement(iconName, {
       size,
       color: 'currentColor',
+      ...a11yProps,
     } as Partial<{
       size: number;
       color: string;

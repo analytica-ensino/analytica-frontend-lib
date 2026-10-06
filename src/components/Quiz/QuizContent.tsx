@@ -48,13 +48,21 @@ export const getStatusBadge = (status?: OptionStatus) => {
   switch (status) {
     case OptionStatus.CORRECT:
       return (
-        <Badge variant="solid" action="success" iconLeft={<CheckCircleIcon />}>
+        <Badge
+          variant="solid"
+          action="success"
+          iconLeft={<CheckCircleIcon aria-hidden="true" />}
+        >
           Resposta correta
         </Badge>
       );
     case OptionStatus.INCORRECT:
       return (
-        <Badge variant="solid" action="error" iconLeft={<XCircleIcon />}>
+        <Badge
+          variant="solid"
+          action="error"
+          iconLeft={<XCircleIcon aria-hidden="true" />}
+        >
           Resposta incorreta
         </Badge>
       );
@@ -153,7 +161,11 @@ const QuizSubTitle = forwardRef<HTMLDivElement, { subTitle: string }>(
   ({ subTitle, ...props }, ref) => {
     return (
       <div className="px-4 pb-2 pt-6" {...props} ref={ref}>
-        <p className="font-bold text-lg text-text-950">{subTitle}</p>
+        {/* Subtítulo de seção da questão (ex.: "Alternativas"): h3 para
+            entrar na navegação por cabeçalhos abaixo dos h1/h2 da tela. */}
+        <Text as="h3" size="lg" weight="bold" color="text-text-950">
+          {subTitle}
+        </Text>
       </div>
     );
   }
@@ -723,13 +735,31 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
                         </Text>
                         {!isStudentCorrect && (
                           <Text size="2xs" className="text-text-800">
-                            | Resposta correta: {correctAnswer}
+                            {/* Separador só visual: o leitor leria "barra vertical". */}
+                            <Text
+                              as="span"
+                              size="2xs"
+                              color="text-text-800"
+                              aria-hidden="true"
+                            >
+                              |{' '}
+                            </Text>
+                            Resposta correta: {correctAnswer}
                           </Text>
                         )}
                       </>
                     ) : (
                       <Text size="2xs" className="text-text-800">
-                        Não respondida | Resposta correta: {correctAnswer}
+                        Não respondida{' '}
+                        <Text
+                          as="span"
+                          size="2xs"
+                          color="text-text-800"
+                          aria-hidden="true"
+                        >
+                          |
+                        </Text>{' '}
+                        Resposta correta: {correctAnswer}
                       </Text>
                     )}
                   </span>
@@ -1160,7 +1190,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
           <Badge
             variant="solid"
             action="error"
-            iconRight={<XCircleIcon />}
+            iconRight={<XCircleIcon aria-hidden="true" />}
             size="large"
             className="py-1 px-2"
           >
@@ -1179,11 +1209,22 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
         <Badge
           variant="solid"
           action={isCorrect ? 'success' : 'error'}
-          iconRight={isCorrect ? <CheckCircleIcon /> : <XCircleIcon />}
+          iconRight={
+            isCorrect ? (
+              <CheckCircleIcon aria-hidden="true" />
+            ) : (
+              <XCircleIcon aria-hidden="true" />
+            )
+          }
           size="large"
           className="py-1 px-2"
         >
           <span className="text-text-900">{selectedOptionText}</span>
+          {/* O certo/errado só aparece pela cor e pelo ícone; o leitor de
+              tela precisa do resultado em texto (WCAG 1.4.1). */}
+          <Text as="span" className="sr-only">
+            {isCorrect ? ' — correta' : ' — incorreta'}
+          </Text>
         </Badge>
       </span>
     );
@@ -1196,6 +1237,11 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
 
     return (
       <span className="inline mx-1 text-success-600 font-semibold border-b-2 border-success-600">
+        {/* O destaque verde não chega ao leitor de tela: o prefixo diz que
+            este é o gabarito da lacuna. */}
+        <Text as="span" className="sr-only">
+          Resposta correta:{' '}
+        </Text>
         {correctOptionText}
       </span>
     );

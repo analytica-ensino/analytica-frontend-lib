@@ -77,7 +77,12 @@ export const AppLayout = ({
       className="w-screen min-h-[100dvh] md:h-[100dvh] bg-secondary-50 flex flex-col items-center overflow-x-hidden md:overflow-hidden"
     >
       {header}
-      <div className="z-10 w-full flex flex-col items-center bg-background shadow-soft-shadow-1">
+      {/* Landmarks: `nav` e `main` deixam o leitor de tela pular direto para o
+          menu ou para o conteúdo, em vez de atravessar o cabeçalho toda vez. */}
+      <nav
+        aria-label="Menu principal"
+        className="z-10 w-full flex flex-col items-center bg-background shadow-soft-shadow-1"
+      >
         <MenuOverflow
           value={activeMenuValue}
           defaultValue=""
@@ -95,12 +100,12 @@ export const AppLayout = ({
             </MenuItem>
           ))}
         </MenuOverflow>
-      </div>
-      <div className="md:[height:calc(100dvh-120px)] md:overflow-auto w-full">
+      </nav>
+      <main className="md:[height:calc(100dvh-120px)] md:overflow-auto w-full">
         <PageContainer innerClassName={contentMaxWidth}>
           {children}
         </PageContainer>
-      </div>
+      </main>
       {bottomSlot}
     </div>
   );

@@ -18,14 +18,15 @@ describe('EmptyState', () => {
 
   describe('Basic Rendering', () => {
     it('should render with required props only', () => {
-      render(<EmptyState image={mockImage} />);
+      const { container } = render(<EmptyState image={mockImage} />);
 
-      expect(screen.getByRole('img')).toBeInTheDocument();
-      expect(screen.getByRole('img')).toHaveAttribute('src', mockImage);
-      expect(screen.getByRole('img')).toHaveAttribute(
-        'alt',
-        'Nenhum dado disponível'
-      );
+      const img = container.querySelector('img');
+      expect(img).toHaveAttribute('src', mockImage);
+      // Decorative: the title already says what the illustration shows
+      expect(img).toHaveAttribute('alt', '');
+      expect(
+        screen.getByRole('heading', { name: 'Nenhum dado disponível' })
+      ).toBeInTheDocument();
     });
 
     it('should render default title when title prop is not provided', () => {
@@ -62,11 +63,13 @@ describe('EmptyState', () => {
       ).not.toBeInTheDocument();
     });
 
-    it('should render image with custom alt text from title', () => {
+    it('should keep the image decorative even with a custom title', () => {
       const customTitle = 'Custom Title';
-      render(<EmptyState image={mockImage} title={customTitle} />);
+      const { container } = render(
+        <EmptyState image={mockImage} title={customTitle} />
+      );
 
-      expect(screen.getByRole('img')).toHaveAttribute('alt', customTitle);
+      expect(container.querySelector('img')).toHaveAttribute('alt', '');
     });
   });
 
@@ -229,9 +232,9 @@ describe('EmptyState', () => {
     });
 
     it('should render image with fixed dimensions', () => {
-      render(<EmptyState image={mockImage} />);
+      const { container } = render(<EmptyState image={mockImage} />);
 
-      const img = screen.getByRole('img');
+      const img = container.querySelector('img') as HTMLImageElement;
       expect(img).toHaveClass(
         'w-full',
         'h-full',
@@ -334,9 +337,9 @@ describe('EmptyState', () => {
         buttonAction: 'positive' as const,
       };
 
-      render(<EmptyState {...props} />);
+      const { container } = render(<EmptyState {...props} />);
 
-      expect(screen.getByRole('img')).toHaveAttribute('src', mockImage);
+      expect(container.querySelector('img')).toHaveAttribute('src', mockImage);
       expect(screen.getByText(props.title)).toBeInTheDocument();
       expect(screen.getByText(props.description)).toBeInTheDocument();
       // Button with icon - the accessible name includes the icon text
@@ -356,12 +359,14 @@ describe('EmptyState', () => {
       expect(heading).toBeInTheDocument();
     });
 
-    it('should have descriptive alt text for image', () => {
+    it('should hide the decorative image from assistive technology', () => {
       const customTitle = 'Activity State';
-      render(<EmptyState image={mockImage} title={customTitle} />);
+      const { container } = render(
+        <EmptyState image={mockImage} title={customTitle} />
+      );
 
-      const img = screen.getByRole('img');
-      expect(img).toHaveAttribute('alt', customTitle);
+      expect(container.querySelector('img')).toHaveAttribute('alt', '');
+      expect(screen.queryByRole('img')).not.toBeInTheDocument();
     });
 
     it('should render button with proper text content', () => {

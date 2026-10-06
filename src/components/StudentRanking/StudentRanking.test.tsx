@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { StudentRanking, RankingCard } from './StudentRanking';
 
@@ -524,6 +524,57 @@ describe('StudentRanking', () => {
 
       const headings = screen.getAllByRole('heading', { level: 3 });
       expect(headings).toHaveLength(2);
+    });
+
+    it('renders each card as an ordered list with the position spelled out', () => {
+      render(
+        <StudentRanking
+          highlightStudents={mockHighlightStudents}
+          attentionStudents={mockAttentionStudents}
+        />
+      );
+
+      const lists = screen.getAllByRole('list');
+      expect(lists).toHaveLength(2);
+      expect(lists[0].tagName).toBe('OL');
+      const items = within(lists[0]).getAllByRole('listitem');
+      expect(items).toHaveLength(3);
+      expect(within(items[0]).getByText('Posição 1:')).toHaveClass('sr-only');
+      // The visual number is hidden so it is not read twice
+      expect(within(items[0]).getByText('1')).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
+      expect(within(items[0]).getByText('Desempenho')).toHaveClass('sr-only');
+      expect(within(items[0]).getByText('Valentina Ribeiro').tagName).toBe(
+        'SPAN'
+      );
+    });
+
+    it('renders no list when the card is empty', () => {
+      render(<RankingCard title="Vazio" variant="highlight" students={[]} />);
+
+      expect(screen.queryByRole('list')).not.toBeInTheDocument();
+    });
+
+    it('names clickable rows with the student data and the action', () => {
+      render(
+        <StudentRanking
+          highlightStudents={mockHighlightStudents}
+          attentionStudents={mockAttentionStudents}
+          onStudentClick={jest.fn()}
+        />
+      );
+
+      expect(
+        screen.getByRole('button', {
+          name: 'Posição 1: Valentina Ribeiro Desempenho 100% Ver detalhes',
+        })
+      ).toBeInTheDocument();
+      // No paragraph inside a button
+      for (const button of screen.getAllByRole('button')) {
+        expect(button.querySelector('p')).toBeNull();
+      }
     });
 
     it('should have readable text content', () => {

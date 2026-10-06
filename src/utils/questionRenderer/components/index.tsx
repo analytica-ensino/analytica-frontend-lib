@@ -15,13 +15,21 @@ export const getStatusBadge = (status?: OptionStatus): ReactNode => {
   switch (status) {
     case OptionStatus.CORRECT:
       return (
-        <Badge variant="solid" action="success" iconLeft={<CheckCircleIcon />}>
+        <Badge
+          variant="solid"
+          action="success"
+          iconLeft={<CheckCircleIcon aria-hidden="true" />}
+        >
           Resposta correta
         </Badge>
       );
     case OptionStatus.INCORRECT:
       return (
-        <Badge variant="solid" action="error" iconLeft={<XCircleIcon />}>
+        <Badge
+          variant="solid"
+          action="error"
+          iconLeft={<XCircleIcon aria-hidden="true" />}
+        >
           Resposta incorreta
         </Badge>
       );
@@ -153,7 +161,7 @@ export const FillQuestionContent = ({
           <Badge
             variant="solid"
             action="error"
-            iconRight={<XCircleIcon />}
+            iconRight={<XCircleIcon aria-hidden="true" />}
             size="large"
             className="py-1 px-2"
           >
@@ -171,11 +179,22 @@ export const FillQuestionContent = ({
         <Badge
           variant="solid"
           action={isCorrect ? 'success' : 'error'}
-          iconRight={isCorrect ? <CheckCircleIcon /> : <XCircleIcon />}
+          iconRight={
+            isCorrect ? (
+              <CheckCircleIcon aria-hidden="true" />
+            ) : (
+              <XCircleIcon aria-hidden="true" />
+            )
+          }
           size="large"
           className="py-1 px-2"
         >
           {displayText}
+          {/* O certo/errado só aparece pela cor e pelo ícone; o leitor de
+              tela precisa do resultado em texto (WCAG 1.4.1). */}
+          <Text as="span" className="sr-only">
+            {isCorrect ? ' — correta' : ' — incorreta'}
+          </Text>
         </Badge>
       </span>
     );
@@ -188,6 +207,11 @@ export const FillQuestionContent = ({
     const displayText = correctOptionText ?? '[Resposta não disponível]';
     return (
       <span className="inline mx-1 text-success-600 font-semibold border-b-2 border-success-600">
+        {/* O destaque verde não chega ao leitor de tela: o prefixo diz que
+            este é o gabarito da lacuna. */}
+        <Text as="span" className="sr-only">
+          Resposta esperada:{' '}
+        </Text>
         {displayText}
       </span>
     );

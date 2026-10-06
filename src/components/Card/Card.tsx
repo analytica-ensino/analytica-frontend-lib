@@ -221,11 +221,13 @@ const CardActivitiesResults = forwardRef<
             extended ? 'rounded-t-xl' : 'flex-1 rounded-xl'
           )}
         >
+          {/* Ícone decorativo: o título e o valor já descrevem o resultado. */}
           <span
             className={cn(
               'size-7.5 rounded-full flex items-center justify-center',
               actionIconClasses
             )}
+            aria-hidden="true"
           >
             {icon}
           </span>
@@ -346,6 +348,9 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
             onClick={() => onClickButton?.(valueButton)}
             disabled={disabled}
             className="min-w-fit"
+            // Vários cards na mesma lista têm o mesmo texto de botão; o nome
+            // inclui o título para o botão fazer sentido fora de contexto.
+            aria-label={`${buttonLabel}: ${header}`}
           >
             {buttonLabel}
           </Button>
@@ -422,14 +427,18 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
                 value={progress}
                 variant={progressVariant}
                 data-testid="progress-bar"
+                accessibleLabel={`${header}: ${Math.round(progress)}%`}
               />
 
+              {/* O percentual já faz parte do nome da barra; o texto visível
+                  sai da leitura para não ser anunciado duas vezes. */}
               <Text
                 size="xs"
                 weight="medium"
                 className={cn(
                   'text-text-950 leading-none tracking-normal text-center flex-none'
                 )}
+                aria-hidden="true"
               >
                 {Math.round(progress)}%
               </Text>
@@ -515,7 +524,8 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
         layout="vertical"
         padding="small"
         minHeight="medium"
-        cursor="pointer"
+        // Só indica clique quando o card realmente é clicável.
+        cursor={props.onClick ? 'pointer' : 'default'}
         className={cn('justify-center gap-2  py-2 px-4', className)}
         {...props}
       >
@@ -524,7 +534,12 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
             {subHead.map((text, index) => (
               <Fragment key={`${text} - ${index}`}>
                 <p>{text}</p>
-                {index < subHead.length - 1 && <p>•</p>}
+                {/* Separador visual: o leitor de tela leria "bullet". */}
+                {index < subHead.length - 1 && (
+                  <Text size="2xs" color="text-text-600" aria-hidden="true">
+                    •
+                  </Text>
+                )}
               </Fragment>
             ))}
           </span>
@@ -539,6 +554,7 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
               value={progress}
               variant={progressVariant}
               data-testid="progress-bar"
+              accessibleLabel={`${header}: ${Math.round(progress)}%`}
             />
             {showPercentage && (
               <Text
@@ -547,6 +563,8 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
                 className={cn(
                   'text-text-950 leading-none tracking-normal text-center flex-none'
                 )}
+                // O percentual já é anunciado pelo nome da barra.
+                aria-hidden="true"
               >
                 {Math.round(progress)}%
               </Text>
@@ -586,6 +604,11 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
     ref
   ) => {
     const hasProgress = progress !== undefined;
+    // Só o card com seta é clicável como um todo. Na variante "button" o card
+    // não pode virar role="button", senão o botão "Ver Aula" fica aninhado
+    // dentro de outro botão (WCAG 4.1.2) e some para o leitor de tela.
+    const isCardClickable = actionVariant === 'caret' && !!onClickButton;
+    const progressText = `${progress}% ${labelProgress}`.trim();
 
     return (
       <CardBase
@@ -597,7 +620,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
           actionVariant == 'caret' ? 'cursor-pointer' : '',
           className
         )}
-        onClick={() => actionVariant == 'caret' && onClickButton?.(valueButton)}
+        onClick={isCardClickable ? () => onClickButton(valueButton) : undefined}
         {...props}
       >
         <div className="w-full flex flex-col justify-between gap-2">
@@ -621,10 +644,14 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
             {hasProgress ? (
               <ProgressBar
                 value={progress}
-                label={`${progress}% ${labelProgress}`}
-                // O label visível já começa com o percentual, então o nome
-                // padrão da barra ("85% : 85%") anunciava o número duas vezes.
-                accessibleLabel={`${labelProgress.trim() || 'Progresso'}: ${progress}%`}
+                // O label visível repete o percentual que já está no nome da
+                // barra; fica só visual para não ser anunciado duas vezes.
+                label={
+                  <Text as="span" size="xs" weight="medium" aria-hidden="true">
+                    {`${progress}% ${labelProgress}`}
+                  </Text>
+                }
+                accessibleLabel={`${header}: ${progressText}`}
                 variant={progressVariant}
               />
             ) : (
@@ -637,6 +664,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
           <CaretRightIcon
             className="size-4.5 text-text-800 cursor-pointer"
             data-testid="caret-icon"
+            aria-hidden="true"
           />
         )}
       </CardBase>
@@ -651,6 +679,12 @@ interface CardResultsProps extends HTMLAttributes<HTMLDivElement> {
   incorrect_answers: number;
   direction?: 'row' | 'col';
   color?: string;
+  /**
+   * Action announced by screen readers at the end of the accessible name when
+   * the card is clickable (`onClick`).
+   * @default 'Ver resultado'
+   */
+  actionLabel?: string;
 }
 
 const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
@@ -662,12 +696,20 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
       icon,
       direction = 'col',
       color = '#B7DFFF',
+      actionLabel = 'Ver resultado',
       className,
       ...props
     },
     ref
   ) => {
     const isRow = direction == 'row';
+    // Card clicável vira role="button": o nome resume o conteúdo e a ação,
+    // na ordem da leitura visual, a menos que o consumidor já nomeie o card.
+    const ariaLabel =
+      props['aria-label'] ??
+      (props.onClick
+        ? `${header}, ${correct_answers} corretas, ${incorrect_answers} incorretas, ${actionLabel}`
+        : undefined);
 
     return (
       <CardBase
@@ -677,6 +719,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
         minHeight="medium"
         className={cn('items-stretch cursor-pointer pr-4', className)}
         {...props}
+        aria-label={ariaLabel}
       >
         <div
           className={cn(
@@ -685,6 +728,8 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
           style={{
             backgroundColor: color,
           }}
+          // Ícone da matéria é decorativo: o título já nomeia a matéria.
+          aria-hidden="true"
         >
           <IconRender iconName={icon} color="currentColor" size={20} />
         </div>
@@ -718,7 +763,10 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
             </span>
           </div>
 
-          <CaretRightIcon className="min-w-6 min-h-6 text-text-800" />
+          <CaretRightIcon
+            className="min-w-6 min-h-6 text-text-800"
+            aria-hidden="true"
+          />
         </div>
       </CardBase>
     );
@@ -729,10 +777,26 @@ interface CardStatusProps extends HTMLAttributes<HTMLDivElement> {
   header: string;
   status?: 'correct' | 'incorrect' | 'unanswered' | 'pending';
   label?: string;
+  /**
+   * Action announced by screen readers at the end of the accessible name when
+   * the card is clickable (`onClick`), e.g. "Questão 01, Em branco, Ver resultado".
+   * @default 'Ver resultado'
+   */
+  actionLabel?: string;
 }
 
 const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
-  ({ header, className, status, label, ...props }, ref) => {
+  (
+    {
+      header,
+      className,
+      status,
+      label,
+      actionLabel = 'Ver resultado',
+      ...props
+    },
+    ref
+  ) => {
     const getLabelBadge = (status: CardStatusProps['status']) => {
       switch (status) {
         case 'correct':
@@ -774,6 +838,17 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
       }
     };
 
+    // Card clicável vira role="button": o nome segue a anotação de design
+    // ("Questão 01, Em branco, Ver resultado") — rótulo, status, detalhe e
+    // ação —, a menos que o consumidor já nomeie o card.
+    const ariaLabel =
+      props['aria-label'] ??
+      (props.onClick
+        ? [header, status && getLabelBadge(status), label, actionLabel]
+            .filter(Boolean)
+            .join(', ')
+        : undefined);
+
     return (
       <CardBase
         ref={ref}
@@ -782,6 +857,7 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
         minHeight="medium"
         className={cn('items-center cursor-pointer', className)}
         {...props}
+        aria-label={ariaLabel}
       >
         <div className="flex justify-between w-full h-full flex-row items-center gap-2">
           <p className="text-sm font-bold text-text-950 truncate flex-1 min-w-0">
@@ -1857,21 +1933,32 @@ const CardSimulationHistory = forwardRef<
                       cursor="pointer"
                       className={cn(
                         `${typeStyles.background} rounded-xl hover:shadow-soft-shadow-2 
-                          transition-shadow duration-200 h-auto min-h-[61px]`
+                          transition-shadow duration-200 h-auto min-h-[61px] relative`
                       )}
-                      onClick={() => onSimulationClick?.(simulation)}
                     >
                       <div className="flex justify-between items-center w-full gap-2">
-                        <div className="flex flex-wrap flex-col justify-between sm:flex-row gap-2 flex-1 min-w-0">
+                        {/* Só o bloco de título/info é o botão de navegação; o
+                            "Excluir simulado" fica como irmão, nunca aninhado
+                            num role="button" (WCAG 4.1.2). O ::after cobre o
+                            card inteiro para manter toda a área clicável. */}
+                        <Button
+                          variant="raw"
+                          className={cn(
+                            'flex flex-wrap flex-col justify-between sm:flex-row gap-2 flex-1 min-w-0 text-left',
+                            'after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-indicator-info'
+                          )}
+                          onClick={() => onSimulationClick?.(simulation)}
+                        >
                           <Text
+                            as="span"
                             size="lg"
                             weight="bold"
-                            className="text-text-950 truncate"
+                            className="block text-text-950 truncate"
                           >
                             {simulation.title}
                           </Text>
 
-                          <div className="flex items-center gap-2">
+                          <Text as="span" className="flex items-center gap-2">
                             <Badge
                               variant="examsOutlined"
                               action={typeStyles.badge}
@@ -1890,21 +1977,28 @@ const CardSimulationHistory = forwardRef<
                               </Badge>
                             )}
 
-                            <Text size="sm" className="text-text-800 truncate">
+                            <Text
+                              as="span"
+                              size="sm"
+                              className="text-text-800 truncate"
+                            >
                               {simulation.info}
                             </Text>
-                          </div>
-                        </div>
+                          </Text>
+                        </Button>
 
                         <div className="flex items-center gap-1 flex-shrink-0">
                           {simulation.canDelete && onDeleteClick && (
                             <IconButton
                               size="sm"
-                              icon={<TrashIcon size={20} />}
+                              icon={<TrashIcon size={20} aria-hidden="true" />}
                               aria-label={`Excluir simulado ${simulation.title}`}
                               data-testid={`delete-simulation-${simulation.id}`}
-                              // The whole CardBase is clickable, so the click
-                              // must not bubble up into onSimulationClick.
+                              // `relative` põe o botão acima do ::after que
+                              // estende a área clicável de navegação.
+                              className="relative"
+                              // Keeps the click from reaching any clickable
+                              // ancestor provided by the consumer.
                               onClick={(event) => {
                                 event.stopPropagation();
                                 onDeleteClick(simulation);
@@ -1916,6 +2010,7 @@ const CardSimulationHistory = forwardRef<
                             size={24}
                             className="text-text-800"
                             data-testid="caret-icon"
+                            aria-hidden="true"
                           />
                         </div>
                       </div>
