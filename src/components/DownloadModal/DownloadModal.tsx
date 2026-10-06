@@ -19,15 +19,21 @@ export type DownloadFormat = DOWNLOAD_FORMAT;
  * Props for the DownloadModal component
  */
 export interface DownloadModalProps {
+  /**
+   * A pessoa pediu para baixar. NÃO é "mostre o seletor": quando há um formato
+   * só e ele é imediato, o pedido se resolve na hora e nenhum `<dialog>` é
+   * montado — veja `skipsChooser`.
+   */
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly isDownloading: boolean;
   readonly error: string | null;
   readonly onDownloadPdf: () => void;
   /**
-   * Excel generation. Optional: when it is not supplied the Excel card is not
-   * rendered at all and the modal offers PDF only, so no caller can select a
-   * format that has nothing behind it.
+   * Excel generation. Optional: when it is not supplied there is only one
+   * format left, so the chooser has nothing to ask. With an immediate PDF the
+   * download fires straight away and no modal is shown; with `asyncPdf` the
+   * chooser still opens, because it is where progress and errors appear.
    */
   readonly onDownloadExcel?: () => void;
   /** Modal title. Defaults to "Como deseja baixar o relatório?". */
@@ -37,13 +43,19 @@ export interface DownloadModalProps {
    * the modal open on the PDF path as well and it closes like the Excel one,
    * once `isDownloading` falls back to false with no error. Defaults to false:
    * the PDF of most reports is the print of the page already on screen.
+   *
+   * It also decides the single-format case: a lone async PDF keeps the chooser,
+   * since that is the only place its progress and failure are visible.
    */
   readonly asyncPdf?: boolean;
 }
 
 /**
- * Modal with two selectable format cards (PDF and Excel) and action buttons.
+ * Format chooser with selectable cards (PDF and Excel) and action buttons.
  * Shows skeleton placeholders while generating files.
+ *
+ * Renders nothing when there is nothing to choose: a lone immediate PDF is
+ * downloaded as soon as `isOpen` turns true.
  */
 const DownloadModal = ({
   isOpen,
@@ -79,6 +91,30 @@ const DownloadModal = ({
     wasDownloadingRef.current = isDownloading;
   }, [isOpen, isDownloading, error, handleClose]);
 
+  // Um formato só e imediato: não há o que escolher, então o pedido de
+  // download se resolve na hora e o seletor nunca aparece. O ramo assíncrono
+  // fica de fora de propósito — o seletor é o único lugar com o skeleton de
+  // `isDownloading` e a linha de erro, e um download async sem retorno algum é
+  // pior que um clique a mais.
+  const skipsChooser = !onDownloadExcel && !asyncPdf;
+
+  // O latch não é defensivo, é o que faz a regra funcionar: sem ele o
+  // StrictMode monta o efeito duas vezes em dev e a pessoa leva dois print().
+  // Também cobre o consumidor que ignore o `onClose` — `isOpen` fica true, o
+  // latch fica true, e nada dispara de novo. Zera só quando o pedido se
+  // encerra, para o próximo clique voltar a funcionar.
+  const firedRef = useRef(false);
+  useEffect(() => {
+    if (!isOpen) {
+      firedRef.current = false;
+      return;
+    }
+    if (!skipsChooser || firedRef.current) return;
+    firedRef.current = true;
+    onDownloadPdf();
+    handleClose();
+  }, [isOpen, skipsChooser, onDownloadPdf, handleClose]);
+
   const handleDownload = useCallback(() => {
     if (selectedFormat === DOWNLOAD_FORMAT.PDF) {
       onDownloadPdf();
@@ -89,6 +125,10 @@ const DownloadModal = ({
       onDownloadExcel?.();
     }
   }, [selectedFormat, onDownloadPdf, onDownloadExcel, asyncPdf, handleClose]);
+
+  // Depois de todos os hooks: o efeito acima é quem atende o pedido, e aqui
+  // não há nada para desenhar.
+  if (skipsChooser) return null;
 
   const cardBase =
     'flex flex-1 items-center justify-center h-20 rounded-xl border bg-background shadow-soft-shadow-1 cursor-pointer transition-colors';
