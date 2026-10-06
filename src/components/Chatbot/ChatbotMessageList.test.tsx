@@ -73,4 +73,39 @@ describe('ChatbotMessageList', () => {
       screen.getByRole('status', { name: /assistente digitando/i })
     ).toBeInTheDocument();
   });
+
+  describe('live region (AE-2667)', () => {
+    it('announces politely without exposing a log role', () => {
+      const { container } = render(
+        <ChatbotMessageList messages={[buildMessage('a')]} />
+      );
+
+      // `role="log"` fazia o VoiceOver anunciar "log" no fim da leitura da
+      // área de conversa; o anúncio das mensagens novas continua pelo
+      // `aria-live`, que não acrescenta papel nenhum à leitura.
+      expect(screen.queryByRole('log')).not.toBeInTheDocument();
+
+      const liveRegion = container.firstElementChild;
+      expect(liveRegion).not.toHaveAttribute('role');
+      expect(liveRegion).toHaveAttribute('aria-live', 'polite');
+      expect(liveRegion).toHaveAttribute('aria-relevant', 'additions');
+    });
+
+    it('keeps new messages inside the live region', () => {
+      const { container, rerender } = render(
+        <ChatbotMessageList messages={[buildMessage('a')]} />
+      );
+      rerender(
+        <ChatbotMessageList
+          messages={[
+            buildMessage('a'),
+            buildMessage('b', { role: 'assistant', content: 'resposta nova' }),
+          ]}
+        />
+      );
+
+      const liveRegion = container.querySelector('[aria-live="polite"]');
+      expect(liveRegion).toContainElement(screen.getByText('resposta nova'));
+    });
+  });
 });
