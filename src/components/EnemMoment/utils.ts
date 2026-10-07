@@ -3,19 +3,16 @@
  * "—" for what the API could not give.
  */
 
-/** Integer with pt-BR thousands separators: 16778 → "16.778". */
-export const formatCount = (value: number): string =>
-  value.toLocaleString('pt-BR');
+// Three of them live in `utils/reportFormat`, shared with the knowledge card
+// the generic reports draw from the same shapes; re-exported here so this
+// module stays the one place the sections import their formatters from.
+export {
+  formatCount,
+  MISSING_VALUE,
+  formatReportScore as formatScore,
+} from '../../utils/reportFormat';
 
-/** Shown in place of a number the API could not give. */
-export const MISSING_VALUE = '—';
-
-/** A 0–10 score, one decimal, pt-BR — as the other reports print it: "5,2". */
-export const formatScore = (score: number): string =>
-  score.toLocaleString('pt-BR', {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  });
+import { MISSING_VALUE } from '../../utils/reportFormat';
 
 /** A 0–100 share, up to one decimal, pt-BR: 18.3 → "18,3%"; `null` → "—". */
 export const formatPercentage = (value: number | null): string =>
