@@ -33,6 +33,18 @@ describe('ScoreCircle', () => {
       expect(screen.getByTestId('lightbulb')).toBeInTheDocument();
     });
 
+    it('writes the value the way it is given, and reads it the same way', () => {
+      render(
+        <ScoreCircle value={8} displayValue="8,0" max={10} label="Nota final" />
+      );
+
+      expect(screen.getByText('8,0')).toBeInTheDocument();
+      expect(screen.queryByText('8')).not.toBeInTheDocument();
+      expect(screen.getByRole('img')).toHaveAccessibleName(
+        'Nota final: 8,0 de 10. Desempenho: 80 por cento.'
+      );
+    });
+
     it('does not render the label container when no label nor icon', () => {
       render(<ScoreCircle value={50} max={100} />);
       expect(screen.queryByText('Nota final')).not.toBeInTheDocument();

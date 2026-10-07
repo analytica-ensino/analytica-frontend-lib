@@ -1202,6 +1202,12 @@ export const CardSimulationHistoryInteractive: Story = () => {
       date: '12 Fev',
       simulations: [
         {
+          id: '0',
+          title: 'Simulado Momento Enem',
+          type: 'momentoEnem' as const,
+          info: '45 de 90 corretas',
+        },
+        {
           id: '1',
           title: 'Simulado Enem #42',
           type: 'enem' as const,
@@ -1260,7 +1266,7 @@ export const CardSimulationHistoryInteractive: Story = () => {
   const handleSimulationClick = (simulation: {
     id: string;
     title: string;
-    type: 'enem' | 'prova' | 'simulado' | 'vestibular';
+    type: 'enem' | 'prova' | 'simulado' | 'vestibular' | 'momentoEnem';
     info: string;
   }) => {
     console.log('Simulação clicada:', simulation);

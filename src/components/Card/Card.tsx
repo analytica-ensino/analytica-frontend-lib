@@ -730,11 +730,13 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
     ref
   ) => {
     const isRow = direction == 'row';
+    // A seta e o cursor prometem um destino: só aparecem quando há clique.
+    const isClickable = Boolean(props.onClick);
     // Card clicável vira role="button": o nome resume o conteúdo e a ação,
     // na ordem da leitura visual, a menos que o consumidor já nomeie o card.
     const ariaLabel =
       props['aria-label'] ??
-      (props.onClick
+      (isClickable
         ? `${header}, ${correct_answers} corretas, ${incorrect_answers} incorretas, ${actionLabel}`
         : undefined);
 
@@ -744,7 +746,11 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
         layout="horizontal"
         padding="none"
         minHeight="medium"
-        className={cn('items-stretch cursor-pointer pr-4', className)}
+        className={cn(
+          'items-stretch pr-4',
+          isClickable && 'cursor-pointer',
+          className
+        )}
         {...props}
         aria-label={ariaLabel}
       >
@@ -790,10 +796,12 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
             </span>
           </div>
 
-          <CaretRightIcon
-            className="min-w-6 min-h-6 text-text-800"
-            aria-hidden="true"
-          />
+          {isClickable && (
+            <CaretRightIcon
+              className="min-w-6 min-h-6 text-text-800"
+              aria-hidden="true"
+            />
+          )}
         </div>
       </CardBase>
     );
@@ -1861,7 +1869,7 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
 interface SimulationItem {
   id: string;
   title: string;
-  type: 'enem' | 'prova' | 'simulado' | 'vestibular';
+  type: 'enem' | 'prova' | 'simulado' | 'vestibular' | 'momentoEnem';
   info: string;
   /**
    * Optional status badge (e.g. "Em andamento" / "Concluído"). When provided it
@@ -1915,6 +1923,12 @@ const SIMULATION_TYPE_STYLES = {
     background: 'bg-exam-4',
     badge: 'exam4' as const,
     text: 'Vestibular',
+  },
+  // The in-classroom ENEM: the same blue as the ENEM, under its own name.
+  momentoEnem: {
+    background: 'bg-exam-1',
+    badge: 'exam1' as const,
+    text: 'Momento Enem',
   },
 };
 

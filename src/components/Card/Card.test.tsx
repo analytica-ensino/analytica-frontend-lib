@@ -992,6 +992,30 @@ describe('CardResults', () => {
     render(<CardResults {...baseProps} data-testid="custom-attr" />);
     expect(screen.getByTestId('custom-attr')).toBeInTheDocument();
   });
+
+  it('promises no destination without a click: no caret, no pointer', () => {
+    const { container } = render(
+      <CardResults {...baseProps} data-testid="card-results" />
+    );
+
+    expect(screen.getByTestId('card-results')).not.toHaveClass(
+      'cursor-pointer'
+    );
+    expect(container.querySelectorAll('svg')).toHaveLength(3);
+  });
+
+  it('shows the caret and the pointer when it can be clicked', () => {
+    const { container } = render(
+      <CardResults
+        {...baseProps}
+        onClick={jest.fn()}
+        data-testid="card-results"
+      />
+    );
+
+    expect(screen.getByTestId('card-results')).toHaveClass('cursor-pointer');
+    expect(container.querySelectorAll('svg')).toHaveLength(4);
+  });
 });
 
 describe('CardStatus', () => {
@@ -3877,6 +3901,31 @@ describe('CardSimulationHistory', () => {
     expect(screen.getByText('Vestibular')).toBeInTheDocument();
   });
 
+  it('names the in-classroom ENEM "Momento Enem", in the ENEM blue', () => {
+    render(
+      <CardSimulationHistory
+        data={[
+          {
+            date: '12 Fev',
+            simulations: [
+              {
+                id: 'momento',
+                title: 'Simulado Momento Enem',
+                type: 'momentoEnem',
+                info: '45 de 90 corretas',
+              },
+            ],
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getByText('Momento Enem')).toBeInTheDocument();
+    expect(
+      screen.getByText('Simulado Momento Enem').closest('.bg-exam-1')
+    ).toBeInTheDocument();
+  });
+
   it('should render simulation info', () => {
     render(<CardSimulationHistory {...baseProps} />);
 
@@ -4833,16 +4882,22 @@ describe('Acessibilidade dos cards', () => {
       ).toBeInTheDocument();
     });
 
-    it('esconde o ícone da matéria e a seta e não nomeia card não clicável', () => {
+    it('esconde o ícone da matéria, não desenha seta e não nomeia card não clicável', () => {
       render(<CardResults {...props} data-testid="cr" color="#FF0000" />);
       const card = screen.getByTestId('cr');
       expect(card).not.toHaveAttribute('aria-label');
       const iconWrapper = screen.getByText('Matemática').closest('div')
         ?.parentElement?.previousElementSibling;
       expect(iconWrapper).toHaveAttribute('aria-hidden', 'true');
+      // A seta prometeria um destino que o card não tem.
+      expect(card.querySelectorAll('svg[aria-hidden="true"]')).toHaveLength(0);
+    });
+
+    it('esconde a seta do card clicável', () => {
+      render(<CardResults {...props} data-testid="cr" onClick={jest.fn()} />);
       expect(
-        card.querySelectorAll('svg[aria-hidden="true"]').length
-      ).toBeGreaterThan(0);
+        screen.getByTestId('cr').querySelectorAll('svg[aria-hidden="true"]')
+      ).toHaveLength(1);
     });
   });
 
