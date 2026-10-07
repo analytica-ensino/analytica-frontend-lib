@@ -5,10 +5,17 @@ import { SupportType, type SupportApiClient } from '@/types/support';
 
 const createMockApiClient = (
   response?: unknown,
-  shouldReject = false
+  shouldReject = false,
+  rejectStatus?: number
 ): SupportApiClient => ({
   get: jest.fn().mockImplementation(() => {
-    if (shouldReject) return Promise.reject(new Error('API Error'));
+    if (shouldReject) {
+      return Promise.reject(
+        Object.assign(new Error('API Error'), {
+          response: rejectStatus ? { status: rejectStatus } : undefined,
+        })
+      );
+    }
     return Promise.resolve({ data: response });
   }),
   post: jest.fn(),
@@ -30,13 +37,13 @@ describe('useSupportFeatureFlag', () => {
   });
 
   describe('estado inicial', () => {
-    it('deve inicializar com supportType NATIVE e loading true', () => {
+    it('starts with no support type while the flag loads', () => {
       const apiClient = createMockApiClient();
       const { result } = renderHook(() => useSupportFeatureFlag({ apiClient }));
 
-      expect(result.current.supportType).toBe(SupportType.NATIVE);
+      expect(result.current.supportType).toBeNull();
       expect(result.current.loading).toBe(true);
-      expect(result.current.isNative).toBe(true);
+      expect(result.current.isNative).toBe(false);
       expect(result.current.isZendesk).toBe(false);
     });
 
@@ -149,8 +156,35 @@ describe('useSupportFeatureFlag', () => {
   });
 
   describe('tratamento de erros', () => {
-    it('deve definir NATIVE quando a API falha', async () => {
+    it('shows no support when the flag cannot be read', async () => {
       const apiClient = createMockApiClient(undefined, true);
+
+      const { result } = renderHook(() => useSupportFeatureFlag({ apiClient }));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.supportType).toBeNull();
+      expect(result.current.isNative).toBe(false);
+      expect(result.current.isZendesk).toBe(false);
+    });
+
+    it('shows no support on a server error instead of falling back to native', async () => {
+      const apiClient = createMockApiClient(undefined, true, 500);
+
+      const { result } = renderHook(() => useSupportFeatureFlag({ apiClient }));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.supportType).toBeNull();
+      expect(result.current.isNative).toBe(false);
+    });
+
+    it('keeps the native default when the institution has no SUPPORT flag (404)', async () => {
+      const apiClient = createMockApiClient(undefined, true, 404);
 
       const { result } = renderHook(() => useSupportFeatureFlag({ apiClient }));
 

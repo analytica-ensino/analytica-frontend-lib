@@ -11,7 +11,13 @@ export interface UseSupportFeatureFlagConfig {
 }
 
 export interface UseSupportFeatureFlagReturn {
-  supportType: SupportType;
+  /**
+   * Support channel chosen for the institution. `null` while the flag loads
+   * and when it could not be read (5xx, network, timeout): in that case no
+   * support entry point should be shown, instead of silently falling back to
+   * the native form for an institution that chose Zendesk.
+   */
+  supportType: SupportType | null;
   loading: boolean;
   isZendesk: boolean;
   isNative: boolean;
@@ -24,21 +30,31 @@ export interface UseSupportFeatureFlagReturn {
   openZendeskChat: () => void;
 }
 
+/**
+ * A missing SUPPORT flag answers 404: the institution never chose a channel,
+ * so it keeps the native default. Any other failure means we do not know the
+ * choice.
+ */
+const isFlagNotFound = (error: unknown): boolean =>
+  (error as { response?: { status?: number } } | null)?.response?.status ===
+  404;
+
 export const useSupportFeatureFlag = (
   config: UseSupportFeatureFlagConfig
 ): UseSupportFeatureFlagReturn => {
-  const [supportType, setSupportType] = useState<SupportType>(
-    SupportType.NATIVE
-  );
+  const [supportType, setSupportType] = useState<SupportType | null>(null);
   const [zendeskKey, setZendeskKey] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const { institutionId } = useAppStore();
 
   useEffect(() => {
     if (!institutionId) {
+      setSupportType(SupportType.NATIVE);
       setLoading(false);
       return;
     }
+
+    setLoading(true);
 
     const fetchSupportFlag = async () => {
       try {
@@ -47,12 +63,10 @@ export const useSupportFeatureFlag = (
         }>(`/featureFlags/institution/${institutionId}/page/SUPPORT`);
 
         const version = response?.data?.featureFlags?.version;
-        if (version?.supportType) {
-          setSupportType(version.supportType);
-        }
+        setSupportType(version?.supportType ?? SupportType.NATIVE);
         setZendeskKey(version?.zendeskKey || undefined);
-      } catch {
-        setSupportType(SupportType.NATIVE);
+      } catch (error) {
+        setSupportType(isFlagNotFound(error) ? SupportType.NATIVE : null);
         setZendeskKey(undefined);
       } finally {
         setLoading(false);
