@@ -56,10 +56,10 @@ export const applyCaptionLine = (
 ): void => {
   if (!cues) return;
 
-  for (let index = 0; index < cues.length; index += 1) {
-    const cue = cues[index] as VTTCue;
-    cue.snapToLines = false;
-    cue.line = line;
+  for (const cue of cues) {
+    const vttCue = cue as VTTCue;
+    vttCue.snapToLines = false;
+    vttCue.line = line;
   }
 };
 
