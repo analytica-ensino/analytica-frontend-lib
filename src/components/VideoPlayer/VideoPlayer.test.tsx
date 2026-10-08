@@ -3999,3 +3999,101 @@ describe('VideoPlayer - leitura pelo leitor de tela', () => {
     });
   });
 });
+
+describe('VideoPlayer - posição da legenda', () => {
+  const props = { src: 'https://example.com/aula.mp4' };
+
+  const buildCues = () => [
+    { line: 'auto' as number | 'auto', snapToLines: true },
+    { line: 'auto' as number | 'auto', snapToLines: true },
+  ];
+
+  /**
+   * Renderiza com legenda válida e devolve as cues falsas espiáveis. A validação
+   * do VTT passa por fetch, daí o mock de resposta `text/vtt`.
+   */
+  const renderComLegenda = async () => {
+    globalThis.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      headers: {
+        get: (key: string) => (key === 'content-type' ? 'text/vtt' : null),
+      },
+    } as Response);
+
+    const { container } = render(
+      <VideoPlayer {...props} subtitles="https://example.com/subs.vtt" />
+    );
+
+    const botaoLegenda = await screen.findByRole('button', {
+      name: /exibir legendas/i,
+    });
+    const track = container.querySelector('track')!;
+    const cues = buildCues();
+
+    Object.defineProperty(track, 'track', {
+      configurable: true,
+      value: { mode: 'hidden', cues },
+    });
+
+    return { container, track, cues, botaoLegenda };
+  };
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('sobe a legenda acima da barra quando os controles estão visíveis', async () => {
+    const { cues, botaoLegenda } = await renderComLegenda();
+
+    fireEvent.click(botaoLegenda);
+
+    cues.forEach((cue) => {
+      expect(cue.snapToLines).toBe(false);
+      expect(cue.line).toBe(78);
+    });
+  });
+
+  it('desce a legenda quando os controles somem', async () => {
+    const { container, cues, botaoLegenda } = await renderComLegenda();
+
+    fireEvent.click(botaoLegenda);
+
+    jest.useFakeTimers();
+    fireEvent.mouseLeave(container.querySelector('.group')!);
+    act(() => {
+      jest.advanceTimersByTime(LEAVE_HIDE_TIMEOUT);
+    });
+
+    cues.forEach((cue) => {
+      expect(cue.line).toBe(90);
+    });
+  });
+
+  it('reposiciona as cues quando o arquivo de legenda carrega', async () => {
+    const { track, cues, botaoLegenda } = await renderComLegenda();
+
+    fireEvent.click(botaoLegenda);
+    cues.forEach((cue) => {
+      cue.line = 'auto';
+      cue.snapToLines = true;
+    });
+
+    fireEvent.load(track);
+
+    cues.forEach((cue) => {
+      expect(cue.snapToLines).toBe(false);
+      expect(cue.line).toBe(78);
+    });
+  });
+
+  it('não toca nas cues enquanto a legenda está desligada', async () => {
+    const { track, cues } = await renderComLegenda();
+
+    fireEvent.load(track);
+
+    cues.forEach((cue) => {
+      expect(cue.snapToLines).toBe(true);
+      expect(cue.line).toBe('auto');
+    });
+  });
+});
