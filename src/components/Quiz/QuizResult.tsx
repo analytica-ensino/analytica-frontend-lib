@@ -9,9 +9,7 @@ import {
   SUBTYPE_ENUM,
   useQuizStore,
 } from './useQuizStore';
-import ProgressCircle from '../ProgressCircle/ProgressCircle';
-import { ClockIcon } from '@phosphor-icons/react/dist/csr/Clock';
-import ProgressBar from '../ProgressBar/ProgressBar';
+import { PerformanceByDifficulty } from './PerformanceByDifficulty';
 import { cn, getSubjectColorWithOpacity } from '../../utils/utils';
 import Badge from '../Badge/Badge';
 import { useTheme } from '../../hooks/useTheme';
@@ -230,29 +228,6 @@ const QuizResultTitle = forwardRef<HTMLHeadingElement, { className?: string }>(
 );
 
 /**
- * Accessible name of a difficulty progress bar on the result screen.
- *
- * @param difficultyLabel - Difficulty name in lowercase, e.g. "fáceis"
- * @param correct - Number of correct answers for this difficulty
- * @param total - Number of questions for this difficulty
- * @returns The sentence announced by screen readers
- *
- * @example
- * ```typescript
- * getDifficultyAccessibleLabel('fáceis', 2, 5); // 'Questões fáceis: 2 de 5 corretas.'
- * getDifficultyAccessibleLabel('fáceis', 0, 0); // 'Questões fáceis: nenhuma questão.'
- * ```
- */
-const getDifficultyAccessibleLabel = (
-  difficultyLabel: string,
-  correct: number,
-  total: number
-): string =>
-  total > 0
-    ? `Questões ${difficultyLabel}: ${correct} de ${total} corretas.`
-    : `Questões ${difficultyLabel}: nenhuma questão.`;
-
-/**
  * Update statistics counters based on difficulty level
  * @param stats - Statistics object to update
  * @param difficulty - Question difficulty level
@@ -426,102 +401,37 @@ const QuizResultPerformance = forwardRef<
       ref={ref}
       {...props}
     >
-      <div className="relative">
-        <ProgressCircle
-          size="medium"
-          variant="green"
-          value={percentage}
-          showPercentage={false}
-          label=""
-          accessibleLabel={circleAccessibleLabel}
-        />
-
-        {/* Duplicata visual do que o anel já anuncia (ver
-            `circleAccessibleLabel`): fora da árvore de acessibilidade para o
-            leitor não ler o mesmo resultado em pedaços. */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 flex flex-col items-center justify-center"
-        >
-          {showTimeSpent && (
-            <div className="flex items-center gap-1 mb-1">
-              <ClockIcon size={12} weight="regular" className="text-text-800" />
-              <span className="text-2xs font-medium text-text-800">
-                {timeSpent}
-              </span>
-            </div>
-          )}
-
-          <div className="text-2xl font-medium text-text-800 leading-7">
-            {correctAnswers} de {totalQuestions}
-          </div>
-
-          <div className="text-2xs font-medium text-text-600 mt-1">
-            Corretas
-          </div>
-        </div>
-      </div>
-
-      {showDetails && (
-        <div className="flex flex-col gap-4 w-full">
-          <ProgressBar
-            className="w-full"
-            layout="stacked"
-            variant="green"
-            value={stats.correctEasyAnswers}
-            max={stats.totalEasyQuestions}
-            label="Fáceis"
-            // Frase completa: "2 de 5" sozinho não diz que são acertos, e
-            // sem questões a barra não deve soar como "0 de 0".
-            accessibleLabel={getDifficultyAccessibleLabel(
-              'fáceis',
-              stats.correctEasyAnswers,
-              stats.totalEasyQuestions
-            )}
-            showHitCount
-            labelClassName="text-base font-medium text-text-800 leading-none"
-            percentageClassName="text-xs font-medium leading-[14px] text-right"
-          />
-
-          <ProgressBar
-            className="w-full"
-            layout="stacked"
-            variant="green"
-            value={stats.correctMediumAnswers}
-            max={stats.totalMediumQuestions}
-            label="Médias"
-            // Frase completa: "2 de 5" sozinho não diz que são acertos, e
-            // sem questões a barra não deve soar como "0 de 0".
-            accessibleLabel={getDifficultyAccessibleLabel(
-              'médias',
-              stats.correctMediumAnswers,
-              stats.totalMediumQuestions
-            )}
-            showHitCount
-            labelClassName="text-base font-medium text-text-800 leading-none"
-            percentageClassName="text-xs font-medium leading-[14px] text-right"
-          />
-
-          <ProgressBar
-            className="w-full"
-            layout="stacked"
-            variant="green"
-            value={stats.correctDifficultAnswers}
-            max={stats.totalDifficultQuestions}
-            label="Difíceis"
-            // Frase completa: "2 de 5" sozinho não diz que são acertos, e
-            // sem questões a barra não deve soar como "0 de 0".
-            accessibleLabel={getDifficultyAccessibleLabel(
-              'difíceis',
-              stats.correctDifficultAnswers,
-              stats.totalDifficultQuestions
-            )}
-            showHitCount
-            labelClassName="text-base font-medium text-text-800 leading-none"
-            percentageClassName="text-xs font-medium leading-[14px] text-right"
-          />
-        </div>
-      )}
+      <PerformanceByDifficulty
+        percentage={percentage}
+        correct={correctAnswers}
+        total={totalQuestions}
+        timeSpent={timeSpent}
+        circleAccessibleLabel={circleAccessibleLabel}
+        difficulties={
+          showDetails
+            ? [
+                {
+                  label: 'Fáceis',
+                  spokenLabel: 'fáceis',
+                  correct: stats.correctEasyAnswers,
+                  total: stats.totalEasyQuestions,
+                },
+                {
+                  label: 'Médias',
+                  spokenLabel: 'médias',
+                  correct: stats.correctMediumAnswers,
+                  total: stats.totalMediumQuestions,
+                },
+                {
+                  label: 'Difíceis',
+                  spokenLabel: 'difíceis',
+                  correct: stats.correctDifficultAnswers,
+                  total: stats.totalDifficultQuestions,
+                },
+              ]
+            : null
+        }
+      />
     </div>
   );
 });
