@@ -603,6 +603,16 @@ const QuizListResult = forwardRef<
   );
 });
 
+/**
+ * Resolves the question id of a list item.
+ * `questionId` exists in QuestionResult answers, `id` in Question.
+ * @param question - Quiz question or question result answer
+ * @returns The question id
+ */
+const getListQuestionId = (
+  question: Question | QuestionResult['answers'][number]
+): string => ('questionId' in question ? question.questionId : question.id);
+
 const QuizListResultByMateria = ({
   subject,
   onQuestionClick,
@@ -621,9 +631,16 @@ const QuizListResultByMateria = ({
   const showExamInfo = shouldShowExamInfo(quiz);
 
   const answeredQuestions = groupedQuestions[subject] || [];
+  // Subject buckets are concatenated, so re-sort by the original question order
   const formattedQuestions =
     subject == 'all'
-      ? Object.values(groupedQuestions).flat()
+      ? Object.values(groupedQuestions)
+          .flat()
+          .sort(
+            (a, b) =>
+              getQuestionIndex(getListQuestionId(a)) -
+              getQuestionIndex(getListQuestionId(b))
+          )
       : answeredQuestions;
   return (
     <div className="flex flex-col">
@@ -649,10 +666,7 @@ const QuizListResultByMateria = ({
 
         <ul className="flex flex-col gap-2 pt-4">
           {formattedQuestions.map((question) => {
-            // questionId exists in QuestionResult answers, id in Question
-            const questionId =
-              'questionId' in question ? question.questionId : question.id;
-            const questionIndex = getQuestionIndex(questionId);
+            const questionIndex = getQuestionIndex(getListQuestionId(question));
 
             // examBoard and examYear only exist in Question type - only show for SIMULADO
             const examBoard =
