@@ -8,6 +8,7 @@ export { SidebarMenuItem } from './components/SidebarMenuItem';
 export type {
   SidebarMenuItemProps,
   SidebarMenuItemVariant,
+  SidebarMenuItemSize,
   SidebarMenuItemActiveTone,
 } from './components/SidebarMenuItem';
 

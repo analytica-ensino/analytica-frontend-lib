@@ -126,6 +126,90 @@ describe('SidebarMenuItem', () => {
     });
   });
 
+  describe('size', () => {
+    it('defaults to md', () => {
+      render(<SidebarMenuItem label="Dashboard" />);
+
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('px-3');
+      expect(button).toHaveClass('py-2.5');
+      expect(button).toHaveClass('gap-3');
+      expect(button).toHaveClass('text-sm');
+    });
+
+    it('applies the compact spacing on sm', () => {
+      render(<SidebarMenuItem label="Dashboard" size="sm" />);
+
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('px-2');
+      expect(button).toHaveClass('py-1.5');
+      expect(button).toHaveClass('gap-2');
+      expect(button).toHaveClass('text-xs');
+    });
+
+    it('keeps the sub indent aligned with the main label on md', () => {
+      render(<SidebarMenuItem label="Dashboard" variant="sub" size="md" />);
+
+      // px-3 (12) + ícone 20 + gap-3 (12) = 44px = pl-11
+      expect(screen.getByRole('button')).toHaveClass('pl-11');
+    });
+
+    it('keeps the sub indent aligned with the main label on sm', () => {
+      render(<SidebarMenuItem label="Dashboard" variant="sub" size="sm" />);
+
+      // px-2 (8) + ícone 16 + gap-2 (8) = 32px = pl-8
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('pl-8');
+      expect(button).not.toHaveClass('pl-11');
+    });
+
+    it('sizes the icon box to 20px on md', () => {
+      render(<SidebarMenuItem label="Dashboard" icon={<TestIcon />} />);
+
+      expect(screen.getByTestId('sidebar-menu-item-icon')).toHaveClass(
+        'size-5'
+      );
+    });
+
+    it('sizes the icon box to 16px on sm', () => {
+      render(
+        <SidebarMenuItem label="Dashboard" size="sm" icon={<TestIcon />} />
+      );
+
+      const wrapper = screen.getByTestId('sidebar-menu-item-icon');
+      expect(wrapper).toHaveClass('size-4');
+      expect(wrapper).not.toHaveClass('size-5');
+    });
+
+    it('forces the child svg to follow the box so a mis-sized icon still fits', () => {
+      render(
+        <SidebarMenuItem label="Dashboard" size="sm" icon={<TestIcon />} />
+      );
+
+      expect(screen.getByTestId('sidebar-menu-item-icon')).toHaveClass(
+        '[&>svg]:size-4'
+      );
+    });
+
+    it('shrinks the count pill on sm', () => {
+      render(<SidebarMenuItem label="Dashboard" size="sm" count={4} />);
+
+      const count = screen.getByTestId('sidebar-menu-item-count');
+      expect(count).toHaveClass('text-2xs');
+      expect(count).toHaveClass('bg-warning-100');
+    });
+
+    it('lets the sub count inherit the item font size', () => {
+      render(
+        <SidebarMenuItem label="Dashboard" variant="sub" size="sm" count={4} />
+      );
+
+      const count = screen.getByTestId('sidebar-menu-item-count');
+      expect(count).not.toHaveClass('text-sm');
+      expect(count).not.toHaveClass('text-xs');
+    });
+  });
+
   describe('count', () => {
     it('renders nothing when count is undefined', () => {
       render(<SidebarMenuItem label="Dashboard" />);

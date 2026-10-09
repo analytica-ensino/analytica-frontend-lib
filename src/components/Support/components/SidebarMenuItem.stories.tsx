@@ -75,6 +75,49 @@ export const ActiveTones: Story = () => (
   </div>
 );
 
+/**
+ * `md` (padrão) é o tamanho do Figma; `sm` é compacto. O recuo do sub
+ * acompanha o tamanho, então os dois níveis continuam alinhados.
+ */
+export const Sizes: Story = () => (
+  <div className="flex flex-row gap-8">
+    {(['md', 'sm'] as const).map((size) => (
+      <div key={size} className="flex flex-col gap-2 w-72">
+        <h3 className="font-bold text-xl text-text-900">
+          {size}
+          {size === 'md' && ' (padrão)'}
+        </h3>
+        <SidebarMenuItem
+          icon={<SquaresFourIcon size={20} />}
+          label="Dashboard"
+          count={4}
+          size={size}
+        />
+        <SidebarMenuItem
+          icon={<SquaresFourIcon size={20} />}
+          label="Dashboard"
+          count={4}
+          size={size}
+          active
+        />
+        <SidebarMenuItem
+          label="Dashboard"
+          variant="sub"
+          count={4}
+          size={size}
+        />
+        <SidebarMenuItem
+          label="Dashboard"
+          variant="sub"
+          count={4}
+          size={size}
+          active
+        />
+      </div>
+    ))}
+  </div>
+);
+
 /** Sem contagem, contagem zero e item desabilitado. */
 export const EdgeCases: Story = () => (
   <div className="flex flex-col gap-2 max-w-md">
