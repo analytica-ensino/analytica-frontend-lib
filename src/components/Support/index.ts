@@ -10,6 +10,7 @@ export type {
   SidebarMenuItemVariant,
   SidebarMenuItemSize,
   SidebarMenuItemActiveTone,
+  SidebarMenuItemCountTone,
 } from './components/SidebarMenuItem';
 
 export { getCategoryIcon } from './utils/supportUtils';

@@ -8,15 +8,31 @@ export type SidebarMenuItemVariant = 'main' | 'sub';
 /**
  * Paleta do estado ativo.
  *
- * `theme` acompanha o tema do cliente (`primary-*`), então o realce fica verde
- * no analytica, azul no parana e vermelho no paraiba. `info` trava o azul do
- * Figma para as telas do SAC que precisam dele independentemente do tema.
+ * - `theme` (padrão): segue `primary-*`, ou seja, se adapta à whitelabel /
+ *   instituição — verde no analytica, azul no parana, vermelho no paraiba.
+ * - `info`: segue a rampa `info-*` do tema. Atenção: nem todo tema usa azul
+ *   aqui (no analytica a rampa `info` é roxa).
+ * - `blue`: o azul literal do Figma do SAC, idêntico em qualquer tema. Use
+ *   quando a tela precisa bater com o Figma e não com a marca do cliente.
  */
-export type SidebarMenuItemActiveTone = 'theme' | 'info';
+export type SidebarMenuItemActiveTone = 'theme' | 'info' | 'blue';
 
 const ACTIVE_CLASSES: Record<SidebarMenuItemActiveTone, string> = {
   theme: 'bg-primary-50 text-primary-700',
   info: 'bg-info-background text-info-800',
+  blue: 'bg-[#EBF2FE] text-[#1A56DB]',
+};
+
+/**
+ * Tonalidade da contagem do item `main`. O `sub` ignora: ali a contagem é
+ * texto puro que herda a cor do item, como no Figma.
+ */
+export type SidebarMenuItemCountTone = 'warning' | 'theme' | 'muted';
+
+const COUNT_CLASSES: Record<SidebarMenuItemCountTone, string> = {
+  warning: 'bg-warning-100 text-warning-700',
+  theme: 'bg-primary-100 text-primary-800',
+  muted: 'bg-background-muted text-background-800',
 };
 
 const IDLE_CLASSES: Record<SidebarMenuItemVariant, string> = {
@@ -79,6 +95,8 @@ export type SidebarMenuItemProps = {
   size?: SidebarMenuItemSize;
   /** Paleta do estado ativo. Ignorada quando o item não está ativo. */
   activeTone?: SidebarMenuItemActiveTone;
+  /** Tonalidade da pílula de contagem do `main`. Ignorada pelo `sub`. */
+  countTone?: SidebarMenuItemCountTone;
   /** Classes CSS adicionais. */
   className?: string;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
@@ -122,6 +140,7 @@ export const SidebarMenuItem = forwardRef<
       variant = 'main',
       size = 'md',
       activeTone = 'theme',
+      countTone = 'warning',
       className,
       ...props
     },
@@ -164,6 +183,7 @@ export const SidebarMenuItem = forwardRef<
             count={count}
             variant={variant}
             badgeSize={scale.badge}
+            tone={countTone}
           />
         )}
       </button>
@@ -182,10 +202,12 @@ const SidebarMenuItemCount = ({
   count,
   variant,
   badgeSize,
+  tone,
 }: {
   count: number;
   variant: SidebarMenuItemVariant;
   badgeSize: 'small' | 'medium';
+  tone: SidebarMenuItemCountTone;
 }) => {
   // Sem classe de tipografia: o número herda tamanho e cor do próprio item.
   if (variant === 'sub') {
@@ -204,7 +226,10 @@ const SidebarMenuItemCount = ({
       data-testid="sidebar-menu-item-count"
       action="warning"
       size={badgeSize}
-      className="shrink-0 rounded-full bg-warning-100 text-warning-700 font-medium tabular-nums min-w-6"
+      className={cn(
+        'shrink-0 rounded-full font-medium tabular-nums min-w-6',
+        COUNT_CLASSES[tone]
+      )}
     >
       {count}
     </Badge>

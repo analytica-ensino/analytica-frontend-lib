@@ -210,6 +210,49 @@ describe('SidebarMenuItem', () => {
     });
   });
 
+  describe('countTone', () => {
+    it('defaults to the orange warning pill', () => {
+      render(<SidebarMenuItem label="Dashboard" count={4} />);
+
+      const count = screen.getByTestId('sidebar-menu-item-count');
+      expect(count).toHaveClass('bg-warning-100');
+      expect(count).toHaveClass('text-warning-700');
+    });
+
+    it('follows the theme palette when countTone is theme', () => {
+      render(<SidebarMenuItem label="Dashboard" count={4} countTone="theme" />);
+
+      const count = screen.getByTestId('sidebar-menu-item-count');
+      expect(count).toHaveClass('bg-primary-100');
+      expect(count).toHaveClass('text-primary-800');
+      expect(count).not.toHaveClass('bg-warning-100');
+    });
+
+    it('uses the neutral palette when countTone is muted', () => {
+      render(<SidebarMenuItem label="Dashboard" count={4} countTone="muted" />);
+
+      const count = screen.getByTestId('sidebar-menu-item-count');
+      expect(count).toHaveClass('bg-background-muted');
+      expect(count).toHaveClass('text-background-800');
+      expect(count).not.toHaveClass('bg-warning-100');
+    });
+
+    it('is ignored by a sub item, whose count is plain inherited text', () => {
+      render(
+        <SidebarMenuItem
+          label="Dashboard"
+          variant="sub"
+          count={4}
+          countTone="muted"
+        />
+      );
+
+      const count = screen.getByTestId('sidebar-menu-item-count');
+      expect(count).not.toHaveClass('bg-background-muted');
+      expect(count).not.toHaveClass('bg-warning-100');
+    });
+  });
+
   describe('count', () => {
     it('renders nothing when count is undefined', () => {
       render(<SidebarMenuItem label="Dashboard" />);
@@ -267,6 +310,21 @@ describe('SidebarMenuItem', () => {
       const button = screen.getByRole('button');
       expect(button).not.toHaveClass('bg-info-background');
       expect(button).toHaveClass('text-text-950');
+    });
+
+    it('uses the literal Figma blue when activeTone is blue', () => {
+      render(<SidebarMenuItem label="Dashboard" active activeTone="blue" />);
+
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('bg-[#EBF2FE]');
+      expect(button).toHaveClass('text-[#1A56DB]');
+      expect(button).not.toHaveClass('bg-primary-50');
+    });
+
+    it('does not paint the blue tone while inactive', () => {
+      render(<SidebarMenuItem label="Dashboard" activeTone="blue" />);
+
+      expect(screen.getByRole('button')).not.toHaveClass('bg-[#EBF2FE]');
     });
 
     it('applies the muted color to an inactive sub item', () => {

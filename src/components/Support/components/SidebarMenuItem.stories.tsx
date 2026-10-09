@@ -38,40 +38,70 @@ export const AllSidebarMenuItems: Story = () => (
   </div>
 );
 
+const ACTIVE_TONES = [
+  { tone: 'theme', hint: 'padrão — segue a whitelabel/instituição' },
+  { tone: 'info', hint: 'rampa info do tema (roxa no analytica)' },
+  { tone: 'blue', hint: 'azul literal do Figma, igual em todo tema' },
+] as const;
+
 /**
- * `activeTone="theme"` (padrão) acompanha a cor primária do tema do cliente;
- * `activeTone="info"` trava o azul do Figma.
+ * `activeTone` define a paleta do estado ativo. `theme` se adapta ao tema do
+ * cliente; `blue` trava o azul do Figma do SAC em qualquer tema.
  */
 export const ActiveTones: Story = () => (
   <div className="flex flex-col gap-6 max-w-md">
-    <div className="flex flex-col gap-2">
-      <h3 className="font-bold text-xl text-text-900">theme (padrão)</h3>
-      <SidebarMenuItem
-        icon={<SquaresFourIcon size={20} />}
-        label="Dashboard"
-        count={4}
-        active
-      />
-      <SidebarMenuItem label="Meus chamados" variant="sub" count={4} active />
-    </div>
+    {ACTIVE_TONES.map(({ tone, hint }) => (
+      <div key={tone} className="flex flex-col gap-2">
+        <h3 className="font-bold text-xl text-text-900">{tone}</h3>
+        <p className="text-text-700 text-sm">{hint}</p>
+        <SidebarMenuItem
+          icon={<SquaresFourIcon size={20} />}
+          label="Dashboard"
+          count={4}
+          active
+          activeTone={tone}
+        />
+        <SidebarMenuItem
+          label="Meus chamados"
+          variant="sub"
+          count={4}
+          active
+          activeTone={tone}
+        />
+      </div>
+    ))}
+  </div>
+);
 
-    <div className="flex flex-col gap-2">
-      <h3 className="font-bold text-xl text-text-900">info</h3>
-      <SidebarMenuItem
-        icon={<SquaresFourIcon size={20} />}
-        label="Dashboard"
-        count={4}
-        active
-        activeTone="info"
-      />
-      <SidebarMenuItem
-        label="Meus chamados"
-        variant="sub"
-        count={4}
-        active
-        activeTone="info"
-      />
-    </div>
+const COUNT_TONES = ['warning', 'theme', 'muted'] as const;
+
+/**
+ * `countTone` define a tonalidade da pílula de contagem do `main`. O `sub`
+ * ignora: lá a contagem é texto que herda a cor do item.
+ */
+export const CountTones: Story = () => (
+  <div className="flex flex-col gap-6 max-w-md">
+    {COUNT_TONES.map((tone) => (
+      <div key={tone} className="flex flex-col gap-2">
+        <h3 className="font-bold text-xl text-text-900">
+          {tone}
+          {tone === 'warning' && ' (padrão)'}
+        </h3>
+        <SidebarMenuItem
+          icon={<SquaresFourIcon size={20} />}
+          label="Dashboard"
+          count={4}
+          countTone={tone}
+        />
+        <SidebarMenuItem
+          icon={<SquaresFourIcon size={20} />}
+          label="Dashboard"
+          count={4}
+          countTone={tone}
+          active
+        />
+      </div>
+    ))}
   </div>
 );
 
