@@ -1206,6 +1206,12 @@ export type {
   SupportFormData,
 } from './components/Support';
 
+// Support Timeline (SAC)
+export { default as SupportTimelineItem } from './components/SupportTimeline/SupportTimelineItem';
+export type { SupportTimelineItemProps } from './components/SupportTimeline/SupportTimelineItem';
+export { SUPPORT_TIMELINE_STATUS } from './types/supportTimeline';
+export type { SupportTimelineStatus } from './types/supportTimeline';
+
 // Support Types
 export {
   SupportStatus,
