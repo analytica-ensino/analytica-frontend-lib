@@ -57,3 +57,8 @@ export const Warning: Story = () => (
 export const Large: Story = () => (
   <ScoreCircle value={800} max={1000} label="Nota final" size={240} />
 );
+
+/** A 0-10 score written the pt-BR way, "8,0" — the Simulado Momento Enem's. */
+export const OutOfTen: Story = () => (
+  <ScoreCircle value={8} displayValue="8,0" max={10} label="Nota final" />
+);

@@ -1974,6 +1974,13 @@
       "require": "./dist/EnemClassroomStartModal/index.js",
       "default": "./dist/EnemClassroomStartModal/index.mjs"
     },
+    "./enem-classroom-result": {
+      "types": "./dist/EnemClassroomResult/index.d.ts",
+      "module": "./dist/EnemClassroomResult/index.mjs",
+      "import": "./dist/EnemClassroomResult/index.mjs",
+      "require": "./dist/EnemClassroomResult/index.js",
+      "default": "./dist/EnemClassroomResult/index.mjs"
+    },
     "./types/enemclassroom": {
       "types": "./dist/types/enemClassroom/index.d.ts",
       "module": "./dist/types/enemClassroom/index.mjs",

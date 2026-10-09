@@ -329,6 +329,7 @@ export default defineConfig({
       'src/components/ActivityCreate/components/ActivityCreateContent.tsx', // DesktopLayout, SmallScreenLayout
     'EnemClassroomStartModal/index':
       'src/components/EnemClassroomStartModal/EnemClassroomStartModal.tsx', // EnemClassroomStartModal
+    'EnemClassroomResult/index': 'src/components/EnemClassroomResult/index.ts', // EnemClassroomResultSummary, EnemClassroomResultHits, EnemClassroomResultSubjects
     'ActivityCreate/ActivityCreate.utils/index':
       'src/components/ActivityCreate/ActivityCreate.utils.ts', // convertQuestionToPreview
     'store/questionFiltersStore/index': 'src/store/questionFiltersStore.ts', // useQuestionFiltersStore
