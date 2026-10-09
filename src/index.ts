@@ -1206,6 +1206,22 @@ export type {
   SupportFormData,
 } from './components/Support';
 
+// Support Chat (SAC)
+export { default as SupportChatMessage } from './components/SupportChat/SupportChatMessage';
+export type { SupportChatMessageProps } from './components/SupportChat/SupportChatMessage';
+export {
+  SUPPORT_CHAT_MESSAGE_TYPE,
+  SUPPORT_CHAT_SEND_STATUS,
+} from './types/supportChat';
+export type {
+  SupportChatMessageType,
+  SupportChatSendStatus,
+  SupportChatAttachment,
+  SupportChatAuthor,
+  SupportChatFaqReference,
+} from './types/supportChat';
+export { getInitials } from './utils/getInitials';
+
 // Support Types
 export {
   SupportStatus,
