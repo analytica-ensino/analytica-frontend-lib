@@ -75,9 +75,4 @@ const config = {
   },
 };
 
-// Only add sonar reporter when explicitly needed
-if (process.env.SONAR_REPORTER === 'true') {
-  config.testResultsProcessor = 'jest-sonar-reporter';
-}
-
 module.exports = config;
