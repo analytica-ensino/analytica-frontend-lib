@@ -17,6 +17,10 @@ describe('getInitials', () => {
     expect(getInitials('  Marina   Costa ')).toBe('MC');
   });
 
+  it('keeps astral characters (e.g. emoji) intact', () => {
+    expect(getInitials('😀Marina Costa')).toBe('😀C');
+  });
+
   it('returns an empty string for blank names', () => {
     expect(getInitials('   ')).toBe('');
   });

@@ -10,7 +10,7 @@ export function getInitials(name: string): string {
     .trim()
     .split(/\s+/)
     .slice(0, 2)
-    .map((word) => word[0] ?? '')
+    .map((word) => Array.from(word)[0] ?? '')
     .join('')
     .toUpperCase();
 }
