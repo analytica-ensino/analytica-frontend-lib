@@ -1245,11 +1245,14 @@ export type { ZendeskWidgetProps } from './components/ZendeskWidget';
 export {
   SupportChatWidget,
   createMockSupportChatAdapter,
+  createGuestSupportChatAdapter,
+  fromSupportAnswer,
 } from './components/SupportChatWidget';
 export type {
   SupportChatWidgetProps,
   SupportChatWindowState,
   MockSupportChatAdapterOptions,
+  GuestSupportChatAdapterOptions,
 } from './components/SupportChatWidget';
 export { useSupportChat } from './hooks/useSupportChat';
 export type {
@@ -1275,6 +1278,8 @@ export type {
   SupportChatFlags,
   SupportChatTheme,
   SupportChatUser,
+  SupportChatHttpClient,
+  SupportChatAnswerApi,
 } from './types/supportChat';
 
 // Support Feature Flag Hook
