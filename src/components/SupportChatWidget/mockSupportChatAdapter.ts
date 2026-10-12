@@ -48,9 +48,19 @@ export const createMockSupportChatAdapter = ({
     messages.set(ticketId, [...(messages.get(ticketId) ?? []), message]);
   };
 
+  const toAttachments = (files: File[]) =>
+    files.map((file) => ({
+      id: nextId('file'),
+      url: URL.createObjectURL(file),
+      fileName: file.name,
+      mimeType: file.type,
+      size: file.size,
+    }));
+
   const buildRequesterMessage = (
     ticketId: string,
-    content: string
+    content: string,
+    files: File[] = []
   ): SupportChatMessage => {
     const requester = requesters.get(ticketId);
     return {
@@ -64,7 +74,7 @@ export const createMockSupportChatAdapter = ({
       content,
       messageType: 'text',
       createdAt: new Date().toISOString(),
-      attachments: [],
+      attachments: toAttachments(files),
     };
   };
 
@@ -108,7 +118,7 @@ export const createMockSupportChatAdapter = ({
   };
 
   return {
-    async startConversation({ message, requesterName, email }) {
+    async startConversation({ message, requesterName, email, files }) {
       await wait();
       const ticket: SupportChatTicket = {
         id: nextId('ticket'),
@@ -122,13 +132,13 @@ export const createMockSupportChatAdapter = ({
         logged: Boolean(email),
       });
 
-      const first = buildRequesterMessage(ticket.id, message);
+      const first = buildRequesterMessage(ticket.id, message, files);
       append(ticket.id, first);
       scheduleReply(ticket.id);
-      return { ticket, message: first };
+      return { ticket, messages: [first] };
     },
 
-    async sendMessage(ticketId, content) {
+    async sendMessage(ticketId, content, files) {
       await wait();
       const ticket = tickets.get(ticketId);
       if (!ticket) throw new Error('Atendimento não encontrado');
@@ -136,7 +146,7 @@ export const createMockSupportChatAdapter = ({
         throw new Error('Este atendimento já foi encerrado');
       }
 
-      const message = buildRequesterMessage(ticketId, content);
+      const message = buildRequesterMessage(ticketId, content, files);
       append(ticketId, message);
       scheduleReply(ticketId);
       return message;

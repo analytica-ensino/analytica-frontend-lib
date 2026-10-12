@@ -40,6 +40,20 @@ export type SupportChatAuthor =
 /** senderId of the messages written by a visitor (not logged in) */
 export const SUPPORT_CHAT_GUEST_SENDER_ID = 'guest';
 
+/** Images accepted by the backend */
+export const SUPPORT_CHAT_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+];
+
+/** Largest image the backend accepts (5 MB) */
+export const SUPPORT_CHAT_MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+/** Most attachments in one message */
+export const SUPPORT_CHAT_MAX_ATTACHMENTS = 5;
+
 /**
  * File attached to a message
  */
@@ -100,6 +114,8 @@ export interface StartSupportChatInput {
   institutionId?: string;
   requesterName?: string;
   email?: string;
+  /** Files sent with the first message */
+  files?: File[];
 }
 
 /**
@@ -107,13 +123,20 @@ export interface StartSupportChatInput {
  * real one will use the support REST API and the chat WebSocket.
  */
 export interface SupportChatAdapter {
-  /** Create the ticket with its first message */
+  /**
+   * Create the ticket with its first message. With files the API may store
+   * them as a second message, hence the list.
+   */
   startConversation(input: StartSupportChatInput): Promise<{
     ticket: SupportChatTicket;
-    message: SupportChatMessage;
+    messages: SupportChatMessage[];
   }>;
-  /** Send a message on an existing ticket */
-  sendMessage(ticketId: string, content: string): Promise<SupportChatMessage>;
+  /** Send a message (text and/or files) on an existing ticket */
+  sendMessage(
+    ticketId: string,
+    content: string,
+    files?: File[]
+  ): Promise<SupportChatMessage>;
   /** Messages of the ticket, oldest first */
   listMessages(ticketId: string): Promise<SupportChatMessage[]>;
   /** Listen to realtime events of the ticket; returns the unsubscribe */
