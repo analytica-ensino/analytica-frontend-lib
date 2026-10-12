@@ -82,4 +82,64 @@ describe('Avatar', () => {
     const root = container.querySelector('[data-component="Avatar"]');
     expect(root).toHaveStyle({ width: '64px', height: '64px' });
   });
+
+  describe('fallback="initials"', () => {
+    it('shows the first and last name initials when there is no picture', () => {
+      render(<Avatar name="Ana Clara Mendes" fallback="initials" />);
+
+      expect(screen.getByText('AM')).toBeInTheDocument();
+    });
+
+    it('shows a single initial for a one-word name', () => {
+      render(<Avatar name="Ana" fallback="initials" />);
+
+      expect(screen.getByText('A')).toBeInTheDocument();
+    });
+
+    it('ignores non-letters when deriving the initials', () => {
+      render(<Avatar name="  ana-clara   #mendes " fallback="initials" />);
+
+      expect(screen.getByText('AM')).toBeInTheDocument();
+    });
+
+    it('falls back to the user icon when the name has no letters', () => {
+      render(<Avatar name="123" fallback="initials" />);
+
+      expect(screen.queryByText('123')).not.toBeInTheDocument();
+      expect(screen.getByRole('img')).toBeInTheDocument();
+    });
+
+    it('falls back to the user icon when there is no name', () => {
+      render(<Avatar fallback="initials" />);
+
+      expect(screen.getByRole('img')).toBeInTheDocument();
+    });
+
+    it('prefers the picture over the initials', () => {
+      render(
+        <Avatar src="/foto.png" name="Ana Clara Mendes" fallback="initials" />
+      );
+
+      expect(screen.queryByText('AM')).not.toBeInTheDocument();
+      expect(screen.getByRole('img')).toHaveAttribute('src', '/foto.png');
+    });
+
+    it('keeps the user icon by default', () => {
+      render(<Avatar name="Ana Clara Mendes" />);
+
+      expect(screen.queryByText('AM')).not.toBeInTheDocument();
+    });
+
+    it('accepts a className override for the background', () => {
+      const { container } = render(
+        <Avatar
+          name="Ana Clara Mendes"
+          fallback="initials"
+          className="bg-[#1C61B2]"
+        />
+      );
+
+      expect(container.firstChild).toHaveClass('bg-[#1C61B2]');
+    });
+  });
 });

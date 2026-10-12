@@ -120,7 +120,7 @@ describe('useInfiniteScrollSentinel', () => {
 
   it('does not re-observe when only the callback identity changes', () => {
     const ref = makeRef();
-    const { rerender } = renderHook(
+    const { rerender } = renderHook<void, { onIntersect: () => void }>(
       ({ onIntersect }) => useInfiniteScrollSentinel({ ref, onIntersect }),
       { initialProps: { onIntersect: jest.fn() } }
     );
@@ -135,7 +135,7 @@ describe('useInfiniteScrollSentinel', () => {
   it('calls the latest callback after a rerender', () => {
     const ref = makeRef();
     const second = jest.fn();
-    const { rerender } = renderHook(
+    const { rerender } = renderHook<void, { onIntersect: () => void }>(
       ({ onIntersect }) => useInfiniteScrollSentinel({ ref, onIntersect }),
       { initialProps: { onIntersect: jest.fn() } }
     );
