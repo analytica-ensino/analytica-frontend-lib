@@ -104,7 +104,7 @@ describe('createGuestSupportChatAdapter', () => {
       requesterName: 'Ana',
     });
     expect(started.ticket.id).toBe('t1');
-    expect(started.message).toMatchObject({ id: 'a1', senderName: 'Ana' });
+    expect(started.messages[0]).toMatchObject({ id: 'a1', senderName: 'Ana' });
     expect(apiClient.get).toHaveBeenCalledWith('/support/guest/t1/answer', {
       headers: { 'x-support-guest-token': 'tok' },
     });
@@ -112,7 +112,7 @@ describe('createGuestSupportChatAdapter', () => {
     const sent = await adapter.sendMessage('t1', 'de novo');
     expect(apiClient.post).toHaveBeenLastCalledWith(
       '/support/guest/t1/answer',
-      { answer: 'de novo' },
+      { answer: 'de novo', attachments: [] },
       { headers: { 'x-support-guest-token': 'tok' } }
     );
     expect(sent).toMatchObject({ id: 'a2', content: 'de novo' });
@@ -216,5 +216,97 @@ describe('createGuestSupportChatAdapter', () => {
     unsubscribe();
     expect(socket.close).toHaveBeenCalled();
     expect(socket.onclose).toBeNull();
+  });
+});
+
+describe('createGuestSupportChatAdapter uploads', () => {
+  const originalFetch = globalThis.fetch;
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  const uploadSetup = (ok = true) => {
+    globalThis.fetch = jest.fn().mockResolvedValue({ ok });
+    const apiClient = {
+      get: jest.fn().mockResolvedValue({ data: { data: [answer('a1')] } }),
+      post: jest.fn().mockImplementation((url: string) => {
+        if (url === '/support/external') {
+          return Promise.resolve({
+            data: { data: { id: 't1', guestToken: 'tok' } },
+          });
+        }
+        if (url.endsWith('/upload-url')) {
+          return Promise.resolve({
+            data: {
+              data: {
+                uploadUrl: 'https://r2/put',
+                key: 'k1',
+                contentType: 'image/png',
+              },
+            },
+          });
+        }
+        return Promise.resolve({
+          data: { data: answer('a2', SUPPORT_CHAT_AUTHOR.GUEST, '') },
+        });
+      }),
+    };
+    const adapter = createGuestSupportChatAdapter({
+      apiClient: apiClient as unknown as SupportChatHttpClient,
+    });
+    return { apiClient, adapter };
+  };
+
+  const file = new File(['abc'], 'foto.png', { type: 'image/png' });
+
+  it('opens with the file names and sends the images as the next message', async () => {
+    const { apiClient, adapter } = uploadSetup();
+
+    const started = await adapter.startConversation({
+      message: '',
+      channel: 'login',
+      files: [file],
+    });
+
+    expect(apiClient.post).toHaveBeenNthCalledWith(1, '/support/external', {
+      description: 'foto.png',
+    });
+    expect(apiClient.post).toHaveBeenNthCalledWith(
+      2,
+      '/support/guest/t1/upload-url',
+      { fileName: 'foto.png', fileSize: 3, mimeType: 'image/png' },
+      { headers: { 'x-support-guest-token': 'tok' } }
+    );
+    expect(globalThis.fetch).toHaveBeenCalledWith('https://r2/put', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'image/png' },
+      body: file,
+    });
+    expect(apiClient.post).toHaveBeenNthCalledWith(
+      3,
+      '/support/guest/t1/answer',
+      {
+        answer: '',
+        attachments: [
+          { key: 'k1', fileName: 'foto.png', mimeType: 'image/png', size: 3 },
+        ],
+      },
+      { headers: { 'x-support-guest-token': 'tok' } }
+    );
+    expect(started.messages.map((message) => message.id)).toEqual(['a1', 'a2']);
+  });
+
+  it('fails when the storage refuses the upload', async () => {
+    const { apiClient, adapter } = uploadSetup(false);
+    await adapter.startConversation({ message: 'oi', channel: 'login' });
+
+    await expect(adapter.sendMessage('t1', '', [file])).rejects.toThrow(
+      'Não foi possível enviar foto.png'
+    );
+    expect(apiClient.post).not.toHaveBeenCalledWith(
+      '/support/guest/t1/answer',
+      expect.anything(),
+      expect.anything()
+    );
   });
 });

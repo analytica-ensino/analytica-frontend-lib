@@ -18,7 +18,10 @@ describe('createMockSupportChatAdapter', () => {
 
   it('opens a ticket with the visitor first message', async () => {
     const adapter = createMockSupportChatAdapter();
-    const { ticket, message } = await run(
+    const {
+      ticket,
+      messages: [message],
+    } = await run(
       adapter.startConversation({ message: 'oi', channel: 'login' })
     );
 
@@ -40,7 +43,9 @@ describe('createMockSupportChatAdapter', () => {
 
   it('marks a logged user as USER', async () => {
     const adapter = createMockSupportChatAdapter();
-    const { message } = await run(
+    const {
+      messages: [message],
+    } = await run(
       adapter.startConversation({
         message: 'oi',
         channel: 'app',
@@ -116,5 +121,41 @@ describe('createMockSupportChatAdapter', () => {
     await jest.advanceTimersByTimeAsync(300);
     await assertion;
     expect(await run(adapter.listMessages('ticket-x'))).toEqual([]);
+  });
+});
+
+describe('createMockSupportChatAdapter with files', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    URL.createObjectURL = jest.fn(() => 'blob:local');
+  });
+  afterEach(() => jest.useRealTimers());
+
+  it('turns the files into attachments', async () => {
+    const adapter = createMockSupportChatAdapter({ replyText: null });
+    const file = new File(['x'], 'a.png', { type: 'image/png' });
+    const started = adapter.startConversation({
+      message: '',
+      channel: 'login',
+      files: [file],
+    });
+    await jest.advanceTimersByTimeAsync(300);
+    const {
+      ticket,
+      messages: [first],
+    } = await started;
+    expect(first.attachments).toEqual([
+      {
+        id: 'file-3',
+        url: 'blob:local',
+        fileName: 'a.png',
+        mimeType: 'image/png',
+        size: 1,
+      },
+    ]);
+
+    const sent = adapter.sendMessage(ticket.id, '', [file]);
+    await jest.advanceTimersByTimeAsync(300);
+    expect((await sent).attachments).toHaveLength(1);
   });
 });

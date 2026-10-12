@@ -79,12 +79,66 @@ export const createGuestSupportChatAdapter = ({
     );
   };
 
+  /**
+   * Upload each file straight to the storage: ask the backend for a signed
+   * URL, then PUT the file there. Returns what the message needs.
+   */
+  const uploadFiles = (ticketId: string, files: File[]) =>
+    Promise.all(
+      files.map(async (file) => {
+        const { data } = await apiClient.post<{
+          data: { uploadUrl: string; key: string; contentType: string };
+        }>(
+          `/support/guest/${ticketId}/upload-url`,
+          { fileName: file.name, fileSize: file.size, mimeType: file.type },
+          { headers: headersFor(ticketId) }
+        );
+        const { uploadUrl, key, contentType } = data.data;
+        const response = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': contentType },
+          body: file,
+        });
+        if (!response.ok) {
+          throw new Error(`Não foi possível enviar ${file.name}`);
+        }
+        return {
+          key,
+          fileName: file.name,
+          mimeType: contentType,
+          size: file.size,
+        };
+      })
+    );
+
+  const sendMessage = async (
+    ticketId: string,
+    content: string,
+    files: File[] = []
+  ) => {
+    const attachments = await uploadFiles(ticketId, files);
+    const { data } = await apiClient.post<{ data: SupportChatAnswerApi }>(
+      `/support/guest/${ticketId}/answer`,
+      { answer: content, attachments },
+      { headers: headersFor(ticketId) }
+    );
+    return fromSupportAnswer(data.data, nameFor(ticketId));
+  };
+
   return {
-    async startConversation({ message, institutionId, requesterName, email }) {
+    async startConversation({
+      message,
+      institutionId,
+      requesterName,
+      email,
+      files = [],
+    }) {
+      // The ticket needs a description; an image-only start uses the names
+      const description = message || files.map((file) => file.name).join(', ');
       const { data } = await apiClient.post<{
         data: { id: string; guestToken: string };
       }>('/support/external', {
-        description: message,
+        description,
         ...(institutionId ? { institutionId } : {}),
         ...(requesterName ? { requesterName } : {}),
         ...(email ? { email } : {}),
@@ -95,8 +149,10 @@ export const createGuestSupportChatAdapter = ({
         name: requesterName || 'Visitante',
       });
 
-      // The first message is saved with the ticket; read it back for its id
-      const [first] = await listMessages(ticketId);
+      // The first message is saved with the ticket; read it back for its id.
+      // /support/external takes no files, so they go as the next message.
+      const messages = await listMessages(ticketId);
+      if (files.length) messages.push(await sendMessage(ticketId, '', files));
       return {
         ticket: {
           id: ticketId,
@@ -104,18 +160,11 @@ export const createGuestSupportChatAdapter = ({
           handlerType: null,
           problemType: null,
         },
-        message: first,
+        messages,
       };
     },
 
-    async sendMessage(ticketId, content) {
-      const { data } = await apiClient.post<{ data: SupportChatAnswerApi }>(
-        `/support/guest/${ticketId}/answer`,
-        { answer: content },
-        { headers: headersFor(ticketId) }
-      );
-      return fromSupportAnswer(data.data, nameFor(ticketId));
-    },
+    sendMessage,
 
     listMessages,
 

@@ -36,7 +36,7 @@ const createAdapter = () => {
         handlerType: null,
         problemType: null,
       },
-      message: buildMessage('m1', 'oi'),
+      messages: [buildMessage('m1', 'oi')],
     }),
     sendMessage: jest.fn().mockResolvedValue(buildMessage('m2', 'de novo')),
     listMessages: jest.fn().mockResolvedValue([]),
@@ -121,6 +121,7 @@ describe('SupportChatWidget', () => {
       institutionId: 'inst-1',
       requesterName: 'Maria',
       email: 'maria@escola.com',
+      files: [],
     });
     expect(onSend).toHaveBeenCalledWith(buildMessage('m1', 'oi'));
     expect(screen.getByText('oi')).toBeInTheDocument();
@@ -129,7 +130,7 @@ describe('SupportChatWidget', () => {
     await act(async () => {
       fireEvent.keyDown(screen.getByLabelText('Mensagem'), { key: 'Enter' });
     });
-    expect(adapter.sendMessage).toHaveBeenCalledWith('ticket-1', 'de novo');
+    expect(adapter.sendMessage).toHaveBeenCalledWith('ticket-1', 'de novo', []);
     expect(screen.getByText('de novo')).toBeInTheDocument();
   });
 
@@ -231,5 +232,124 @@ describe('SupportChatWidget', () => {
       fireEvent.submit(screen.getByLabelText('Mensagem').closest('form')!);
     });
     expect(adapter.startConversation).not.toHaveBeenCalled();
+  });
+});
+
+describe('SupportChatWidget images', () => {
+  beforeEach(() => {
+    URL.createObjectURL = jest.fn(() => 'blob:preview');
+    URL.revokeObjectURL = jest.fn();
+  });
+
+  const png = (name = 'foto.png', size = 10) => {
+    const file = new File(['x'], name, { type: 'image/png' });
+    Object.defineProperty(file, 'size', { value: size });
+    return file;
+  };
+  const pick = (files: File[]) =>
+    fireEvent.change(screen.getByTestId('support-chat-file-input'), {
+      target: { files },
+    });
+
+  it('previews, removes and sends images', async () => {
+    const { adapter } = createAdapter();
+    render(<SupportChatWidget adapter={adapter} channel="app" />);
+    fireEvent.click(screen.getByLabelText('Abrir suporte'));
+
+    expect(screen.getByLabelText('Enviar')).toBeDisabled();
+    const input = screen.getByTestId('support-chat-file-input');
+    const click = jest.spyOn(input, 'click');
+    fireEvent.click(screen.getByLabelText('Anexar imagem'));
+    expect(click).toHaveBeenCalled();
+    pick([png('a.png'), png('b.png')]);
+    expect(screen.getByAltText('a.png')).toHaveAttribute('src', 'blob:preview');
+    fireEvent.click(screen.getByLabelText('Remover a.png'));
+    expect(screen.queryByAltText('a.png')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Enviar')).toBeEnabled();
+
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText('Enviar'));
+    });
+    expect(adapter.startConversation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: '',
+        files: [expect.objectContaining({ name: 'b.png' })],
+      })
+    );
+    expect(screen.queryByAltText('b.png')).not.toBeInTheDocument();
+  });
+
+  it('keeps the images when sending fails', async () => {
+    const { adapter } = createAdapter();
+    adapter.startConversation.mockRejectedValueOnce(new Error('Falhou'));
+    render(<SupportChatWidget adapter={adapter} channel="app" />);
+    fireEvent.click(screen.getByLabelText('Abrir suporte'));
+
+    pick([png()]);
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText('Enviar'));
+    });
+    expect(screen.getByAltText('foto.png')).toBeInTheDocument();
+  });
+
+  it.each([
+    [
+      'type',
+      [new File(['x'], 'a.pdf', { type: 'application/pdf' })],
+      'Envie imagens JPG, PNG, GIF ou WEBP',
+    ],
+    ['size', [png('big.png', 6 * 1024 * 1024)], 'big.png passa de 5 MB'],
+    [
+      'count',
+      Array.from({ length: 6 }, (_, i) => png(`${i}.png`)),
+      'Máximo de 5 imagens por mensagem',
+    ],
+  ])('refuses images by %s', (_label, files, text) => {
+    const { adapter } = createAdapter();
+    render(<SupportChatWidget adapter={adapter} channel="app" />);
+    fireEvent.click(screen.getByLabelText('Abrir suporte'));
+
+    pick(files as File[]);
+    expect(screen.getByRole('alert')).toHaveTextContent(text);
+  });
+
+  it('shows image and file attachments of the messages', async () => {
+    const { adapter, emit } = createAdapter();
+    render(<SupportChatWidget adapter={adapter} channel="app" />);
+    fireEvent.click(screen.getByLabelText('Abrir suporte'));
+    await sendText('oi');
+
+    emit({
+      type: 'new_message',
+      payload: {
+        message: {
+          ...buildMessage('a1', '', SUPPORT_CHAT_AUTHOR.AGENT),
+          attachments: [
+            {
+              id: 'f1',
+              url: 'https://cdn/x.png',
+              fileName: 'x.png',
+              mimeType: 'image/png',
+              size: 1,
+            },
+            {
+              id: 'f2',
+              url: 'https://cdn/y.pdf',
+              fileName: 'y.pdf',
+              mimeType: 'application/pdf',
+              size: 1,
+            },
+          ],
+        },
+      },
+    });
+    expect(screen.getByAltText('x.png')).toHaveAttribute(
+      'src',
+      'https://cdn/x.png'
+    );
+    expect(screen.getByText('y.pdf')).toHaveAttribute(
+      'href',
+      'https://cdn/y.pdf'
+    );
   });
 });

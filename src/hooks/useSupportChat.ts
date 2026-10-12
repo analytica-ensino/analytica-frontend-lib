@@ -22,8 +22,8 @@ export interface UseSupportChatReturn {
   error: string | null;
   /** Ticket resolved: no more messages can be sent */
   closed: boolean;
-  /** Send a message; the first one opens the ticket */
-  send: (content: string) => Promise<SupportChatMessage | null>;
+  /** Send a message (text and/or files); the first one opens the ticket */
+  send: (content: string, files?: File[]) => Promise<SupportChatMessage | null>;
   /** Forget the current conversation */
   reset: () => void;
 }
@@ -93,16 +93,16 @@ export const useSupportChat = ({
   }, [adapter, ticketId]);
 
   const send = useCallback(
-    async (content: string) => {
+    async (content: string, files: File[] = []) => {
       const text = content.trim();
-      if (!text || sendingRef.current) return null;
+      if ((!text && files.length === 0) || sendingRef.current) return null;
 
       sendingRef.current = true;
       setSending(true);
       setError(null);
       try {
         if (ticketId) {
-          const message = await adapter.sendMessage(ticketId, text);
+          const message = await adapter.sendMessage(ticketId, text, files);
           setMessages((list) => upsertMessage(list, message));
           return message;
         }
@@ -113,10 +113,11 @@ export const useSupportChat = ({
           institutionId,
           requesterName: user?.name,
           email: user?.email,
+          files,
         });
         setTicket(started.ticket);
-        setMessages((list) => upsertMessage(list, started.message));
-        return started.message;
+        setMessages((list) => started.messages.reduce(upsertMessage, list));
+        return started.messages[started.messages.length - 1] ?? null;
       } catch (sendError) {
         setError(getErrorMessage(sendError));
         return null;

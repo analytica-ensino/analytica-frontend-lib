@@ -30,7 +30,7 @@ const setup = () => {
         handlerType: null,
         problemType: null,
       },
-      message: message('m1', 'oi'),
+      messages: [message('m1', 'oi')],
     }),
     sendMessage: jest.fn(),
     listMessages: jest.fn(),
@@ -57,6 +57,7 @@ describe('useSupportChat', () => {
       institutionId: undefined,
       requesterName: undefined,
       email: undefined,
+      files: [],
     });
 
     emit({ type: 'new_message', payload: { message: message('m1', 'oi') } });
@@ -112,7 +113,7 @@ describe('useSupportChat', () => {
           handlerType: null,
           problemType: null,
         },
-        message: message('m1', 'primeira'),
+        messages: [message('m1', 'primeira')],
       });
     });
     expect(hook.result.current.sending).toBe(false);
@@ -136,5 +137,55 @@ describe('useSupportChat', () => {
     expect(hook.result.current.ticket).toBeNull();
     expect(hook.result.current.messages).toEqual([]);
     expect(hook.result.current.error).toBeNull();
+  });
+});
+
+describe('useSupportChat with files', () => {
+  it('sends an image-only message and returns the last started message', async () => {
+    const { adapter, hook } = setup();
+    const file = new File(['x'], 'a.png', { type: 'image/png' });
+    adapter.startConversation.mockResolvedValueOnce({
+      ticket: {
+        id: 'ticket-1',
+        status: SUPPORT_CHAT_STATUS.ABERTO,
+        handlerType: null,
+        problemType: null,
+      },
+      messages: [message('m1', 'a.png'), message('m2', '')],
+    });
+
+    let result: unknown;
+    await act(async () => {
+      result = await hook.result.current.send('', [file]);
+    });
+    expect(adapter.startConversation).toHaveBeenCalledWith(
+      expect.objectContaining({ message: '', files: [file] })
+    );
+    expect(result).toEqual(message('m2', ''));
+    expect(hook.result.current.messages).toHaveLength(2);
+
+    adapter.sendMessage.mockResolvedValueOnce(message('m3', ''));
+    await act(async () => {
+      await hook.result.current.send('', [file]);
+    });
+    expect(adapter.sendMessage).toHaveBeenCalledWith('ticket-1', '', [file]);
+  });
+
+  it('returns null when the start brings no message', async () => {
+    const { adapter, hook } = setup();
+    adapter.startConversation.mockResolvedValueOnce({
+      ticket: {
+        id: 'ticket-1',
+        status: SUPPORT_CHAT_STATUS.ABERTO,
+        handlerType: null,
+        problemType: null,
+      },
+      messages: [],
+    });
+    let result: unknown = 'x';
+    await act(async () => {
+      result = await hook.result.current.send('oi');
+    });
+    expect(result).toBeNull();
   });
 });
