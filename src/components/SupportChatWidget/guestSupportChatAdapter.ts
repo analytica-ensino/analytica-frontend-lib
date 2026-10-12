@@ -62,6 +62,13 @@ export const createGuestSupportChatAdapter = ({
   pollIntervalMs = 3000,
 }: GuestSupportChatAdapterOptions): SupportChatAdapter => {
   const sessions = new Map<string, { token: string; name: string }>();
+  /**
+   * Ticket opening text written by the adapter (an image-only start still
+   * needs a description). It is the ticket description for the agents, not
+   * something the visitor typed, so the chat does not show it.
+   */
+  const hiddenIds = new Set<string>();
+  const isVisible = (message: SupportChatMessage) => !hiddenIds.has(message.id);
 
   const headersFor = (ticketId: string) => ({
     [GUEST_TOKEN_HEADER]: sessions.get(ticketId)?.token ?? '',
@@ -74,9 +81,9 @@ export const createGuestSupportChatAdapter = ({
       `/support/guest/${ticketId}/answer`,
       { headers: headersFor(ticketId) }
     );
-    return data.data.map((answer) =>
-      fromSupportAnswer(answer, nameFor(ticketId))
-    );
+    return data.data
+      .map((answer) => fromSupportAnswer(answer, nameFor(ticketId)))
+      .filter(isVisible);
   };
 
   /**
@@ -151,7 +158,11 @@ export const createGuestSupportChatAdapter = ({
 
       // The first message is saved with the ticket; read it back for its id.
       // /support/external takes no files, so they go as the next message.
-      const messages = await listMessages(ticketId);
+      let messages = await listMessages(ticketId);
+      if (!message && messages[0]) {
+        hiddenIds.add(messages[0].id);
+        messages = messages.slice(1);
+      }
       if (files.length) messages.push(await sendMessage(ticketId, '', files));
       return {
         ticket: {
@@ -175,7 +186,7 @@ export const createGuestSupportChatAdapter = ({
       let active = true;
 
       const deliver = (message: SupportChatMessage) => {
-        if (seen.has(message.id)) return;
+        if (seen.has(message.id) || !isVisible(message)) return;
         seen.add(message.id);
         listener({ type: 'new_message', payload: { message } });
       };

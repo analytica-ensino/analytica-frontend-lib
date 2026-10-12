@@ -293,7 +293,16 @@ describe('createGuestSupportChatAdapter uploads', () => {
       },
       { headers: { 'x-support-guest-token': 'tok' } }
     );
-    expect(started.messages.map((message) => message.id)).toEqual(['a1', 'a2']);
+    // The opening text (file names) is hidden from the chat
+    expect(started.messages.map((message) => message.id)).toEqual(['a2']);
+    expect(await adapter.listMessages('t1')).toEqual([]);
+
+    const events: SupportChatEvent[] = [];
+    const unsubscribe = adapter.subscribe('t1', (event) => events.push(event));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(events).toEqual([]);
+    unsubscribe();
   });
 
   it('fails when the storage refuses the upload', async () => {
