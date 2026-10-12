@@ -1241,6 +1241,42 @@ export type {
 export { ZendeskWidget } from './components/ZendeskWidget';
 export type { ZendeskWidgetProps } from './components/ZendeskWidget';
 
+// Support Chat Widget (native support)
+export {
+  SupportChatWidget,
+  createMockSupportChatAdapter,
+} from './components/SupportChatWidget';
+export type {
+  SupportChatWidgetProps,
+  SupportChatWindowState,
+  MockSupportChatAdapterOptions,
+} from './components/SupportChatWidget';
+export { useSupportChat } from './hooks/useSupportChat';
+export type {
+  UseSupportChatConfig,
+  UseSupportChatReturn,
+} from './hooks/useSupportChat';
+export {
+  SUPPORT_CHAT_STATUS,
+  SUPPORT_CHAT_HANDLER,
+  SUPPORT_CHAT_AUTHOR,
+  SUPPORT_CHAT_GUEST_SENDER_ID,
+} from './types/supportChat';
+export type {
+  SupportChatStatus,
+  SupportChatHandler,
+  SupportChatAuthor,
+  SupportChatAttachment,
+  SupportChatMessage,
+  SupportChatTicket,
+  SupportChatEvent,
+  StartSupportChatInput,
+  SupportChatAdapter,
+  SupportChatFlags,
+  SupportChatTheme,
+  SupportChatUser,
+} from './types/supportChat';
+
 // Support Feature Flag Hook
 export { useSupportFeatureFlag } from './hooks/useSupportFeatureFlag';
 export type {
