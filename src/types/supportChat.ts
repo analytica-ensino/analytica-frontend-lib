@@ -158,3 +158,29 @@ export interface SupportChatUser {
   name?: string;
   email?: string;
 }
+
+/**
+ * HTTP client the API adapter needs (axios instances fit as they are)
+ */
+export interface SupportChatHttpClient {
+  get: <T>(
+    url: string,
+    config?: { headers?: Record<string, string> }
+  ) => Promise<{ data: T }>;
+  post: <T>(
+    url: string,
+    data?: unknown,
+    config?: { headers?: Record<string, string> }
+  ) => Promise<{ data: T }>;
+}
+
+/**
+ * Message as returned by the support REST routes
+ */
+export interface SupportChatAnswerApi {
+  id: string;
+  authorType: SupportChatAuthor;
+  answer: string;
+  createdAt: string;
+  attachments?: SupportChatAttachment[];
+}
