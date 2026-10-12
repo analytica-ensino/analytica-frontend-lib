@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  SUPPORT_CHAT_AUTHOR,
+  SUPPORT_CHAT_GUEST_SENDER_ID,
   SUPPORT_CHAT_STATUS,
   type SupportChatAdapter,
   type SupportChatEvent,
@@ -27,6 +29,43 @@ export interface UseSupportChatReturn {
   /** Forget the current conversation */
   reset: () => void;
 }
+
+let pendingSequence = 0;
+
+/**
+ * Message shown right away while it is being sent (optimistic rendering).
+ * Images use local object URLs, released when the real message arrives.
+ */
+const buildPendingMessage = (
+  content: string,
+  files: File[],
+  user?: SupportChatUser
+): SupportChatMessage => {
+  pendingSequence += 1;
+  return {
+    id: `pending-${pendingSequence}`,
+    senderId: SUPPORT_CHAT_GUEST_SENDER_ID,
+    senderName: user?.name || 'Você',
+    senderPhoto: null,
+    senderRole: user?.email
+      ? SUPPORT_CHAT_AUTHOR.USER
+      : SUPPORT_CHAT_AUTHOR.GUEST,
+    content,
+    messageType: 'text',
+    createdAt: new Date().toISOString(),
+    attachments: files.map((file, index) => ({
+      id: `pending-${pendingSequence}-${index}`,
+      url: URL.createObjectURL(file),
+      fileName: file.name,
+      mimeType: file.type,
+      size: file.size,
+    })),
+    pending: true,
+  };
+};
+
+const releasePending = (message: SupportChatMessage) =>
+  message.attachments.forEach((item) => URL.revokeObjectURL(item.url));
 
 const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : 'Não foi possível enviar a mensagem';
@@ -100,10 +139,22 @@ export const useSupportChat = ({
       sendingRef.current = true;
       setSending(true);
       setError(null);
+
+      const pending = buildPendingMessage(text, files, user);
+      setMessages((list) => [...list, pending]);
+      // Swap the optimistic message for the confirmed ones
+      const confirm = (confirmed: SupportChatMessage[]) =>
+        setMessages((list) =>
+          confirmed.reduce(
+            upsertMessage,
+            list.filter((item) => item.id !== pending.id)
+          )
+        );
+
       try {
         if (ticketId) {
           const message = await adapter.sendMessage(ticketId, text, files);
-          setMessages((list) => upsertMessage(list, message));
+          confirm([message]);
           return message;
         }
 
@@ -116,17 +167,19 @@ export const useSupportChat = ({
           files,
         });
         setTicket(started.ticket);
-        setMessages((list) => started.messages.reduce(upsertMessage, list));
+        confirm(started.messages);
         return started.messages[started.messages.length - 1] ?? null;
       } catch (sendError) {
+        setMessages((list) => list.filter((item) => item.id !== pending.id));
         setError(getErrorMessage(sendError));
         return null;
       } finally {
+        releasePending(pending);
         sendingRef.current = false;
         setSending(false);
       }
     },
-    [adapter, channel, institutionId, ticketId, user?.email, user?.name]
+    [adapter, channel, institutionId, ticketId, user]
   );
 
   const reset = useCallback(() => {

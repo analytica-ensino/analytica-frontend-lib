@@ -44,6 +44,11 @@ const setup = () => {
   return { adapter, hook, emit };
 };
 
+beforeEach(() => {
+  URL.createObjectURL = jest.fn(() => 'blob:local');
+  URL.revokeObjectURL = jest.fn();
+});
+
 describe('useSupportChat', () => {
   it('starts as a visitor and stores a message received twice only once', async () => {
     const { adapter, hook, emit } = setup();
@@ -187,5 +192,75 @@ describe('useSupportChat with files', () => {
       result = await hook.result.current.send('oi');
     });
     expect(result).toBeNull();
+  });
+});
+
+describe('useSupportChat optimistic rendering', () => {
+  it('shows the message as pending until the server confirms it', async () => {
+    const { adapter, hook } = setup();
+    await act(async () => {
+      await hook.result.current.send('oi');
+    });
+
+    let resolve: (value: SupportChatMessage) => void = () => undefined;
+    adapter.sendMessage.mockReturnValueOnce(
+      new Promise((done) => {
+        resolve = done;
+      })
+    );
+    const file = new File(['x'], 'a.png', { type: 'image/png' });
+    let sending: Promise<unknown> = Promise.resolve();
+    act(() => {
+      sending = hook.result.current.send('com foto', [file]);
+    });
+
+    const pending = hook.result.current.messages[1];
+    expect(pending).toMatchObject({
+      content: 'com foto',
+      pending: true,
+      senderName: 'Você',
+      attachments: [{ url: 'blob:local', fileName: 'a.png' }],
+    });
+
+    await act(async () => {
+      resolve(message('m2', 'com foto'));
+      await sending;
+    });
+    expect(hook.result.current.messages.map((item) => item.id)).toEqual([
+      'm1',
+      'm2',
+    ]);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:local');
+  });
+
+  it('removes the pending message when sending fails', async () => {
+    const { adapter, hook } = setup();
+    adapter.startConversation.mockRejectedValueOnce(new Error('Falhou'));
+
+    await act(async () => {
+      await hook.result.current.send('oi');
+    });
+    expect(hook.result.current.messages).toEqual([]);
+    expect(hook.result.current.error).toBe('Falhou');
+  });
+
+  it('marks a logged user pending message as USER', async () => {
+    const adapter = setup().adapter;
+    adapter.startConversation.mockReturnValueOnce(new Promise(() => undefined));
+    const hook = renderHook(() =>
+      useSupportChat({
+        adapter,
+        channel: 'app',
+        user: { name: 'Maria', email: 'maria@escola.com' },
+      })
+    );
+    act(() => {
+      void hook.result.current.send('oi');
+    });
+    expect(hook.result.current.messages[0]).toMatchObject({
+      senderName: 'Maria',
+      senderRole: SUPPORT_CHAT_AUTHOR.USER,
+      pending: true,
+    });
   });
 });

@@ -353,3 +353,21 @@ describe('SupportChatWidget images', () => {
     );
   });
 });
+
+describe('SupportChatWidget optimistic rendering', () => {
+  it('shows the message faded while it is being sent', async () => {
+    const { adapter } = createAdapter();
+    adapter.startConversation.mockReturnValueOnce(new Promise(() => undefined));
+    render(<SupportChatWidget adapter={adapter} channel="app" />);
+    fireEvent.click(screen.getByLabelText('Abrir suporte'));
+
+    type('oi');
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText('Enviar'));
+    });
+
+    const bubble = screen.getByText('oi').closest('[aria-busy]');
+    expect(bubble).toHaveClass('opacity-60');
+    expect(screen.getByText('Enviando…')).toBeInTheDocument();
+  });
+});

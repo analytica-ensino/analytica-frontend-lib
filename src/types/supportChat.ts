@@ -78,6 +78,8 @@ export interface SupportChatMessage {
   messageType: string;
   createdAt: string;
   attachments: SupportChatAttachment[];
+  /** Local only: shown before the server confirms it (optimistic) */
+  pending?: boolean;
 }
 
 /**

@@ -62,7 +62,7 @@ const formatTime = (createdAt: string) =>
 const isImage = (mimeType: string) => mimeType.startsWith('image/');
 
 const AttachmentList = ({ items }: { items: SupportChatAttachment[] }) => (
-  <div className="flex flex-wrap gap-2 mt-1">
+  <div className="flex flex-wrap gap-2 first:mt-0 mt-1">
     {items.map((item) =>
       isImage(item.mimeType) ? (
         <a key={item.id} href={item.url} target="_blank" rel="noreferrer">
@@ -145,7 +145,12 @@ const MessageBubble = ({ message }: { message: SupportChatMessage }) => {
   const own = isOwnMessage(message);
   return (
     <div
-      className={cn('flex flex-col mb-3', own ? 'items-end' : 'items-start')}
+      className={cn(
+        'flex flex-col mb-3 transition-opacity',
+        own ? 'items-end' : 'items-start',
+        message.pending && 'opacity-60'
+      )}
+      aria-busy={message.pending || undefined}
     >
       {!own && (
         <Text size="xs" className="text-text-500 mb-1">
@@ -154,10 +159,16 @@ const MessageBubble = ({ message }: { message: SupportChatMessage }) => {
       )}
       <div
         className={cn(
-          'max-w-[80%] px-4 py-2 rounded-2xl whitespace-pre-wrap break-words',
-          own
-            ? 'bg-primary-500 text-white rounded-br-md'
-            : 'bg-background-100 text-text-900 rounded-bl-md'
+          'max-w-[80%] rounded-2xl whitespace-pre-wrap break-words',
+          // Image-only messages show the image without the colored bubble
+          message.content
+            ? cn(
+                'px-4 py-2',
+                own
+                  ? 'bg-primary-500 text-white rounded-br-md'
+                  : 'bg-background-100 text-text-900 rounded-bl-md'
+              )
+            : 'text-text-900'
         )}
       >
         {message.content && (
@@ -170,7 +181,7 @@ const MessageBubble = ({ message }: { message: SupportChatMessage }) => {
         )}
       </div>
       <Text size="xs" className="text-text-400 mt-1">
-        {formatTime(message.createdAt)}
+        {message.pending ? 'Enviando…' : formatTime(message.createdAt)}
       </Text>
     </div>
   );
