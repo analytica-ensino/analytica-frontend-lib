@@ -2,6 +2,8 @@ import { ButtonHTMLAttributes, ReactNode, forwardRef } from 'react';
 import { cn } from '../../../utils/utils';
 import { Avatar } from '../../Avatar/Avatar';
 import Badge from '../../Badge/Badge';
+import Button from '../../Button/Button';
+import Text from '../../Text/Text';
 import { formatTicketTime } from '../utils/formatTicketTime';
 
 /**
@@ -42,11 +44,17 @@ const BADGE_CLASSES = 'shrink-0 rounded-md font-medium uppercase';
 /** Escala do item. `md` é o tamanho do Figma. */
 export type TicketListItemSize = 'sm' | 'md' | 'lg';
 
+/** Tamanhos aceitos pelo `Text`, para os campos tipográficos da escala. */
+type TicketListItemTextSize = '2xs' | 'xs' | 'sm' | 'md' | 'lg';
+
 /**
  * Espaçamento, avatar, tipografia e ícone andam juntos numa tabela só porque a
  * linha só lê bem quando escalam na mesma proporção: um avatar de 48 ao lado de
  * um nome `text-sm` desalinha a coluna de texto. Separar isso em props soltas
  * deixaria o consumidor quebrar o alinhamento sem perceber.
+ *
+ * `name`, `time`, `meta` e `message` são tamanhos do `Text`, não classes: quem
+ * renderiza esses textos é o componente da lib, que escreve o próprio `text-*`.
  *
  * O `[&>svg]:size-*` força o ícone de canal do consumidor a caber na caixa: as
  * props `width`/`height` que o Phosphor escreve no `<svg>` são atributos de
@@ -58,10 +66,10 @@ const SIZE_CLASSES: Record<
     item: string;
     rows: string;
     avatar: number;
-    name: string;
-    time: string;
-    meta: string;
-    message: string;
+    name: TicketListItemTextSize;
+    time: TicketListItemTextSize;
+    meta: TicketListItemTextSize;
+    message: TicketListItemTextSize;
     badge: 'small' | 'medium';
     icon: string;
     bar: string;
@@ -72,10 +80,10 @@ const SIZE_CLASSES: Record<
     item: 'gap-2 p-3',
     rows: 'gap-0.5',
     avatar: 32,
-    name: 'text-sm',
-    time: 'text-2xs',
-    meta: 'text-xs',
-    message: 'text-xs',
+    name: 'sm',
+    time: '2xs',
+    meta: 'xs',
+    message: 'xs',
     badge: 'small',
     icon: '[&>svg]:size-3.5',
     bar: 'w-0.5',
@@ -85,10 +93,10 @@ const SIZE_CLASSES: Record<
     item: 'gap-3 p-4',
     rows: 'gap-1',
     avatar: 40,
-    name: 'text-base',
-    time: 'text-xs',
-    meta: 'text-sm',
-    message: 'text-sm',
+    name: 'md',
+    time: 'xs',
+    meta: 'sm',
+    message: 'sm',
     badge: 'small',
     icon: '[&>svg]:size-4',
     bar: 'w-1',
@@ -98,10 +106,10 @@ const SIZE_CLASSES: Record<
     item: 'gap-4 p-5',
     rows: 'gap-1.5',
     avatar: 48,
-    name: 'text-lg',
-    time: 'text-sm',
-    meta: 'text-base',
-    message: 'text-base',
+    name: 'lg',
+    time: 'sm',
+    meta: 'md',
+    message: 'md',
     badge: 'medium',
     icon: '[&>svg]:size-5',
     bar: 'w-1.5',
@@ -155,8 +163,9 @@ export type TicketListItemProps = {
  * Só `name` e `lastMessageAt` são obrigatórios; cada bloco desaparece quando a
  * prop não vem, então uma lista sem instituição ou sem canal continua alinhada.
  *
- * Renderiza um `<button type="button">` com `onClick`, como o resto da lib — a
- * navegação fica a cargo do consumidor, sem acoplar a lib a um router.
+ * Renderiza o `Button` da lib na variante `raw` (`type="button"`, sem estilo
+ * próprio) com `onClick` — a navegação fica a cargo do consumidor, sem acoplar a
+ * lib a um router.
  *
  * @example
  * ```tsx
@@ -202,9 +211,9 @@ export const TicketListItem = forwardRef<
     const scale = SIZE_CLASSES[size];
 
     return (
-      <button
+      <Button
         ref={ref}
-        type="button"
+        variant="raw"
         className={cn(BASE_CLASSES, scale.item, TONE_CLASSES[tone], className)}
         {...props}
       >
@@ -230,14 +239,14 @@ export const TicketListItem = forwardRef<
 
         <span className={cn('flex min-w-0 flex-1 flex-col', scale.rows)}>
           <span className="flex items-center gap-2">
-            <span
-              className={cn(
-                'min-w-0 flex-1 truncate font-bold text-text-950',
-                scale.name
-              )}
+            <Text
+              as="span"
+              size={scale.name}
+              weight="bold"
+              className="min-w-0 flex-1 truncate"
             >
               {name}
-            </span>
+            </Text>
             {unread && (
               <>
                 <span
@@ -251,9 +260,14 @@ export const TicketListItem = forwardRef<
                 <span className="sr-only">Não lido</span>
               </>
             )}
-            <span className={cn('shrink-0 text-text-600', scale.time)}>
+            <Text
+              as="span"
+              size={scale.time}
+              color="text-text-600"
+              className="shrink-0"
+            >
               {formatTicketTime(lastMessageAt)}
-            </span>
+            </Text>
           </span>
 
           {(profileLabel || organization) && (
@@ -268,19 +282,27 @@ export const TicketListItem = forwardRef<
                 </Badge>
               )}
               {organization && (
-                <span
-                  className={cn('min-w-0 truncate text-text-600', scale.meta)}
+                <Text
+                  as="span"
+                  size={scale.meta}
+                  color="text-text-600"
+                  className="min-w-0 truncate"
                 >
                   {organization}
-                </span>
+                </Text>
               )}
             </span>
           )}
 
           {message && (
-            <span className={cn('truncate text-text-700', scale.message)}>
+            <Text
+              as="span"
+              size={scale.message}
+              color="text-text-700"
+              className="truncate"
+            >
               {message}
-            </span>
+            </Text>
           )}
 
           {(attendanceLabel || channelIcon || ticketCode) && (
@@ -310,19 +332,19 @@ export const TicketListItem = forwardRef<
                 </span>
               )}
               {ticketCode && (
-                <span
-                  className={cn(
-                    'shrink-0 text-text-600 tabular-nums',
-                    scale.meta
-                  )}
+                <Text
+                  as="span"
+                  size={scale.meta}
+                  color="text-text-600"
+                  className="shrink-0 tabular-nums"
                 >
                   {ticketCode}
-                </span>
+                </Text>
               )}
             </span>
           )}
         </span>
-      </button>
+      </Button>
     );
   }
 );

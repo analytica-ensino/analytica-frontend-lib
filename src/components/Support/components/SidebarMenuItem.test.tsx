@@ -191,6 +191,20 @@ describe('SidebarMenuItem', () => {
       );
     });
 
+    it('renders the label with the lib typography and the item size', () => {
+      const { rerender } = render(<SidebarMenuItem label="Dashboard" />);
+
+      expect(screen.getByText('Dashboard')).toHaveClass(
+        'font-primary',
+        'text-sm',
+        'text-inherit'
+      );
+
+      rerender(<SidebarMenuItem label="Dashboard" size="sm" />);
+
+      expect(screen.getByText('Dashboard')).toHaveClass('text-xs');
+    });
+
     it('shrinks the count pill on sm', () => {
       render(<SidebarMenuItem label="Dashboard" size="sm" count={4} />);
 

@@ -1,6 +1,8 @@
 import { ButtonHTMLAttributes, ReactNode, forwardRef } from 'react';
 import { cn } from '../../../utils/utils';
 import Badge from '../../Badge/Badge';
+import Button from '../../Button/Button';
+import Text from '../../Text/Text';
 
 /** Nível do item na árvore do menu lateral. */
 export type SidebarMenuItemVariant = 'main' | 'sub';
@@ -40,9 +42,14 @@ const IDLE_CLASSES: Record<SidebarMenuItemVariant, string> = {
   sub: 'text-text-600 hover:bg-background-50',
 };
 
-const WEIGHT_CLASSES: Record<SidebarMenuItemVariant, string> = {
-  main: 'font-medium',
-  sub: 'font-normal',
+/**
+ * Peso do rótulo, no vocabulário do `Text`. Fica no rótulo e não no botão
+ * porque o `Text` escreve o próprio `font-*`: um peso herdado do botão seria
+ * sobrescrito pelo default (`normal`) do componente.
+ */
+const LABEL_WEIGHT: Record<SidebarMenuItemVariant, 'medium' | 'normal'> = {
+  main: 'medium',
+  sub: 'normal',
 };
 
 /** Escala do item. `md` é o tamanho do Figma. */
@@ -61,21 +68,32 @@ export type SidebarMenuItemSize = 'sm' | 'md';
  * `width`/`height` que o Phosphor escreve no `<svg>` são atributos de
  * apresentação, então qualquer regra CSS ganha delas. Assim um
  * `<Icon size={20} />` passado num item `sm` encolhe em vez de vazar.
+ *
+ * `label` é o mesmo tamanho do `item`, escrito no vocabulário do `Text`. A
+ * classe continua no botão porque a contagem do `sub` é texto puro e herda dali.
  */
 const SIZE_CLASSES: Record<
   SidebarMenuItemSize,
-  { item: string; subIndent: string; icon: string; badge: 'small' | 'medium' }
+  {
+    item: string;
+    subIndent: string;
+    icon: string;
+    label: 'xs' | 'sm';
+    badge: 'small' | 'medium';
+  }
 > = {
   sm: {
     item: 'gap-2 px-2 py-1.5 text-xs',
     subIndent: 'pl-8',
     icon: 'size-4 [&>svg]:size-4',
+    label: 'xs',
     badge: 'small',
   },
   md: {
     item: 'gap-3 px-3 py-2.5 text-sm',
     subIndent: 'pl-11',
     icon: 'size-5 [&>svg]:size-5',
+    label: 'sm',
     badge: 'medium',
   },
 };
@@ -112,8 +130,9 @@ const BASE_CLASSES =
  * a contagem numa pílula laranja; o sub é recuado, sem ícone, e mostra a
  * contagem como texto que herda a cor do item.
  *
- * Renderiza um `<button type="button">` com `onClick`, como o resto da lib — a
- * navegação fica a cargo do consumidor, sem acoplar a lib a um router.
+ * Renderiza o `Button` da lib na variante `raw` (`type="button"`, sem estilo
+ * próprio) com `onClick` — a navegação fica a cargo do consumidor, sem acoplar a
+ * lib a um router.
  *
  * @example
  * ```tsx
@@ -151,14 +170,13 @@ export const SidebarMenuItem = forwardRef<
     const showIcon = variant === 'main' && Boolean(icon);
 
     return (
-      <button
+      <Button
         ref={ref}
-        type="button"
+        variant="raw"
         aria-current={active ? 'page' : undefined}
         className={cn(
           BASE_CLASSES,
           scale.item,
-          WEIGHT_CLASSES[variant],
           variant === 'sub' && scale.subIndent,
           stateClasses ?? IDLE_CLASSES[variant],
           className
@@ -177,7 +195,15 @@ export const SidebarMenuItem = forwardRef<
             {icon}
           </span>
         )}
-        <span className="flex-1 truncate">{label}</span>
+        <Text
+          as="span"
+          size={scale.label}
+          weight={LABEL_WEIGHT[variant]}
+          color="text-inherit"
+          className="flex-1 truncate"
+        >
+          {label}
+        </Text>
         {count !== undefined && (
           <SidebarMenuItemCount
             count={count}
@@ -186,7 +212,7 @@ export const SidebarMenuItem = forwardRef<
             tone={countTone}
           />
         )}
-      </button>
+      </Button>
     );
   }
 );

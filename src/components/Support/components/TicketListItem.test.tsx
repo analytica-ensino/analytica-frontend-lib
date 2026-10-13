@@ -90,7 +90,7 @@ describe('TicketListItem', () => {
       renderItem();
 
       expect(screen.getByRole('button')).toHaveClass('gap-3', 'p-4');
-      expect(screen.getByText('Ana Clara Mendes')).toHaveClass('text-base');
+      expect(screen.getByText('Ana Clara Mendes')).toHaveClass('text-md');
     });
 
     it('shrinks everything together on sm', () => {
