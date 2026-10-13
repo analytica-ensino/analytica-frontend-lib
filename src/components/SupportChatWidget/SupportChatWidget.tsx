@@ -13,6 +13,7 @@ import {
   XIcon,
 } from '@phosphor-icons/react';
 import Text from '../Text/Text';
+import Button from '../Button/Button';
 import { useSupportChat } from '../../hooks/useSupportChat';
 import { SupportType } from '../../types/support';
 import {
@@ -111,14 +112,14 @@ const PendingImage = ({
           className="w-14 h-14 rounded-lg object-cover border border-border-100"
         />
       )}
-      <button
-        type="button"
+      <Button
+        variant="raw"
         aria-label={`Remover ${file.name}`}
         onClick={onRemove}
         className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-text-700 text-white flex items-center justify-center"
       >
         <XIcon size={12} />
-      </button>
+      </Button>
     </div>
   );
 };
@@ -323,22 +324,22 @@ const SupportChatWidgetContent = ({
               {title}
             </Text>
             <div className="flex items-center gap-1">
-              <button
-                type="button"
+              <Button
+                variant="raw"
                 aria-label="Minimizar"
                 onClick={() => setWindowState('minimized')}
                 className="p-1 rounded hover:bg-white/20"
               >
                 <MinusIcon size={18} />
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="raw"
                 aria-label="Encerrar conversa"
                 onClick={close}
                 className="p-1 rounded hover:bg-white/20"
               >
                 <XIcon size={18} />
-              </button>
+              </Button>
             </div>
           </header>
 
@@ -402,8 +403,8 @@ const SupportChatWidgetContent = ({
                   data-testid="support-chat-file-input"
                   onChange={handleFiles}
                 />
-                <button
-                  type="button"
+                <Button
+                  variant="raw"
                   aria-label="Anexar imagem"
                   disabled={
                     sending || files.length >= SUPPORT_CHAT_MAX_ATTACHMENTS
@@ -412,7 +413,7 @@ const SupportChatWidgetContent = ({
                   className="p-2 rounded-full text-text-600 hover:bg-background-100 disabled:opacity-50"
                 >
                   <ImageIcon size={20} />
-                </button>
+                </Button>
                 <textarea
                   aria-label="Mensagem"
                   placeholder="Digite sua mensagem"
@@ -422,7 +423,8 @@ const SupportChatWidgetContent = ({
                   onKeyDown={handleKeyDown}
                   className="flex-1 resize-none rounded-xl border border-border-300 px-3 py-2 text-sm text-text-900 focus:outline-none focus:border-primary-500 max-h-28"
                 />
-                <button
+                <Button
+                  variant="raw"
                   type="submit"
                   aria-label="Enviar"
                   disabled={sending || (!draft.trim() && files.length === 0)}
@@ -430,7 +432,7 @@ const SupportChatWidgetContent = ({
                   style={accentStyle}
                 >
                   <PaperPlaneTiltIcon size={18} />
-                </button>
+                </Button>
               </div>
             </form>
           )}
@@ -438,8 +440,8 @@ const SupportChatWidgetContent = ({
       )}
 
       {!isOpen && (
-        <button
-          type="button"
+        <Button
+          variant="raw"
           aria-label={`Abrir ${title.toLowerCase()}`}
           onClick={open}
           className="relative w-14 h-14 rounded-full bg-primary-500 text-white shadow-lg flex items-center justify-center hover:brightness-110"
@@ -447,14 +449,17 @@ const SupportChatWidgetContent = ({
         >
           <ChatCircleDotsIcon size={28} />
           {unread > 0 && (
-            <span
+            <Text
+              as="span"
+              size="xs"
+              color="text-white"
               aria-label={`${unread} novas mensagens`}
-              className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-error-500 text-white text-xs flex items-center justify-center"
+              className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-error-500 flex items-center justify-center"
             >
               {unread}
-            </span>
+            </Text>
           )}
-        </button>
+        </Button>
       )}
     </div>
   );
