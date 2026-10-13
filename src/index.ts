@@ -1284,6 +1284,47 @@ export type {
 export { ZendeskWidget } from './components/ZendeskWidget';
 export type { ZendeskWidgetProps } from './components/ZendeskWidget';
 
+// Support Chat Widget (native support)
+export {
+  SupportChatWidget,
+  createMockSupportChatAdapter,
+  createGuestSupportChatAdapter,
+  fromSupportAnswer,
+} from './components/SupportChatWidget';
+export type {
+  SupportChatWidgetProps,
+  SupportChatWindowState,
+  MockSupportChatAdapterOptions,
+  GuestSupportChatAdapterOptions,
+} from './components/SupportChatWidget';
+export { useSupportChat } from './hooks/useSupportChat';
+export type {
+  UseSupportChatConfig,
+  UseSupportChatReturn,
+} from './hooks/useSupportChat';
+export {
+  SUPPORT_CHAT_STATUS,
+  SUPPORT_CHAT_HANDLER,
+  SUPPORT_CHAT_AUTHOR,
+  SUPPORT_CHAT_GUEST_SENDER_ID,
+} from './types/supportChat';
+export type {
+  SupportChatStatus,
+  SupportChatHandler,
+  SupportChatAuthorRole,
+  // Aliased: SupportChatMessage / SupportChatEvent are the SAC components
+  SupportChatMessage as SupportChatMessageData,
+  SupportChatTicket,
+  SupportChatEvent as SupportChatRealtimeEvent,
+  StartSupportChatInput,
+  SupportChatAdapter,
+  SupportChatFlags,
+  SupportChatTheme,
+  SupportChatUser,
+  SupportChatHttpClient,
+  SupportChatAnswerApi,
+} from './types/supportChat';
+
 // Support Feature Flag Hook
 export { useSupportFeatureFlag } from './hooks/useSupportFeatureFlag';
 export type {
