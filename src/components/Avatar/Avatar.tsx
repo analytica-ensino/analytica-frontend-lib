@@ -18,7 +18,82 @@ export interface AvatarProps extends Omit<
   name?: string;
   /** Rendered size in pixels. Default `40`. */
   size?: number;
+  /**
+   * O que mostrar quando não há foto. `icon` (padrão) mantém o placeholder
+   * genérico; `initials` mostra as iniciais de `name`.
+   */
+  fallback?: 'icon' | 'initials';
 }
+
+/**
+ * Iniciais de exibição: primeira letra da primeira palavra mais a primeira
+ * letra da última ("Ana Clara Mendes" → "AM"). Nome de uma palavra rende uma
+ * letra só. Pontuação e dígitos são descartados antes, para que "ana-clara
+ * #mendes" não vire "A#". Sem nenhuma letra, devolve string vazia e quem chama
+ * cai no ícone genérico.
+ */
+const getInitials = (name?: string): string => {
+  const words = (name ?? '')
+    .split(/\s+/)
+    .map((word) => word.replace(/[^\p{L}]/gu, ''))
+    .filter(Boolean);
+
+  if (words.length === 0) {
+    return '';
+  }
+
+  const first = words[0].charAt(0);
+  const last = words.length > 1 ? words[words.length - 1].charAt(0) : '';
+
+  return `${first}${last}`.toUpperCase();
+};
+
+/**
+ * Conteúdo do avatar nos três estados possíveis. Extraído do JSX porque três
+ * caminhos num ternário aninhado é issue de manutenibilidade no Sonar.
+ */
+const AvatarContent = ({
+  showImage,
+  src,
+  label,
+  size,
+  initials,
+  onError,
+}: {
+  showImage: boolean;
+  src?: string | null;
+  label: string;
+  size: number;
+  initials: string;
+  onError: () => void;
+}) => {
+  if (showImage) {
+    return (
+      <img
+        src={src as string}
+        alt={label}
+        width={size}
+        height={size}
+        className="h-full w-full object-cover"
+        onError={onError}
+      />
+    );
+  }
+
+  if (initials) {
+    return (
+      <span
+        aria-hidden="true"
+        className="font-bold leading-none select-none"
+        style={{ fontSize: Math.round(size * 0.4) }}
+      >
+        {initials}
+      </span>
+    );
+  }
+
+  return <UserIcon size={size} />;
+};
 
 /**
  * Circular profile picture with a graceful fallback to the generic user
@@ -35,6 +110,7 @@ export const Avatar = ({
   alt,
   name,
   size = 40,
+  fallback = 'icon',
   className = '',
   ...props
 }: AvatarProps) => {
@@ -44,6 +120,8 @@ export const Avatar = ({
   // Derived from `showImage`, not from `src`: a broken URL shows the fallback,
   // so it must be announced as "no picture" too.
   const label = alt ?? profileImageLabel({ src: showImage ? src : null, name });
+  const initials =
+    !showImage && fallback === 'initials' ? getInitials(name) : '';
 
   return (
     <div
@@ -51,6 +129,7 @@ export const Avatar = ({
       className={cn(
         'relative shrink-0 overflow-hidden rounded-full',
         'flex items-center justify-center',
+        initials && 'bg-primary-700 text-white',
         className
       )}
       style={{ width: size, height: size }}
@@ -62,18 +141,14 @@ export const Avatar = ({
       {...(showImage || !label ? {} : { role: 'img', 'aria-label': label })}
       {...props}
     >
-      {showImage ? (
-        <img
-          src={src as string}
-          alt={label}
-          width={size}
-          height={size}
-          className="h-full w-full object-cover"
-          onError={() => setFailedSrc(src ?? null)}
-        />
-      ) : (
-        <UserIcon size={size} />
-      )}
+      <AvatarContent
+        showImage={showImage}
+        src={src}
+        label={label}
+        size={size}
+        initials={initials}
+        onError={() => setFailedSrc(src ?? null)}
+      />
     </div>
   );
 };

@@ -1197,12 +1197,29 @@ export type { UseActivityDetailsReturn } from './hooks/useActivityDetails';
 export {
   Support,
   TicketModal,
+  SidebarMenuItem,
+  TicketListItem,
+  TicketList,
   getCategoryIcon,
+  formatTicketTime,
+  useInfiniteScrollSentinel,
   supportSchema,
 } from './components/Support';
 export type {
   SupportProps,
   TicketModalProps,
+  SidebarMenuItemProps,
+  SidebarMenuItemVariant,
+  SidebarMenuItemSize,
+  SidebarMenuItemActiveTone,
+  SidebarMenuItemCountTone,
+  TicketListItemProps,
+  TicketListItemTone,
+  TicketListItemBadgeTone,
+  TicketListItemSize,
+  TicketListProps,
+  TicketListItemData,
+  UseInfiniteScrollSentinelOptions,
   SupportFormData,
 } from './components/Support';
 
