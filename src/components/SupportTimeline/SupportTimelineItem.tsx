@@ -22,6 +22,7 @@ export interface SupportTimelineItemProps {
 /** Dot color for each status */
 const STATUS_DOT_CLASSES: Record<SupportTimelineStatus, string> = {
   [SUPPORT_TIMELINE_STATUS.OPEN]: 'bg-info-500',
+  [SUPPORT_TIMELINE_STATUS.PENDING]: 'bg-text-400',
   [SUPPORT_TIMELINE_STATUS.HUMAN]: 'bg-warning-500',
   [SUPPORT_TIMELINE_STATUS.IN_PROGRESS]: 'bg-indicator-positive',
   [SUPPORT_TIMELINE_STATUS.DONE]: 'bg-success-500',
@@ -30,6 +31,7 @@ const STATUS_DOT_CLASSES: Record<SupportTimelineStatus, string> = {
 /** Default label for each status */
 const STATUS_LABELS: Record<SupportTimelineStatus, string> = {
   [SUPPORT_TIMELINE_STATUS.OPEN]: 'Aberto',
+  [SUPPORT_TIMELINE_STATUS.PENDING]: 'Pendente',
   [SUPPORT_TIMELINE_STATUS.HUMAN]: 'Humano',
   [SUPPORT_TIMELINE_STATUS.IN_PROGRESS]: 'Em progresso',
   [SUPPORT_TIMELINE_STATUS.DONE]: 'Concluído',

@@ -8,6 +8,10 @@ import { SUPPORT_TIMELINE_STATUS } from '../../types/supportTimeline';
 export const AllStatuses: Story = () => (
   <div className="flex w-full max-w-xs flex-col gap-4 p-4">
     <SupportTimelineItem status={SUPPORT_TIMELINE_STATUS.OPEN} time="13:41" />
+    <SupportTimelineItem
+      status={SUPPORT_TIMELINE_STATUS.PENDING}
+      time="13:41"
+    />
     <SupportTimelineItem status={SUPPORT_TIMELINE_STATUS.HUMAN} time="13:41" />
     <SupportTimelineItem
       status={SUPPORT_TIMELINE_STATUS.IN_PROGRESS}

@@ -9,6 +9,7 @@ import {
 describe('SupportTimelineItem', () => {
   it.each<[SupportTimelineStatus, string, string]>([
     [SUPPORT_TIMELINE_STATUS.OPEN, 'Aberto', 'bg-info-500'],
+    [SUPPORT_TIMELINE_STATUS.PENDING, 'Pendente', 'bg-text-400'],
     [SUPPORT_TIMELINE_STATUS.HUMAN, 'Humano', 'bg-warning-500'],
     [
       SUPPORT_TIMELINE_STATUS.IN_PROGRESS,
