@@ -167,6 +167,10 @@ export default defineConfig({
     'SupportTimelineItem/index':
       'src/components/SupportTimeline/SupportTimelineItem.tsx',
     'types/supportTimeline/index': 'src/types/supportTimeline.ts',
+    'SupportChatMessage/index':
+      'src/components/SupportChat/SupportChatMessage.tsx',
+    'SupportChatEvent/index': 'src/components/SupportChat/SupportChatEvent.tsx',
+    'types/supportChat/index': 'src/types/supportChat.ts',
 
     // SendActivityModal
     'SendActivityModal/index': 'src/components/SendActivityModal/index.ts',

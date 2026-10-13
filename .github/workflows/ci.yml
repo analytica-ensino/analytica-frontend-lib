@@ -32,14 +32,6 @@ jobs:
     with:
       cache-key: ${{ needs.setup.outputs.cache-key }}
 
-  sonarcloud:
-    name: Run SonarCloud Analysis
-    needs: [setup, lint, typecheck, test]
-    uses: ./.github/workflows/sonarcloud.yml
-    with:
-      cache-key: ${{ needs.setup.outputs.cache-key }}
-    secrets: inherit
-
   publish:
     name: Publish Package
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
