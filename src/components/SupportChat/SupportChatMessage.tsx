@@ -42,6 +42,7 @@ export interface SupportChatMessageProps {
 /** Bubble classes for each message type */
 const BUBBLE_CLASSES: Record<SupportChatMessageType, string> = {
   [SUPPORT_CHAT_MESSAGE_TYPE.USER]: 'bg-background-100',
+  [SUPPORT_CHAT_MESSAGE_TYPE.GUEST]: 'bg-background-100',
   [SUPPORT_CHAT_MESSAGE_TYPE.AI]: 'bg-primary-50/60 border border-primary-100',
   [SUPPORT_CHAT_MESSAGE_TYPE.AGENT]: 'bg-primary-950',
   [SUPPORT_CHAT_MESSAGE_TYPE.INTERNAL_NOTE]:
@@ -106,7 +107,7 @@ function AttachmentItem({
       {isImage ? (
         <img
           src={attachment.url}
-          alt={attachment.name}
+          alt={attachment.fileName}
           className="size-16 shrink-0 rounded-lg object-cover"
         />
       ) : (
@@ -122,7 +123,7 @@ function AttachmentItem({
         color={isDark ? 'text-white' : 'text-text-700'}
         className="truncate underline"
       >
-        {attachment.name}
+        {attachment.fileName}
       </Text>
     </a>
   );

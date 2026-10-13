@@ -3,11 +3,13 @@
  */
 
 /**
- * Who authored a support chat message.
+ * Who authored a support chat message. `USER`, `GUEST`, `AI` and `AGENT`
+ * match the backend `senderRole`; `GUEST` (logged-out visitor) renders like `USER`.
  * `INTERNAL_NOTE` is only visible in the backoffice.
  */
 export const SUPPORT_CHAT_MESSAGE_TYPE = {
   USER: 'USER',
+  GUEST: 'GUEST',
   AI: 'AI',
   AGENT: 'AGENT',
   INTERNAL_NOTE: 'INTERNAL_NOTE',
@@ -29,15 +31,29 @@ export type SupportChatSendStatus =
   (typeof SUPPORT_CHAT_SEND_STATUS)[keyof typeof SUPPORT_CHAT_SEND_STATUS];
 
 /**
- * File attached to a support chat message
+ * File attached to a support chat message (same shape as the backend attachment)
  */
 export interface SupportChatAttachment {
   id: string;
-  name: string;
+  fileName: string;
   url: string;
   /** MIME type; `image/*` renders a thumbnail */
   mimeType?: string;
+  /** File size in bytes */
+  size?: number;
 }
+
+/**
+ * Kind of event shown between chat messages
+ */
+export const SUPPORT_CHAT_EVENT_TYPE = {
+  NEUTRAL: 'NEUTRAL',
+  TRANSFER: 'TRANSFER',
+  DATE: 'DATE',
+} as const;
+
+export type SupportChatEventType =
+  (typeof SUPPORT_CHAT_EVENT_TYPE)[keyof typeof SUPPORT_CHAT_EVENT_TYPE];
 
 /**
  * Author displayed next to a support chat message

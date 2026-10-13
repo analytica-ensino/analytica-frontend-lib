@@ -63,6 +63,21 @@ describe('SupportChatMessage', () => {
     });
   });
 
+  describe('GUEST', () => {
+    it('renders like a user message on the left', () => {
+      const { container } = renderMessage({
+        type: SUPPORT_CHAT_MESSAGE_TYPE.GUEST,
+        author: { name: 'Visitante' },
+      });
+
+      expect(container.firstChild).toHaveClass('justify-start');
+      expect(getBubble()).toHaveClass('bg-background-100');
+      expect(screen.getByRole('img', { name: 'Visitante' })).toHaveTextContent(
+        'V'
+      );
+    });
+  });
+
   describe('AI', () => {
     it('renders the label and the sparkle avatar on the left', () => {
       const { container } = renderMessage({
@@ -172,11 +187,11 @@ describe('SupportChatMessage', () => {
     const attachments = [
       {
         id: '1',
-        name: 'print.png',
+        fileName: 'print.png',
         url: 'https://cdn.test/print.png',
         mimeType: 'image/png',
       },
-      { id: '2', name: 'boleto.pdf', url: 'https://cdn.test/boleto.pdf' },
+      { id: '2', fileName: 'boleto.pdf', url: 'https://cdn.test/boleto.pdf' },
     ];
 
     it('renders image thumbnails and file links', () => {

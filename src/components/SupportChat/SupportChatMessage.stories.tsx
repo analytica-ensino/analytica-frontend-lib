@@ -1,6 +1,8 @@
 import type { Story } from '@ladle/react';
 import SupportChatMessage from './SupportChatMessage';
+import SupportChatEvent from './SupportChatEvent';
 import {
+  SUPPORT_CHAT_EVENT_TYPE,
   SUPPORT_CHAT_MESSAGE_TYPE,
   SUPPORT_CHAT_SEND_STATUS,
 } from '../../types/supportChat';
@@ -16,6 +18,7 @@ const agent = { name: 'Marina Costa' };
  */
 export const AllTypes: Story = () => (
   <div className="flex w-full max-w-3xl flex-col gap-4 p-4">
+    <SupportChatEvent type={SUPPORT_CHAT_EVENT_TYPE.DATE} text="Hoje" />
     <SupportChatMessage
       type={SUPPORT_CHAT_MESSAGE_TYPE.USER}
       text="Mensagem"
@@ -28,6 +31,12 @@ export const AllTypes: Story = () => (
       time="13:52"
       faq={{ title: 'Acesso às atividades' }}
     />
+    <SupportChatEvent
+      type={SUPPORT_CHAT_EVENT_TYPE.TRANSFER}
+      text="IA transferiu para humano — motivo: não encontrou resposta na FAQ"
+      time="13:52"
+    />
+    <SupportChatEvent text="Atendimento passou para humano" time="13:52" />
     <SupportChatMessage
       type={SUPPORT_CHAT_MESSAGE_TYPE.AGENT}
       text="Mensagem"
@@ -82,7 +91,7 @@ export const WithAttachments: Story = () => (
       attachments={[
         {
           id: '1',
-          name: 'print-erro.png',
+          fileName: 'print-erro.png',
           url: 'https://picsum.photos/seed/sac/200',
           mimeType: 'image/png',
         },
@@ -94,7 +103,12 @@ export const WithAttachments: Story = () => (
       time="13:53"
       author={agent}
       attachments={[
-        { id: '2', name: 'manual.pdf', url: '#', mimeType: 'application/pdf' },
+        {
+          id: '2',
+          fileName: 'manual.pdf',
+          url: '#',
+          mimeType: 'application/pdf',
+        },
       ]}
     />
   </div>
