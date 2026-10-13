@@ -59,7 +59,7 @@ const formatTime = (createdAt: string) =>
     minute: '2-digit',
   });
 
-const isImage = (mimeType: string) => mimeType.startsWith('image/');
+const isImage = (mimeType?: string) => Boolean(mimeType?.startsWith('image/'));
 
 const AttachmentList = ({ items }: { items: SupportChatAttachment[] }) => (
   <div className="flex flex-wrap gap-2 first:mt-0 mt-1">

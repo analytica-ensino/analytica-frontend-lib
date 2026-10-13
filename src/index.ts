@@ -1206,6 +1206,32 @@ export type {
   SupportFormData,
 } from './components/Support';
 
+// Support Timeline (SAC)
+export { default as SupportTimelineItem } from './components/SupportTimeline/SupportTimelineItem';
+export type { SupportTimelineItemProps } from './components/SupportTimeline/SupportTimelineItem';
+export { SUPPORT_TIMELINE_STATUS } from './types/supportTimeline';
+export type { SupportTimelineStatus } from './types/supportTimeline';
+
+// Support Chat (SAC)
+export { default as SupportChatMessage } from './components/SupportChat/SupportChatMessage';
+export type { SupportChatMessageProps } from './components/SupportChat/SupportChatMessage';
+export { default as SupportChatEvent } from './components/SupportChat/SupportChatEvent';
+export type { SupportChatEventProps } from './components/SupportChat/SupportChatEvent';
+export {
+  SUPPORT_CHAT_MESSAGE_TYPE,
+  SUPPORT_CHAT_SEND_STATUS,
+  SUPPORT_CHAT_EVENT_TYPE,
+} from './types/supportChat';
+export type {
+  SupportChatMessageType,
+  SupportChatSendStatus,
+  SupportChatEventType,
+  SupportChatAttachment,
+  SupportChatAuthor,
+  SupportChatFaqReference,
+} from './types/supportChat';
+export { getInitials } from './utils/getInitials';
+
 // Support Types
 export {
   SupportStatus,
@@ -1268,11 +1294,11 @@ export {
 export type {
   SupportChatStatus,
   SupportChatHandler,
-  SupportChatAuthor,
-  SupportChatAttachment,
-  SupportChatMessage,
+  SupportChatAuthorRole,
+  // Aliased: SupportChatMessage / SupportChatEvent are the SAC components
+  SupportChatMessage as SupportChatMessageData,
   SupportChatTicket,
-  SupportChatEvent,
+  SupportChatEvent as SupportChatRealtimeEvent,
   StartSupportChatInput,
   SupportChatAdapter,
   SupportChatFlags,
