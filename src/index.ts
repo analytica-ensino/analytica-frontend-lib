@@ -1249,6 +1249,24 @@ export type {
 } from './types/supportChat';
 export { getInitials } from './utils/getInitials';
 
+// Support Conclusion (SAC backoffice)
+export { default as SupportConcludeModal } from './components/SupportConcludeModal/SupportConcludeModal';
+export type { SupportConcludeModalProps } from './components/SupportConcludeModal/SupportConcludeModal';
+export { SUPPORT_CONCLUSION_REASONS } from './components/SupportConcludeModal/supportConclusionReasons';
+export {
+  SUPPORT_PROBLEM_TYPE,
+  SUPPORT_CONCLUDED_STATUS,
+  SUPPORT_CONCLUSION_OUTCOME,
+} from './types/supportConclusion';
+export type {
+  SupportProblemType,
+  SupportConclusionOutcome,
+  SupportConclusionSubReason,
+  SupportConclusionReason,
+  SupportConclusionFormData,
+  ConcludeSupportTicketRequest,
+} from './types/supportConclusion';
+
 // Support Types
 export {
   SupportStatus,

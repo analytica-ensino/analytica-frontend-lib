@@ -164,6 +164,9 @@ export default defineConfig({
     'Support/TicketModal/index':
       'src/components/Support/components/TicketModal.tsx',
     'types/support/index': 'src/types/support.ts',
+    'SupportConcludeModal/index':
+      'src/components/SupportConcludeModal/SupportConcludeModal.tsx',
+    'types/supportConclusion/index': 'src/types/supportConclusion.ts',
     'SupportTimelineItem/index':
       'src/components/SupportTimeline/SupportTimelineItem.tsx',
     'types/supportTimeline/index': 'src/types/supportTimeline.ts',

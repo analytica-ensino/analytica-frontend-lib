@@ -599,6 +599,7 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
           className
         )}
         onClick={toggleOpen}
+        disabled={disabled}
         role="combobox"
         aria-label={ariaLabel}
         aria-labelledby={buildTriggerLabelledBy({
