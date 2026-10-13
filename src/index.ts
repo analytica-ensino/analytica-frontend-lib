@@ -1216,6 +1216,7 @@ export type {
   TicketListItemProps,
   TicketListItemTone,
   TicketListItemBadgeTone,
+  TicketListItemSize,
   TicketListProps,
   TicketListItemData,
   UseInfiniteScrollSentinelOptions,

@@ -1,6 +1,10 @@
 import type { Story } from '@ladle/react';
 import { DeviceMobileIcon } from '@phosphor-icons/react/dist/csr/DeviceMobile';
-import { TicketListItem, TicketListItemTone } from './TicketListItem';
+import {
+  TicketListItem,
+  TicketListItemSize,
+  TicketListItemTone,
+} from './TicketListItem';
 
 const BASE_PROPS = {
   name: 'Ana Clara Mendes',
@@ -44,6 +48,31 @@ export const AllTicketListItems: Story = () => (
         </div>
       ))}
     </section>
+  </div>
+);
+
+const SIZES: { size: TicketListItemSize; hint: string }[] = [
+  { size: 'sm', hint: 'compacto — avatar 32, p-3' },
+  { size: 'md', hint: 'padrão do Figma — avatar 40, p-4' },
+  { size: 'lg', hint: 'confortável — avatar 48, p-5' },
+];
+
+/**
+ * `size` escala espaçamento, avatar, tipografia, badges e ícone juntos. Para
+ * responsividade, o app escolhe o tamanho por breakpoint — por exemplo com o
+ * hook `useMobile` da lib.
+ */
+export const Sizes: Story = () => (
+  <div className="flex max-w-xl flex-col gap-6">
+    {SIZES.map(({ size, hint }) => (
+      <div key={size} className="flex flex-col gap-1">
+        <h3 className="text-sm font-bold text-text-900">{size}</h3>
+        <p className="text-xs text-text-700">{hint}</p>
+        <div className="rounded-xl border border-border-200">
+          <TicketListItem {...BASE_PROPS} size={size} />
+        </div>
+      </div>
+    ))}
   </div>
 );
 

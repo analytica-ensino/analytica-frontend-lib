@@ -58,6 +58,16 @@ export const SelectableTicketList: Story = () => {
   );
 };
 
+/**
+ * A lista repassa o `size` a todos os itens. Em tela estreita o app pode pedir
+ * `sm`, por exemplo com o hook `useMobile` da lib.
+ */
+export const CompactTicketList: Story = () => (
+  <div className="max-w-sm rounded-xl border border-border-200">
+    <TicketList tickets={TICKETS} selectedId="1" size="sm" />
+  </div>
+);
+
 /** Primeira carga. */
 export const LoadingTicketList: Story = () => (
   <div className="max-w-xl rounded-xl border border-border-200">

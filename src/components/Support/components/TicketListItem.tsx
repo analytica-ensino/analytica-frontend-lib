@@ -39,8 +39,78 @@ const BADGE_TONE_CLASSES: Record<TicketListItemBadgeTone, string> = {
 
 const BADGE_CLASSES = 'shrink-0 rounded-md font-medium uppercase';
 
+/** Escala do item. `md` é o tamanho do Figma. */
+export type TicketListItemSize = 'sm' | 'md' | 'lg';
+
+/**
+ * Espaçamento, avatar, tipografia e ícone andam juntos numa tabela só porque a
+ * linha só lê bem quando escalam na mesma proporção: um avatar de 48 ao lado de
+ * um nome `text-sm` desalinha a coluna de texto. Separar isso em props soltas
+ * deixaria o consumidor quebrar o alinhamento sem perceber.
+ *
+ * O `[&>svg]:size-*` força o ícone de canal do consumidor a caber na caixa: as
+ * props `width`/`height` que o Phosphor escreve no `<svg>` são atributos de
+ * apresentação, então qualquer regra CSS ganha delas.
+ */
+const SIZE_CLASSES: Record<
+  TicketListItemSize,
+  {
+    item: string;
+    rows: string;
+    avatar: number;
+    name: string;
+    time: string;
+    meta: string;
+    message: string;
+    badge: 'small' | 'medium';
+    icon: string;
+    bar: string;
+    dot: string;
+  }
+> = {
+  sm: {
+    item: 'gap-2 p-3',
+    rows: 'gap-0.5',
+    avatar: 32,
+    name: 'text-sm',
+    time: 'text-2xs',
+    meta: 'text-xs',
+    message: 'text-xs',
+    badge: 'small',
+    icon: '[&>svg]:size-3.5',
+    bar: 'w-0.5',
+    dot: 'size-1.5',
+  },
+  md: {
+    item: 'gap-3 p-4',
+    rows: 'gap-1',
+    avatar: 40,
+    name: 'text-base',
+    time: 'text-xs',
+    meta: 'text-sm',
+    message: 'text-sm',
+    badge: 'small',
+    icon: '[&>svg]:size-4',
+    bar: 'w-1',
+    dot: 'size-2',
+  },
+  lg: {
+    item: 'gap-4 p-5',
+    rows: 'gap-1.5',
+    avatar: 48,
+    name: 'text-lg',
+    time: 'text-sm',
+    meta: 'text-base',
+    message: 'text-base',
+    badge: 'medium',
+    icon: '[&>svg]:size-5',
+    bar: 'w-1.5',
+    dot: 'size-2.5',
+  },
+};
+
 const BASE_CLASSES =
-  'group relative flex w-full items-start gap-3 p-4 text-left cursor-pointer transition-colors hover:bg-[#EEF5FC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none';
+  'group relative flex w-full items-start text-left cursor-pointer transition-colors hover:bg-[#EEF5FC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none';
 
 export type TicketListItemProps = {
   /** Nome de quem abriu o ticket. */
@@ -69,6 +139,8 @@ export type TicketListItemProps = {
   ticketCode?: string;
   /** Fundo da linha. */
   tone?: TicketListItemTone;
+  /** Escala do item. `md` (padrão) é o tamanho do Figma. */
+  size?: TicketListItemSize;
   /** Classes CSS adicionais. */
   className?: string;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
@@ -121,110 +193,138 @@ export const TicketListItem = forwardRef<
       channelIcon,
       ticketCode,
       tone = 'default',
+      size = 'md',
       className,
       ...props
     },
     ref
-  ) => (
-    <button
-      ref={ref}
-      type="button"
-      className={cn(BASE_CLASSES, TONE_CLASSES[tone], className)}
-      {...props}
-    >
-      <span
-        data-testid="ticket-list-item-bar"
-        aria-hidden="true"
-        className={cn(
-          'absolute inset-y-0 left-0 w-1 bg-[#1C61B2] transition-opacity',
-          tone === 'info' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-        )}
-      />
+  ) => {
+    const scale = SIZE_CLASSES[size];
 
-      <Avatar
-        src={avatarSrc}
-        name={name}
-        fallback="initials"
-        size={40}
-        className="bg-[#1C61B2] text-white"
-      />
-
-      <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="flex items-center gap-2">
-          <span className="min-w-0 flex-1 truncate font-bold text-text-950">
-            {name}
-          </span>
-          {unread && (
-            <>
-              <span
-                data-testid="ticket-list-item-unread"
-                aria-hidden="true"
-                className="size-2 shrink-0 rounded-full bg-[#1C61B2]"
-              />
-              <span className="sr-only">Não lido</span>
-            </>
+    return (
+      <button
+        ref={ref}
+        type="button"
+        className={cn(BASE_CLASSES, scale.item, TONE_CLASSES[tone], className)}
+        {...props}
+      >
+        <span
+          data-testid="ticket-list-item-bar"
+          aria-hidden="true"
+          className={cn(
+            'absolute inset-y-0 left-0 bg-[#1C61B2] transition-opacity',
+            scale.bar,
+            tone === 'info'
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-100'
           )}
-          <span className="shrink-0 text-xs text-text-600">
-            {formatTicketTime(lastMessageAt)}
-          </span>
-        </span>
+        />
 
-        {(profileLabel || organization) && (
-          <span className="flex min-w-0 items-center gap-2">
-            {profileLabel && (
-              <Badge
-                data-testid="ticket-list-item-profile"
-                size="small"
-                className={cn(BADGE_CLASSES, BADGE_TONE_CLASSES[profileTone])}
-              >
-                {profileLabel}
-              </Badge>
-            )}
-            {organization && (
-              <span className="min-w-0 truncate text-sm text-text-600">
-                {organization}
-              </span>
-            )}
-          </span>
-        )}
+        <Avatar
+          src={avatarSrc}
+          name={name}
+          fallback="initials"
+          size={scale.avatar}
+          className="bg-[#1C61B2] text-white"
+        />
 
-        {message && (
-          <span className="truncate text-sm text-text-700">{message}</span>
-        )}
-
-        {(attendanceLabel || channelIcon || ticketCode) && (
+        <span className={cn('flex min-w-0 flex-1 flex-col', scale.rows)}>
           <span className="flex items-center gap-2">
-            {attendanceLabel && (
-              <Badge
-                data-testid="ticket-list-item-attendance"
-                size="small"
-                className={cn(
-                  BADGE_CLASSES,
-                  BADGE_TONE_CLASSES[attendanceTone]
-                )}
-              >
-                {attendanceLabel}
-              </Badge>
+            <span
+              className={cn(
+                'min-w-0 flex-1 truncate font-bold text-text-950',
+                scale.name
+              )}
+            >
+              {name}
+            </span>
+            {unread && (
+              <>
+                <span
+                  data-testid="ticket-list-item-unread"
+                  aria-hidden="true"
+                  className={cn(
+                    'shrink-0 rounded-full bg-[#1C61B2]',
+                    scale.dot
+                  )}
+                />
+                <span className="sr-only">Não lido</span>
+              </>
             )}
-            {channelIcon && (
-              <span
-                data-testid="ticket-list-item-channel"
-                aria-hidden="true"
-                className="flex shrink-0 items-center text-text-600 [&>svg]:size-4"
-              >
-                {channelIcon}
-              </span>
-            )}
-            {ticketCode && (
-              <span className="shrink-0 text-sm text-text-600 tabular-nums">
-                {ticketCode}
-              </span>
-            )}
+            <span className={cn('shrink-0 text-text-600', scale.time)}>
+              {formatTicketTime(lastMessageAt)}
+            </span>
           </span>
-        )}
-      </span>
-    </button>
-  )
+
+          {(profileLabel || organization) && (
+            <span className="flex min-w-0 items-center gap-2">
+              {profileLabel && (
+                <Badge
+                  data-testid="ticket-list-item-profile"
+                  size={scale.badge}
+                  className={cn(BADGE_CLASSES, BADGE_TONE_CLASSES[profileTone])}
+                >
+                  {profileLabel}
+                </Badge>
+              )}
+              {organization && (
+                <span
+                  className={cn('min-w-0 truncate text-text-600', scale.meta)}
+                >
+                  {organization}
+                </span>
+              )}
+            </span>
+          )}
+
+          {message && (
+            <span className={cn('truncate text-text-700', scale.message)}>
+              {message}
+            </span>
+          )}
+
+          {(attendanceLabel || channelIcon || ticketCode) && (
+            <span className="flex items-center gap-2">
+              {attendanceLabel && (
+                <Badge
+                  data-testid="ticket-list-item-attendance"
+                  size={scale.badge}
+                  className={cn(
+                    BADGE_CLASSES,
+                    BADGE_TONE_CLASSES[attendanceTone]
+                  )}
+                >
+                  {attendanceLabel}
+                </Badge>
+              )}
+              {channelIcon && (
+                <span
+                  data-testid="ticket-list-item-channel"
+                  aria-hidden="true"
+                  className={cn(
+                    'flex shrink-0 items-center text-text-600',
+                    scale.icon
+                  )}
+                >
+                  {channelIcon}
+                </span>
+              )}
+              {ticketCode && (
+                <span
+                  className={cn(
+                    'shrink-0 text-text-600 tabular-nums',
+                    scale.meta
+                  )}
+                >
+                  {ticketCode}
+                </span>
+              )}
+            </span>
+          )}
+        </span>
+      </button>
+    );
+  }
 );
 
 TicketListItem.displayName = 'TicketListItem';

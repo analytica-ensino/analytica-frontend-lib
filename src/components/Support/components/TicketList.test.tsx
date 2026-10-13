@@ -153,6 +153,31 @@ describe('TicketList', () => {
     });
   });
 
+  describe('size', () => {
+    it('forwards the size to every item', () => {
+      render(<TicketList tickets={TICKETS} size="sm" />);
+
+      screen.getAllByRole('button').forEach((item) => {
+        expect(item).toHaveClass('gap-2', 'p-3');
+      });
+    });
+
+    it('forwards the size to the skeletons so the height does not jump', () => {
+      render(<TicketList tickets={[]} loading size="lg" />);
+
+      expect(screen.getAllByTestId('ticket-list-skeleton')[0]).toHaveClass(
+        'gap-4',
+        'p-5'
+      );
+    });
+
+    it('is md by default', () => {
+      render(<TicketList tickets={TICKETS} />);
+
+      expect(screen.getAllByRole('button')[0]).toHaveClass('gap-3', 'p-4');
+    });
+  });
+
   it('merges an extra className', () => {
     render(<TicketList tickets={TICKETS} className="h-full" />);
 

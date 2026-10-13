@@ -18,6 +18,7 @@ export type {
   TicketListItemProps,
   TicketListItemTone,
   TicketListItemBadgeTone,
+  TicketListItemSize,
 } from './components/TicketListItem';
 
 export { TicketList } from './components/TicketList';

@@ -85,6 +85,43 @@ describe('TicketListItem', () => {
     expect(ref.current).toBeInstanceOf(HTMLButtonElement);
   });
 
+  describe('size', () => {
+    it('is md by default', () => {
+      renderItem();
+
+      expect(screen.getByRole('button')).toHaveClass('gap-3', 'p-4');
+      expect(screen.getByText('Ana Clara Mendes')).toHaveClass('text-base');
+    });
+
+    it('shrinks everything together on sm', () => {
+      const { container } = renderItem({ size: 'sm' });
+
+      expect(screen.getByRole('button')).toHaveClass('gap-2', 'p-3');
+      expect(container.querySelector('[data-component="Avatar"]')).toHaveStyle({
+        width: '32px',
+        height: '32px',
+      });
+      expect(screen.getByText('Ana Clara Mendes')).toHaveClass('text-sm');
+    });
+
+    it('grows everything together on lg', () => {
+      const { container } = renderItem({ size: 'lg' });
+
+      expect(screen.getByRole('button')).toHaveClass('gap-4', 'p-5');
+      expect(container.querySelector('[data-component="Avatar"]')).toHaveStyle({
+        width: '48px',
+        height: '48px',
+      });
+      expect(screen.getByText('Ana Clara Mendes')).toHaveClass('text-lg');
+    });
+
+    it('scales the left bar with the item', () => {
+      renderItem({ size: 'sm' });
+
+      expect(screen.getByTestId('ticket-list-item-bar')).toHaveClass('w-0.5');
+    });
+  });
+
   describe('tone', () => {
     it('is transparent by default', () => {
       renderItem();

@@ -3,7 +3,11 @@ import { cn } from '../../../utils/utils';
 import EmptyState from '../../EmptyState/EmptyState';
 import { Skeleton, SkeletonCircle } from '../../Skeleton/Skeleton';
 import { useInfiniteScrollSentinel } from '../hooks/useInfiniteScrollSentinel';
-import { TicketListItem, TicketListItemProps } from './TicketListItem';
+import {
+  TicketListItem,
+  TicketListItemProps,
+  TicketListItemSize,
+} from './TicketListItem';
 
 /** Um ticket da lista: as props do item mais o `id` que identifica a seleção. */
 export type TicketListItemData = Omit<TicketListItemProps, 'onClick'> & {
@@ -32,8 +36,23 @@ export type TicketListProps = {
   skeletonCount?: number;
   /** Substitui o estado vazio padrão. */
   emptyState?: ReactNode;
+  /** Escala repassada a todos os itens. `md` (padrão) é o tamanho do Figma. */
+  size?: TicketListItemSize;
   /** Classes CSS adicionais. */
   className?: string;
+};
+
+/**
+ * Espaçamento e avatar do esqueleto, espelhando o `SIZE_CLASSES` do item para
+ * que a lista não mude de altura quando os dados chegam.
+ */
+const SKELETON_SIZE: Record<
+  TicketListItemSize,
+  { item: string; avatar: number }
+> = {
+  sm: { item: 'gap-2 p-3', avatar: 32 },
+  md: { item: 'gap-3 p-4', avatar: 40 },
+  lg: { item: 'gap-4 p-5', avatar: 48 },
 };
 
 /**
@@ -41,15 +60,24 @@ export type TicketListProps = {
  * Extraído do componente porque o JSX dele já decide entre três caminhos de
  * render, e aninhar o `Array.from` ali dentro vira issue de manutenibilidade.
  */
-const TicketListSkeletons = ({ count }: { count: number }) => (
+const TicketListSkeletons = ({
+  count,
+  size,
+}: {
+  count: number;
+  size: TicketListItemSize;
+}) => (
   <>
     {Array.from({ length: count }, (_, index) => (
       <div
         key={index}
         data-testid="ticket-list-skeleton"
-        className="flex items-start gap-3 p-4"
+        className={cn('flex items-start', SKELETON_SIZE[size].item)}
       >
-        <SkeletonCircle width={40} height={40} />
+        <SkeletonCircle
+          width={SKELETON_SIZE[size].avatar}
+          height={SKELETON_SIZE[size].avatar}
+        />
         <div className="flex flex-1 flex-col gap-2">
           <Skeleton width="60%" />
           <Skeleton width="40%" />
@@ -94,6 +122,7 @@ export const TicketList = ({
   onLoadMore,
   skeletonCount = 5,
   emptyState,
+  size = 'md',
   className,
 }: TicketListProps) => {
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -107,7 +136,7 @@ export const TicketList = ({
   if (loading) {
     return (
       <div className={cn('flex flex-col', className)}>
-        <TicketListSkeletons count={skeletonCount} />
+        <TicketListSkeletons count={skeletonCount} size={size} />
       </div>
     );
   }
@@ -141,6 +170,7 @@ export const TicketList = ({
           >
             <TicketListItem
               {...ticket}
+              size={size}
               tone={selected ? 'info' : tone}
               aria-current={selected ? 'true' : undefined}
               onClick={() => onSelect?.(id)}
@@ -149,7 +179,9 @@ export const TicketList = ({
         );
       })}
 
-      {loadingMore && <TicketListSkeletons count={LOADING_MORE_SKELETONS} />}
+      {loadingMore && (
+        <TicketListSkeletons count={LOADING_MORE_SKELETONS} size={size} />
+      )}
 
       <div ref={sentinelRef} aria-hidden="true" className="h-px shrink-0" />
     </div>
