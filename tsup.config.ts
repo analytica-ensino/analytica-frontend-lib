@@ -60,6 +60,19 @@ export default defineConfig({
       'src/components/CorrectActivityModal/CorrectActivityModal.tsx',
     'FileAttachment/index': 'src/components/FileAttachment/FileAttachment.tsx',
     'Card/index': 'src/components/Card/Card.tsx',
+    // Papolê (Fluência Leitora / modo CONTAR) — subpaths para os apps não
+    // dependerem do barrel da raiz.
+    'ModeToggleReadingFluency/index':
+      'src/components/ModeToggleReadingFluency/ModeToggleReadingFluency.tsx',
+    'SelectionButtonReadingFluency/index':
+      'src/components/SelectionButtonReadingFluency/SelectionButtonReadingFluency.tsx',
+    'MathQuestionCardReadingFluency/index':
+      'src/components/MathQuestionCardReadingFluency/MathQuestionCardReadingFluency.tsx',
+    'IconButtonReadingFluency/index':
+      'src/components/IconButtonReadingFluency/IconButtonReadingFluency.tsx',
+    'CloseButtonReadingFluency/index':
+      'src/components/CloseButtonReadingFluency/CloseButtonReadingFluency.tsx',
+    'ReadingFluencyIcons/index': 'src/components/ReadingFluencyIcons/index.ts',
     'StatisticsCard/index': 'src/components/StatisticsCard/StatisticsCard.tsx',
     'StudentRanking/index': 'src/components/StudentRanking/StudentRanking.tsx',
     'QuestionsData/index': 'src/components/QuestionsData/QuestionsData.tsx',

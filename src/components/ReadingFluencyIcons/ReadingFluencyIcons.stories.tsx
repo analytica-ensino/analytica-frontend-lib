@@ -6,6 +6,11 @@ import {
   PlayIconReadingFluency,
   PauseIconReadingFluency,
   CloseIconReadingFluency,
+  BookIconReadingFluency,
+  MathIconReadingFluency,
+  MathCoverIconReadingFluency,
+  NextIconReadingFluency,
+  TicoVoiceIconReadingFluency,
 } from '.';
 
 const items = [
@@ -125,5 +130,41 @@ export const PlayAndStopAt100: Story = () => (
         Play 100 · Stop 133 — agora os dois pintam ~96px
       </span>
     </div>
+  </div>
+);
+
+/**
+ * Ícones e ilustrações do modo CONTAR (matemática): os do seletor LER | CONTAR,
+ * a capa padrão dos cards, a seta do PRÓXIMA (pinta com `currentColor`) e o
+ * ícone de voz do Tico (botão OUVIR).
+ */
+export const MathModeIcons: Story = () => (
+  <div
+    data-theme="papole-aluno-light"
+    className="flex flex-wrap items-end gap-8 bg-secondary-700 p-8"
+  >
+    {[
+      { name: 'BookIconReadingFluency', node: <BookIconReadingFluency /> },
+      { name: 'MathIconReadingFluency', node: <MathIconReadingFluency /> },
+      {
+        name: 'MathCoverIconReadingFluency',
+        node: <MathCoverIconReadingFluency />,
+      },
+      {
+        name: 'NextIconReadingFluency',
+        node: <NextIconReadingFluency className="text-primary-900" />,
+      },
+      {
+        name: 'TicoVoiceIconReadingFluency',
+        node: <TicoVoiceIconReadingFluency />,
+      },
+    ].map(({ name, node }) => (
+      <div key={name} className="flex flex-col items-center gap-2">
+        <div className="flex items-center justify-center rounded-2xl bg-primary-500 p-3">
+          {node}
+        </div>
+        <span className="text-xs text-secondary-100">{name}</span>
+      </div>
+    ))}
   </div>
 );

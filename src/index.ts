@@ -974,8 +974,25 @@ export {
   PauseIconReadingFluency,
   VoiceIconReadingFluency,
   CloseIconReadingFluency,
+  BookIconReadingFluency,
+  MathIconReadingFluency,
+  MathCoverIconReadingFluency,
+  NextIconReadingFluency,
+  TicoVoiceIconReadingFluency,
 } from './components/ReadingFluencyIcons';
 export type { ReadingFluencyIconProps } from './components/ReadingFluencyIcons';
+export { ModeToggleReadingFluency } from './components/ModeToggleReadingFluency/ModeToggleReadingFluency';
+export type {
+  ModeToggleReadingFluencyProps,
+  ModeToggleReadingFluencyOption,
+} from './components/ModeToggleReadingFluency/ModeToggleReadingFluency';
+export { SelectionButtonReadingFluency } from './components/SelectionButtonReadingFluency/SelectionButtonReadingFluency';
+export type { SelectionButtonReadingFluencyProps } from './components/SelectionButtonReadingFluency/SelectionButtonReadingFluency';
+export { MathQuestionCardReadingFluency } from './components/MathQuestionCardReadingFluency/MathQuestionCardReadingFluency';
+export type {
+  MathQuestionCardReadingFluencyProps,
+  MathQuestionCardReadingFluencyAlternative,
+} from './components/MathQuestionCardReadingFluency/MathQuestionCardReadingFluency';
 export { useDraftAutoSave } from './hooks/useDraftAutoSave';
 export type {
   ApiClient as DraftApiClientAdapter,
