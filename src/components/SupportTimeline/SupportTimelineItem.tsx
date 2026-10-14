@@ -26,6 +26,7 @@ const STATUS_DOT_CLASSES: Record<SupportTimelineStatus, string> = {
   [SUPPORT_TIMELINE_STATUS.HUMAN]: 'bg-warning-500',
   [SUPPORT_TIMELINE_STATUS.IN_PROGRESS]: 'bg-indicator-positive',
   [SUPPORT_TIMELINE_STATUS.DONE]: 'bg-success-500',
+  [SUPPORT_TIMELINE_STATUS.REOPENED]: 'bg-text-400',
 };
 
 /** Default label for each status */
@@ -35,6 +36,7 @@ const STATUS_LABELS: Record<SupportTimelineStatus, string> = {
   [SUPPORT_TIMELINE_STATUS.HUMAN]: 'Humano',
   [SUPPORT_TIMELINE_STATUS.IN_PROGRESS]: 'Em progresso',
   [SUPPORT_TIMELINE_STATUS.DONE]: 'Concluído',
+  [SUPPORT_TIMELINE_STATUS.REOPENED]: 'Reaberto',
 };
 
 /**

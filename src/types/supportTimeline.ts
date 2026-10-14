@@ -14,6 +14,7 @@ export const SUPPORT_TIMELINE_STATUS = {
   HUMAN: 'HUMAN',
   IN_PROGRESS: 'IN_PROGRESS',
   DONE: 'DONE',
+  REOPENED: 'REOPENED',
 } as const;
 
 export type SupportTimelineStatus =

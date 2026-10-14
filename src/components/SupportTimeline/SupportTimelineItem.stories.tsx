@@ -18,6 +18,10 @@ export const AllStatuses: Story = () => (
       time="13:41"
     />
     <SupportTimelineItem status={SUPPORT_TIMELINE_STATUS.DONE} time="13:41" />
+    <SupportTimelineItem
+      status={SUPPORT_TIMELINE_STATUS.REOPENED}
+      time="13:41"
+    />
   </div>
 );
 
