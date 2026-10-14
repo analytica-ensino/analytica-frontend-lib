@@ -18,7 +18,6 @@ import {
 import {
   FieldLabel,
   StatTile,
-  TagList,
   useNow,
   useOptimisticValue,
 } from './SupportPanelShared';
@@ -39,8 +38,6 @@ export interface SupportTicketDetailsTabProps {
   onReasonChange?: (reason: string) => Promise<void> | void;
   /** Persists the priority; reject to roll back */
   onPriorityChange?: (priority: SupportTicketPriority) => Promise<void> | void;
-  onAddTag?: (tag: string) => void;
-  onRemoveTag?: (tag: string) => void;
 }
 
 const PRIORITIES: { value: SupportTicketPriority; label: string }[] = [
@@ -68,9 +65,9 @@ const DetailsSkeleton = () => (
 );
 
 /**
- * Ticket details tab: channel/time stats, the editable reason, priority and
- * tags (read-only once the ticket is concluded), the AI summary and the
- * status timeline.
+ * Ticket details tab: channel/time stats, the editable reason and priority
+ * (read-only once the ticket is concluded), the AI summary and the status
+ * timeline.
  */
 export default function SupportTicketDetailsTab({
   ticket,
@@ -78,8 +75,6 @@ export default function SupportTicketDetailsTab({
   reasonOptions,
   onReasonChange,
   onPriorityChange,
-  onAddTag,
-  onRemoveTag,
 }: Readonly<SupportTicketDetailsTabProps>) {
   const reasonLabelId = useId();
   const priorityLabelId = useId();
@@ -155,18 +150,6 @@ export default function SupportTicketDetailsTab({
             </Chips>
           ))}
         </div>
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <FieldLabel>Tags</FieldLabel>
-        <TagList
-          label="Tags do ticket"
-          tags={ticket.tags}
-          emptyLabel="sem tags"
-          readOnly={readOnly}
-          onAdd={onAddTag}
-          onRemove={onRemoveTag}
-        />
       </div>
 
       <section

@@ -7,7 +7,7 @@ import { Skeleton, SkeletonText } from '../Skeleton/Skeleton';
 import useToastStore from '../Toast/utils/ToastStore';
 import { cn } from '../../utils/utils';
 import type { SupportContact } from '../../types/supportUserPanel';
-import { FieldLabel, TagList } from './SupportPanelShared';
+import { FieldLabel } from './SupportPanelShared';
 import {
   formatDate,
   formatPhone,
@@ -22,8 +22,6 @@ export interface SupportProfileTabProps {
   onOpenContact?: () => void;
   /** Starts linking an unlinked contact to a platform user */
   onLinkContact?: () => void;
-  onAddTag?: (tag: string) => void;
-  onRemoveTag?: (tag: string) => void;
   /** Persists a note; reject to keep the text in the box */
   onAddNote?: (text: string) => Promise<void> | void;
 }
@@ -92,16 +90,14 @@ const ProfileSkeleton = () => (
 );
 
 /**
- * Profile tab: contact header, link badge, e-mail/phone, user tags,
- * key/value facts and the team notes about the user.
+ * Profile tab: contact header, link badge, e-mail/phone, key/value facts
+ * and the team notes about the user.
  */
 export default function SupportProfileTab({
   contact,
   loading = false,
   onOpenContact,
   onLinkContact,
-  onAddTag,
-  onRemoveTag,
   onAddNote,
 }: Readonly<SupportProfileTabProps>) {
   const [note, setNote] = useState('');
@@ -207,16 +203,6 @@ export default function SupportProfileTab({
         label="Telefone"
         value={contact.phone ? formatPhone(contact.phone) : undefined}
       />
-
-      <div className="flex flex-col gap-1.5">
-        <FieldLabel>Tags</FieldLabel>
-        <TagList
-          label="Tags do usuário"
-          tags={contact.tags}
-          onAdd={onAddTag}
-          onRemove={onRemoveTag}
-        />
-      </div>
 
       <dl className="flex flex-col">
         {facts.map(([key, value]) => (

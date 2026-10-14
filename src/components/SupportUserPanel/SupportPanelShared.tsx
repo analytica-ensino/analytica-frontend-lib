@@ -1,15 +1,6 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type KeyboardEvent,
-  type ReactNode,
-} from 'react';
-import { XIcon } from '@phosphor-icons/react/dist/csr/X';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import Text from '../Text/Text';
 import useToastStore from '../Toast/utils/ToastStore';
-import { cn } from '../../utils/utils';
 
 /** Grey stat tile: small muted label over a bold value */
 export const StatTile = ({
@@ -49,105 +40,6 @@ export const FieldLabel = ({
     {children}
   </Text>
 );
-
-/**
- * Tag chips with an inline "+ Adicionar" input. Enter creates the tag,
- * Esc cancels. Tags already present are ignored.
- */
-export const TagList = ({
-  tags,
-  onAdd,
-  onRemove,
-  readOnly = false,
-  emptyLabel,
-  label,
-}: {
-  tags: string[];
-  onAdd?: (tag: string) => void;
-  onRemove?: (tag: string) => void;
-  readOnly?: boolean;
-  /** Chip shown when there are no tags (e.g. "sem tags") */
-  emptyLabel?: string;
-  /** Accessible name of the list */
-  label: string;
-}) => {
-  const [adding, setAdding] = useState(false);
-  const [draft, setDraft] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (adding) inputRef.current?.focus();
-  }, [adding]);
-
-  const close = () => {
-    setAdding(false);
-    setDraft('');
-  };
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      close();
-      return;
-    }
-    if (event.key !== 'Enter' || event.nativeEvent.isComposing) return;
-    event.preventDefault();
-    const tag = draft.trim();
-    if (tag && !tags.includes(tag)) onAdd?.(tag);
-    close();
-  };
-
-  const canEdit = !readOnly && Boolean(onAdd);
-  const chipClasses =
-    'inline-flex items-center gap-1 rounded bg-background-100 px-2 py-1 text-xs text-text-950';
-
-  return (
-    <ul aria-label={label} className="flex flex-wrap items-center gap-1.5">
-      {tags.length === 0 && emptyLabel && (
-        <li className={cn(chipClasses, 'text-text-600')}>{emptyLabel}</li>
-      )}
-      {tags.map((tag) => (
-        <li key={tag} className={chipClasses}>
-          {tag}
-          {!readOnly && onRemove && (
-            <button
-              type="button"
-              onClick={() => onRemove(tag)}
-              aria-label={`Remover tag ${tag}`}
-              className="rounded-sm text-text-600 hover:text-text-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info"
-            >
-              <XIcon size={10} weight="bold" aria-hidden="true" />
-            </button>
-          )}
-        </li>
-      ))}
-      {canEdit && (
-        <li>
-          {adding ? (
-            <input
-              ref={inputRef}
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              onKeyDown={handleKeyDown}
-              onBlur={close}
-              aria-label="Nova tag"
-              placeholder="Nova tag"
-              className="w-24 rounded border border-border-200 bg-background px-2 py-1 text-xs text-text-950 placeholder:text-text-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info"
-            />
-          ) : (
-            <button
-              type="button"
-              onClick={() => setAdding(true)}
-              className="rounded border border-dashed border-border-300 px-2 py-1 text-xs text-text-600 hover:text-text-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info"
-            >
-              + Adicionar
-            </button>
-          )}
-        </li>
-      )}
-    </ul>
-  );
-};
 
 /**
  * Optimistic auto-save: applies the value right away, calls `save`, shows

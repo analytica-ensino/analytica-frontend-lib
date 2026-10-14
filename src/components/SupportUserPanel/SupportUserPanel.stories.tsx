@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import SupportUserPanel from './SupportUserPanel';
 import Toaster from '../Toast/utils/Toaster';
 import {
@@ -25,7 +25,6 @@ const contact: SupportContact = {
   linked: true,
   email: 'mariana.costa@aprendermais.com.br',
   phone: '11987654321',
-  tags: ['3º ano', 'Vestibular'],
   classOrPosition: '3º ano B — Ensino Médio',
   firstContactAt: daysAgo(120),
   lastContactAt: minutesAgo(30),
@@ -81,7 +80,6 @@ const ticket: SupportTicketDetails = {
   done: false,
   reason: null,
   priority: SUPPORT_TICKET_PRIORITY.NORMAL,
-  tags: [],
   aiSummary:
     'A aluna não consegue abrir o simulado de matemática liberado hoje. Já tentou sair e entrar de novo e limpar o cache do app.',
   timeline: [
@@ -100,7 +98,7 @@ const reasonOptions = [
 
 const wait = () => new Promise<void>((resolve) => setTimeout(resolve, 400));
 
-const Frame = ({ children }: { children: React.ReactNode }) => (
+const Frame = ({ children }: { children: ReactNode }) => (
   <div className="flex h-[890px] justify-end bg-background-50">
     {children}
     <Toaster />
@@ -120,13 +118,6 @@ export const Default: Story = () => {
         profile={{
           contact: contactState,
           onOpenContact: () => undefined,
-          onAddTag: (tag) =>
-            setContact((c) => ({ ...c, tags: [...c.tags, tag] })),
-          onRemoveTag: (tag) =>
-            setContact((c) => ({
-              ...c,
-              tags: c.tags.filter((t) => t !== tag),
-            })),
           onAddNote: async (text) => {
             await wait();
             setContact((c) => ({
@@ -160,10 +151,6 @@ export const Default: Story = () => {
             await wait();
             setTicket((t) => ({ ...t, priority }));
           },
-          onAddTag: (tag) =>
-            setTicket((t) => ({ ...t, tags: [...t.tags, tag] })),
-          onRemoveTag: (tag) =>
-            setTicket((t) => ({ ...t, tags: t.tags.filter((x) => x !== tag) })),
         }}
       />
     </Frame>
@@ -210,7 +197,6 @@ export const ConcludedTicket: Story = () => (
           done: true,
           reason: 'redacao',
           priority: SUPPORT_TICKET_PRIORITY.HIGH,
-          tags: ['urgente'],
           closedAt: minutesAgo(1),
           aiSummary: null,
           timeline: [

@@ -29,7 +29,6 @@ const contact: SupportContact = {
   linked: true,
   email: 'mariana@exemplo.com',
   phone: '11987654321',
-  tags: ['Vestibular'],
   classOrPosition: '3º ano B',
   firstContactAt: '2026-03-03T11:00:00.000Z',
   lastContactAt: '2026-03-04T11:00:00.000Z',
@@ -94,7 +93,6 @@ const ticket: SupportTicketDetails = {
   done: false,
   reason: null,
   priority: SUPPORT_TICKET_PRIORITY.NORMAL,
-  tags: [],
   aiSummary: 'Resumo gerado',
   timeline: [
     { status: SUPPORT_TIMELINE_STATUS.OPEN, at: '2026-01-01T12:00:00.000Z' },
@@ -279,37 +277,6 @@ describe('SupportUserPanel', () => {
       );
       expect(box).toHaveValue('Ligar amanhã');
     });
-
-    it('adds and removes user tags', () => {
-      const onAddTag = jest.fn();
-      const onRemoveTag = jest.fn();
-      openProfile({ profile: { contact, onAddTag, onRemoveTag } });
-
-      fireEvent.click(
-        screen.getByRole('button', { name: 'Remover tag Vestibular' })
-      );
-      expect(onRemoveTag).toHaveBeenCalledWith('Vestibular');
-
-      fireEvent.click(screen.getByRole('button', { name: '+ Adicionar' }));
-      const input = screen.getByLabelText('Nova tag');
-      fireEvent.change(input, { target: { value: ' ENEM ' } });
-      fireEvent.keyDown(input, { key: 'Enter' });
-      expect(onAddTag).toHaveBeenCalledWith('ENEM');
-
-      // Duplicates and Esc do not add.
-      fireEvent.click(screen.getByRole('button', { name: '+ Adicionar' }));
-      fireEvent.change(screen.getByLabelText('Nova tag'), {
-        target: { value: 'Vestibular' },
-      });
-      fireEvent.keyDown(screen.getByLabelText('Nova tag'), { key: 'Enter' });
-      fireEvent.click(screen.getByRole('button', { name: '+ Adicionar' }));
-      fireEvent.keyDown(screen.getByLabelText('Nova tag'), { key: 'Escape' });
-      fireEvent.keyDown(screen.getByRole('button', { name: '+ Adicionar' }), {
-        key: 'a',
-      });
-      expect(onAddTag).toHaveBeenCalledTimes(1);
-      expect(screen.queryByLabelText('Nova tag')).not.toBeInTheDocument();
-    });
   });
 
   describe('history tab', () => {
@@ -428,7 +395,6 @@ describe('SupportUserPanel', () => {
       expect(screen.getByText('10 min')).toBeInTheDocument();
       expect(screen.getByText('Resumo gerado')).toBeInTheDocument();
       expect(screen.getByText('Reaberto')).toBeInTheDocument();
-      expect(screen.getByText('sem tags')).toBeInTheDocument();
       expect(screen.getByRole('radio', { name: /Normal/ })).toHaveAttribute(
         'aria-checked',
         'true'
@@ -485,24 +451,18 @@ describe('SupportUserPanel', () => {
     });
 
     it('locks the fields of a concluded ticket', () => {
-      const onAddTag = jest.fn();
       openTicket({
         ticket: {
           ...ticket,
           done: true,
           closedAt: '2026-01-01T12:45:00.000Z',
-          tags: ['urgente'],
         },
         onPriorityChange: jest.fn(),
         onReasonChange: jest.fn(),
-        onAddTag,
       });
       expect(screen.getByText('45 min')).toBeInTheDocument();
       expect(screen.getByRole('combobox')).toBeDisabled();
       expect(screen.getByRole('radio', { name: /Alta/ })).toBeDisabled();
-      expect(
-        screen.queryByRole('button', { name: '+ Adicionar' })
-      ).not.toBeInTheDocument();
     });
 
     it('keeps the wait counter running while nobody answered', () => {

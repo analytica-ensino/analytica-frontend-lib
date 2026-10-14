@@ -83,7 +83,6 @@ export interface SupportContact {
   email?: string | null;
   /** Digits only or already formatted; rendered as `(DD) 9XXXX-XXXX` */
   phone?: string | null;
-  tags: string[];
   /** e.g. "3º ano B — Ensino Médio" */
   classOrPosition?: string | null;
   /** ISO date */
@@ -151,7 +150,6 @@ export interface SupportTicketDetails {
   /** Value of the selected reason, from `reasonOptions` */
   reason?: string | null;
   priority: SupportTicketPriority;
-  tags: string[];
   aiSummary?: string | null;
   timeline: SupportTicketTimelineEvent[];
 }
