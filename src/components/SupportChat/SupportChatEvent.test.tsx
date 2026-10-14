@@ -18,6 +18,17 @@ describe('SupportChatEvent', () => {
     ).not.toBeInTheDocument();
   });
 
+  it.each([
+    ['Atendimento iniciado via Web', '13:52'],
+    ['Atendimento passou para humano', '13:49'],
+    ['Concluído automaticamente pela IA', '12:44'],
+  ])('renders the "%s" neutral event from the design', (text, time) => {
+    render(<SupportChatEvent text={text} time={time} />);
+
+    expect(screen.getByText(`${text} · ${time}`)).toHaveClass('text-text-600');
+    expect(getPill()).toHaveClass('bg-background-100');
+  });
+
   it('appends the time after the text', () => {
     render(
       <SupportChatEvent text="Atendimento passou para humano" time="13:49" />

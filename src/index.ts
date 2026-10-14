@@ -1251,6 +1251,8 @@ export { default as SupportChatMessage } from './components/SupportChat/SupportC
 export type { SupportChatMessageProps } from './components/SupportChat/SupportChatMessage';
 export { default as SupportChatEvent } from './components/SupportChat/SupportChatEvent';
 export type { SupportChatEventProps } from './components/SupportChat/SupportChatEvent';
+export { default as SupportChatTypingIndicator } from './components/SupportChat/SupportChatTypingIndicator';
+export type { SupportChatTypingIndicatorProps } from './components/SupportChat/SupportChatTypingIndicator';
 export { default as SupportChatComposer } from './components/SupportChat/SupportChatComposer';
 export type { SupportChatComposerProps } from './components/SupportChat/SupportChatComposer';
 export {

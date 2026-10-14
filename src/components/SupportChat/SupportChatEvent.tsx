@@ -35,9 +35,14 @@ const TEXT_COLORS: Record<SupportChatEventType, string> = {
 /**
  * Centered pill describing a chat event.
  *
- * - NEUTRAL: gray pill (e.g. "Atendimento passou para humano")
- * - TRANSFER: orange pill (e.g. "IA transferiu para humano — motivo: …")
+ * - NEUTRAL: gray pill, e.g. "Atendimento iniciado via Web",
+ *   "Atendimento passou para humano" or "Concluído automaticamente pela IA"
+ * - TRANSFER: orange pill, e.g. "IA transferiu para humano — motivo: …"
  * - DATE: gray pill between two horizontal lines, used as a date separator
+ *   (e.g. "Hoje")
+ *
+ * Handoffs are described by who handles the ticket (AI or human), not by
+ * agent names: there is no "Passou de Agente A para Agente B" event.
  */
 export default function SupportChatEvent({
   type = SUPPORT_CHAT_EVENT_TYPE.NEUTRAL,
