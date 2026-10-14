@@ -193,6 +193,8 @@ describe('Select component', () => {
     expect(trigger.className).toMatch(
       /cursor-not-allowed text-text-400 pointer-events-none opacity-50/
     );
+    // Native attribute too, so keyboard users cannot open it either
+    expect(trigger).toBeDisabled();
   });
 
   it('should support controlled mode', async () => {

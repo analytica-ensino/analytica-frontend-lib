@@ -2319,6 +2319,13 @@ interface CardReadingFluencyProps extends HTMLAttributes<HTMLDivElement> {
   color?: string;
   /** Sobrescreve a imagem do passarinho (default: asset padrão do Reading Fluency). */
   image?: string;
+  /**
+   * Ilustração centralizada no lugar do passarinho, quando não há capa
+   * (`image`) — ex.: a `MathCoverIconReadingFluency` dos cards de matemática.
+   * No estado `coming-soon` ela entra com `mix-blend-mode: luminosity`, que é o
+   * que a arte usa para "tingir" a ilustração com a cor do card. `image` vence.
+   */
+  icon?: ReactNode;
   /** Texto alternativo/aria da imagem. */
   label?: string;
   /**
@@ -2346,6 +2353,7 @@ const CardReadingFluency = forwardRef<HTMLDivElement, CardReadingFluencyProps>(
       // deixava o default do componente fora do tema.
       color = 'var(--color-scent-2)',
       image,
+      icon,
       label = 'Reading Fluency',
       activityTitle,
       className,
@@ -2390,20 +2398,41 @@ const CardReadingFluency = forwardRef<HTMLDivElement, CardReadingFluencyProps>(
           aria-disabled={isComingSoon ? true : undefined}
           {...props}
         >
-          <img
-            src={image ?? readingFluencyBird}
-            alt={label}
-            draggable={false}
-            className={cn(
-              // Capa do banco de imagens: ocupa exatamente o tamanho do card
-              // (240×182), recortando o excesso sem distorcer. O passarinho
-              // padrão continua no tamanho original, centralizado.
-              image
-                ? 'absolute inset-0 w-full h-full object-cover select-none'
-                : 'w-full h-auto select-none',
-              isComingSoon && 'opacity-40'
-            )}
-          />
+          {!image && icon ? (
+            // Ilustração no lugar do passarinho (ex.: capa de matemática). A
+            // largura manda: sobram 76px entre os paddings (240 − 2×82), que é
+            // exatamente a ilustração da arte (76×95). Com selo ("nova"/"em
+            // breve") ela sobe para o topo da área útil, que é onde a arte a
+            // põe — centralizada, o selo cobriria a base dela; no "done" (sem
+            // selo) fica no centro. O `role="img"` + `aria-label` mantêm o
+            // nome acessível que o `alt` dá ao card.
+            <span
+              role="img"
+              aria-label={label}
+              className={cn(
+                'flex h-full w-full justify-center select-none [&_svg]:h-auto [&_svg]:w-full',
+                isDone ? 'items-center' : 'items-start',
+                isComingSoon && 'mix-blend-luminosity'
+              )}
+            >
+              {icon}
+            </span>
+          ) : (
+            <img
+              src={image ?? readingFluencyBird}
+              alt={label}
+              draggable={false}
+              className={cn(
+                // Capa do banco de imagens: ocupa exatamente o tamanho do card
+                // (240×182), recortando o excesso sem distorcer. O passarinho
+                // padrão continua no tamanho original, centralizado.
+                image
+                  ? 'absolute inset-0 w-full h-full object-cover select-none'
+                  : 'w-full h-auto select-none',
+                isComingSoon && 'opacity-40'
+              )}
+            />
+          )}
 
           {isDone && (
             <CheckCircleIcon

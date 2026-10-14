@@ -2903,6 +2903,36 @@ describe('Quiz', () => {
         expect(screen.getByText('Questão 05')).toBeInTheDocument();
       });
 
+      it('should list questions in ascending order when subject buckets interleave', () => {
+        mockGetQuestionsGroupedBySubject.mockReturnValue({
+          'subject-a': [
+            { id: 'answer-1', questionId: 'question-1' },
+            { id: 'answer-4', questionId: 'question-4' },
+            { id: 'answer-5', questionId: 'question-5' },
+          ],
+          'subject-b': [
+            { id: 'answer-2', questionId: 'question-2' },
+            { id: 'answer-3', questionId: 'question-3' },
+          ],
+        });
+        mockGetQuestionIndex.mockImplementation(getQuestionIndex);
+
+        render(
+          <QuizListResultByMateria subject="all" onQuestionClick={jest.fn()} />
+        );
+
+        const headers = screen
+          .getAllByTestId('card-status')
+          .map((card) => card.textContent);
+        expect(headers).toEqual([
+          expect.stringContaining('Questão 01'),
+          expect.stringContaining('Questão 02'),
+          expect.stringContaining('Questão 03'),
+          expect.stringContaining('Questão 04'),
+          expect.stringContaining('Questão 05'),
+        ]);
+      });
+
       it('should apply correct status to questions from all subjects when subject is "all"', () => {
         const mockGroupedQuestions = {
           'subject-1': [
@@ -3052,10 +3082,10 @@ describe('Quiz', () => {
         expect(screen.getByText('Questão 07')).toBeInTheDocument(); // port-q1
         expect(screen.getByText('Questão 23')).toBeInTheDocument(); // sci-q1
 
-        // Check that all status types are represented
-        expect(cardStatuses[0]).toHaveAttribute('data-status', 'correct');
-        expect(cardStatuses[1]).toHaveAttribute('data-status', 'incorrect');
-        expect(cardStatuses[2]).toHaveAttribute('data-status', 'unanswered');
+        // Sorted by question number: 07, 10, 15, 23
+        expect(cardStatuses[0]).toHaveAttribute('data-status', 'unanswered');
+        expect(cardStatuses[1]).toHaveAttribute('data-status', 'correct');
+        expect(cardStatuses[2]).toHaveAttribute('data-status', 'incorrect');
         expect(cardStatuses[3]).toHaveAttribute('data-status', 'pending');
       });
 

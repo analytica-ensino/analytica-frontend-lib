@@ -24,6 +24,7 @@ import {
   type EssayHistoryData,
 } from './Card';
 import Badge from '../Badge/Badge';
+import { MathCoverIconReadingFluency } from '../ReadingFluencyIcons';
 
 export const AllCardComponentsShowcase: Story = () => {
   const baseProps = {
@@ -1552,6 +1553,48 @@ export const CardReadingFluencyShowcase: Story = () => (
         <CardReadingFluency state="done" color={PAPOLE_COLORS.blue} />
         <CardReadingFluency state="done" color={PAPOLE_COLORS.lilac} />
       </div>
+    </div>
+  </div>
+);
+
+/**
+ * Cards do modo CONTAR: sem capa, a ilustração de matemática entra pela prop
+ * `icon`. No "em breve" ela é tingida com a cor do card (blend luminosity), como
+ * na arte; nos demais estados aparece colorida. Cores = "Scent colors" do tema
+ * do aluno.
+ */
+export const CardReadingFluencyMath: Story = () => (
+  <div
+    data-theme="papole-aluno-light"
+    className="flex flex-col gap-8 bg-secondary-700 p-6"
+  >
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      {[1, 2, 3, 4].map((scent) => (
+        <CardReadingFluency
+          key={`soon-${scent}`}
+          state="coming-soon"
+          color={`var(--color-scent-${scent})`}
+          icon={<MathCoverIconReadingFluency />}
+          activityTitle="Título da atividade"
+        />
+      ))}
+      <CardReadingFluency
+        state="new"
+        color="var(--color-scent-3)"
+        icon={<MathCoverIconReadingFluency />}
+        activityTitle="Título da atividade"
+        onClick={() => alert('nova atividade')}
+      />
+      {[1, 4, 2].map((scent) => (
+        <CardReadingFluency
+          key={`done-${scent}`}
+          state="done"
+          color={`var(--color-scent-${scent})`}
+          icon={<MathCoverIconReadingFluency />}
+          activityTitle="Título da atividade"
+          onClick={() => alert('ver atividade')}
+        />
+      ))}
     </div>
   </div>
 );

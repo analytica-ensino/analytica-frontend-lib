@@ -974,8 +974,25 @@ export {
   PauseIconReadingFluency,
   VoiceIconReadingFluency,
   CloseIconReadingFluency,
+  BookIconReadingFluency,
+  MathIconReadingFluency,
+  MathCoverIconReadingFluency,
+  NextIconReadingFluency,
+  TicoVoiceIconReadingFluency,
 } from './components/ReadingFluencyIcons';
 export type { ReadingFluencyIconProps } from './components/ReadingFluencyIcons';
+export { ModeToggleReadingFluency } from './components/ModeToggleReadingFluency/ModeToggleReadingFluency';
+export type {
+  ModeToggleReadingFluencyProps,
+  ModeToggleReadingFluencyOption,
+} from './components/ModeToggleReadingFluency/ModeToggleReadingFluency';
+export { SelectionButtonReadingFluency } from './components/SelectionButtonReadingFluency/SelectionButtonReadingFluency';
+export type { SelectionButtonReadingFluencyProps } from './components/SelectionButtonReadingFluency/SelectionButtonReadingFluency';
+export { MathQuestionCardReadingFluency } from './components/MathQuestionCardReadingFluency/MathQuestionCardReadingFluency';
+export type {
+  MathQuestionCardReadingFluencyProps,
+  MathQuestionCardReadingFluencyAlternative,
+} from './components/MathQuestionCardReadingFluency/MathQuestionCardReadingFluency';
 export { useDraftAutoSave } from './hooks/useDraftAutoSave';
 export type {
   ApiClient as DraftApiClientAdapter,
@@ -1197,14 +1214,79 @@ export type { UseActivityDetailsReturn } from './hooks/useActivityDetails';
 export {
   Support,
   TicketModal,
+  SidebarMenuItem,
+  TicketListItem,
+  TicketList,
   getCategoryIcon,
+  formatTicketTime,
+  useInfiniteScrollSentinel,
   supportSchema,
 } from './components/Support';
 export type {
   SupportProps,
   TicketModalProps,
+  SidebarMenuItemProps,
+  SidebarMenuItemVariant,
+  SidebarMenuItemSize,
+  SidebarMenuItemActiveTone,
+  SidebarMenuItemCountTone,
+  TicketListItemProps,
+  TicketListItemTone,
+  TicketListItemBadgeTone,
+  TicketListItemSize,
+  TicketListProps,
+  TicketListItemData,
+  UseInfiniteScrollSentinelOptions,
   SupportFormData,
 } from './components/Support';
+
+// Support Timeline (SAC)
+export { default as SupportTimelineItem } from './components/SupportTimeline/SupportTimelineItem';
+export type { SupportTimelineItemProps } from './components/SupportTimeline/SupportTimelineItem';
+export { SUPPORT_TIMELINE_STATUS } from './types/supportTimeline';
+export type { SupportTimelineStatus } from './types/supportTimeline';
+
+// Support Chat (SAC)
+export { default as SupportChatMessage } from './components/SupportChat/SupportChatMessage';
+export type { SupportChatMessageProps } from './components/SupportChat/SupportChatMessage';
+export { default as SupportChatEvent } from './components/SupportChat/SupportChatEvent';
+export type { SupportChatEventProps } from './components/SupportChat/SupportChatEvent';
+export { default as SupportChatComposer } from './components/SupportChat/SupportChatComposer';
+export type { SupportChatComposerProps } from './components/SupportChat/SupportChatComposer';
+export {
+  SUPPORT_CHAT_MESSAGE_TYPE,
+  SUPPORT_CHAT_SEND_STATUS,
+  SUPPORT_CHAT_EVENT_TYPE,
+  SUPPORT_CHAT_REPLY_MODE,
+} from './types/supportChat';
+export type {
+  SupportChatMessageType,
+  SupportChatSendStatus,
+  SupportChatEventType,
+  SupportChatReplyMode,
+  SupportChatAttachment,
+  SupportChatAuthor,
+  SupportChatFaqReference,
+} from './types/supportChat';
+export { getInitials } from './utils/getInitials';
+
+// Support Conclusion (SAC backoffice)
+export { default as SupportConcludeModal } from './components/SupportConcludeModal/SupportConcludeModal';
+export type { SupportConcludeModalProps } from './components/SupportConcludeModal/SupportConcludeModal';
+export { SUPPORT_CONCLUSION_REASONS } from './components/SupportConcludeModal/supportConclusionReasons';
+export {
+  SUPPORT_PROBLEM_TYPE,
+  SUPPORT_CONCLUDED_STATUS,
+  SUPPORT_CONCLUSION_OUTCOME,
+} from './types/supportConclusion';
+export type {
+  SupportProblemType,
+  SupportConclusionOutcome,
+  SupportConclusionSubReason,
+  SupportConclusionReason,
+  SupportConclusionFormData,
+  ConcludeSupportTicketRequest,
+} from './types/supportConclusion';
 
 // Support Types
 export {
@@ -1240,6 +1322,47 @@ export type {
 // Zendesk Widget Component
 export { ZendeskWidget } from './components/ZendeskWidget';
 export type { ZendeskWidgetProps } from './components/ZendeskWidget';
+
+// Support Chat Widget (native support)
+export {
+  SupportChatWidget,
+  createMockSupportChatAdapter,
+  createGuestSupportChatAdapter,
+  fromSupportAnswer,
+} from './components/SupportChatWidget';
+export type {
+  SupportChatWidgetProps,
+  SupportChatWindowState,
+  MockSupportChatAdapterOptions,
+  GuestSupportChatAdapterOptions,
+} from './components/SupportChatWidget';
+export { useSupportChat } from './hooks/useSupportChat';
+export type {
+  UseSupportChatConfig,
+  UseSupportChatReturn,
+} from './hooks/useSupportChat';
+export {
+  SUPPORT_CHAT_STATUS,
+  SUPPORT_CHAT_HANDLER,
+  SUPPORT_CHAT_AUTHOR,
+  SUPPORT_CHAT_GUEST_SENDER_ID,
+} from './types/supportChat';
+export type {
+  SupportChatStatus,
+  SupportChatHandler,
+  SupportChatAuthorRole,
+  // Aliased: SupportChatMessage / SupportChatEvent are the SAC components
+  SupportChatMessage as SupportChatMessageData,
+  SupportChatTicket,
+  SupportChatEvent as SupportChatRealtimeEvent,
+  StartSupportChatInput,
+  SupportChatAdapter,
+  SupportChatFlags,
+  SupportChatTheme,
+  SupportChatUser,
+  SupportChatHttpClient,
+  SupportChatAnswerApi,
+} from './types/supportChat';
 
 // Support Feature Flag Hook
 export { useSupportFeatureFlag } from './hooks/useSupportFeatureFlag';

@@ -27,6 +27,7 @@ import {
 import DownloadButton, {
   DownloadContent,
 } from '../DownloadButton/DownloadButton';
+import { useCaptionPosition } from './useCaptionPosition';
 
 // Constants for timeout durations
 const CONTROLS_HIDE_TIMEOUT = 3000; // 3 seconds for normal control hiding
@@ -1354,6 +1355,14 @@ const VideoPlayer = ({
 
   const groupedSubTitleValid = subtitles && subtitlesValidation === 'valid';
   const showPoster = Boolean(poster) && !hasStarted;
+
+  useCaptionPosition({
+    trackRef,
+    controlsVisible,
+    enabled: Boolean(groupedSubTitleValid) && showCaptions,
+    isUltraSmallMobile,
+    isTinyMobile,
+  });
 
   return (
     <div className={cn('flex flex-col', className)}>

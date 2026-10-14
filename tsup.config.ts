@@ -60,6 +60,19 @@ export default defineConfig({
       'src/components/CorrectActivityModal/CorrectActivityModal.tsx',
     'FileAttachment/index': 'src/components/FileAttachment/FileAttachment.tsx',
     'Card/index': 'src/components/Card/Card.tsx',
+    // Papolê (Fluência Leitora / modo CONTAR) — subpaths para os apps não
+    // dependerem do barrel da raiz.
+    'ModeToggleReadingFluency/index':
+      'src/components/ModeToggleReadingFluency/ModeToggleReadingFluency.tsx',
+    'SelectionButtonReadingFluency/index':
+      'src/components/SelectionButtonReadingFluency/SelectionButtonReadingFluency.tsx',
+    'MathQuestionCardReadingFluency/index':
+      'src/components/MathQuestionCardReadingFluency/MathQuestionCardReadingFluency.tsx',
+    'IconButtonReadingFluency/index':
+      'src/components/IconButtonReadingFluency/IconButtonReadingFluency.tsx',
+    'CloseButtonReadingFluency/index':
+      'src/components/CloseButtonReadingFluency/CloseButtonReadingFluency.tsx',
+    'ReadingFluencyIcons/index': 'src/components/ReadingFluencyIcons/index.ts',
     'StatisticsCard/index': 'src/components/StatisticsCard/StatisticsCard.tsx',
     'StudentRanking/index': 'src/components/StudentRanking/StudentRanking.tsx',
     'QuestionsData/index': 'src/components/QuestionsData/QuestionsData.tsx',
@@ -164,6 +177,18 @@ export default defineConfig({
     'Support/TicketModal/index':
       'src/components/Support/components/TicketModal.tsx',
     'types/support/index': 'src/types/support.ts',
+    'SupportConcludeModal/index':
+      'src/components/SupportConcludeModal/SupportConcludeModal.tsx',
+    'types/supportConclusion/index': 'src/types/supportConclusion.ts',
+    'SupportTimelineItem/index':
+      'src/components/SupportTimeline/SupportTimelineItem.tsx',
+    'types/supportTimeline/index': 'src/types/supportTimeline.ts',
+    'SupportChatMessage/index':
+      'src/components/SupportChat/SupportChatMessage.tsx',
+    'SupportChatEvent/index': 'src/components/SupportChat/SupportChatEvent.tsx',
+    'SupportChatComposer/index':
+      'src/components/SupportChat/SupportChatComposer.tsx',
+    'types/supportChat/index': 'src/types/supportChat.ts',
 
     // SendActivityModal
     'SendActivityModal/index': 'src/components/SendActivityModal/index.ts',

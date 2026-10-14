@@ -4606,6 +4606,39 @@ describe('CardReadingFluency', () => {
         backgroundColor: '#ff0000',
       });
     });
+
+    it('renders the "icon" centered in place of the bird, named by the label', () => {
+      render(
+        <CardReadingFluency
+          label="Atividade de matemática"
+          icon={<svg data-testid="math-cover" />}
+        />
+      );
+
+      expect(screen.getByTestId('math-cover')).toBeInTheDocument();
+      // O passarinho não aparece; o nome acessível continua sendo o `label`.
+      expect(screen.queryByRole('img', { name: 'Reading Fluency' })).toBeNull();
+      const cover = screen.getByRole('img', {
+        name: 'Atividade de matemática',
+      });
+      expect(cover.tagName).toBe('SPAN');
+      expect(cover.className).not.toContain('mix-blend-luminosity');
+    });
+
+    it('lets the "image" cover win over the "icon"', () => {
+      render(
+        <CardReadingFluency
+          image="https://cdn.example.com/capa.png"
+          icon={<svg data-testid="math-cover" />}
+        />
+      );
+
+      expect(screen.queryByTestId('math-cover')).not.toBeInTheDocument();
+      expect(screen.getByAltText('Reading Fluency')).toHaveAttribute(
+        'src',
+        'https://cdn.example.com/capa.png'
+      );
+    });
   });
 
   describe('caption (activityTitle) vs native title attribute', () => {
@@ -4748,6 +4781,20 @@ describe('CardReadingFluency', () => {
       expect(screen.getByAltText('Reading Fluency').className).toContain(
         'opacity-40'
       );
+    });
+
+    it('tints the "icon" with the card color (luminosity blend, as in the art)', () => {
+      render(
+        <CardReadingFluency
+          state="coming-soon"
+          label="Em breve"
+          icon={<svg data-testid="math-cover" />}
+        />
+      );
+
+      const cover = screen.getByRole('img', { name: 'Em breve' });
+      expect(cover.className).toContain('mix-blend-luminosity');
+      expect(cover.className).not.toContain('opacity-40');
     });
 
     it('is not interactive, even with an onClick handler', () => {

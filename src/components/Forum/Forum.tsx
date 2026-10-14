@@ -24,6 +24,7 @@ import ImageUpload from '../ImageUpload/ImageUpload';
 import { SkeletonList, SkeletonCard } from '../Skeleton/Skeleton';
 import { stripHtml, sanitizeHtmlForDisplay } from '../HtmlMathRenderer';
 import { cn } from '../../utils/utils';
+import { getInitials } from '../../utils/getInitials';
 import type { ForumApiClient, ForumTopic, ForumReply } from '../../types/forum';
 import { PROFILE_ROLES } from '../../types/chat';
 
@@ -54,15 +55,6 @@ function formatForumDate(isoDate: string): string {
   const hours = d.getHours();
   const minutes = d.getMinutes().toString().padStart(2, '0');
   return `${day} ${month} ${year} • ${hours}:${minutes}`;
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map((word) => word[0] ?? '')
-    .join('')
-    .toUpperCase();
 }
 
 function formatReplyCount(count: number): string {
