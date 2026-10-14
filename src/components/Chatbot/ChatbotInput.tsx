@@ -35,7 +35,7 @@ export default function ChatbotInput({
   const isSendDisabled = disabled || value.trim().length === 0;
 
   const submit = useCallback(() => {
-    // O botão de enviar usa `aria-disabled` em vez de `disabled` (ver o
+    // O botão de enviar não usa `disabled` nem `aria-disabled` (ver o
     // comentário no `<Button>` abaixo), então o clique continua chegando até
     // aqui mesmo com o botão desabilitado — esta guarda é o que impede o
     // envio. Vale também para o Enter no textarea.
@@ -87,14 +87,13 @@ export default function ChatbotInput({
           component. `raw` keeps custom sizing/shape without inheriting
           the default solid/outline/link classes.
 
-          Acessibilidade (AE-2667): o estado desabilitado vai por
-          `aria-disabled`, não pelo `disabled` nativo. Com `disabled` o botão
-          sai da ordem de tabulação e o VoiceOver anuncia o estado como
-          "escurecido"; com `aria-disabled` ele segue focável e o estado é
-          anunciado como parte do rótulo. Quem bloqueia o envio é a guarda do
-          `submit`, e o visual vem das variantes `aria-disabled:` (que o
-          Tailwind emite depois das `hover:`, então continuam vencendo o
-          hover como as `disabled:` venciam antes).
+          Acessibilidade (AE-2667): o estado desabilitado vai SÓ no rótulo
+          ("Enviar mensagem, desabilitado, botão"). O VoiceOver anuncia
+          "escurecido" tanto para o `disabled` nativo quanto para
+          `aria-disabled="true"`, então nenhum dos dois pode estar no botão.
+          Ele segue focável; quem bloqueia o envio é a guarda do `submit`, e o
+          visual vem das variantes `data-[disabled=true]:` (que o Tailwind
+          emite depois das `hover:`, então continuam vencendo o hover).
 
           O ícone é decorativo e vai `aria-hidden`: o rótulo do botão já diz o
           que ele faz, e sem isso o Safari expõe o `<svg>` como um grupo no
@@ -103,7 +102,7 @@ export default function ChatbotInput({
         variant="raw"
         type="button"
         onClick={submit}
-        aria-disabled={isSendDisabled}
+        data-disabled={isSendDisabled}
         aria-label={
           isSendDisabled ? 'Enviar mensagem, desabilitado' : 'Enviar mensagem'
         }
@@ -111,7 +110,7 @@ export default function ChatbotInput({
           'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full',
           'bg-primary-500 text-white transition-colors',
           'hover:bg-primary-600',
-          'aria-disabled:bg-background-200 aria-disabled:text-text-500 aria-disabled:cursor-not-allowed',
+          'data-[disabled=true]:bg-background-200 data-[disabled=true]:text-text-500 data-[disabled=true]:cursor-not-allowed',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300'
         )}
       >

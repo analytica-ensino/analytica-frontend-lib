@@ -4,14 +4,15 @@ import userEvent from '@testing-library/user-event';
 import ChatbotInput from './ChatbotInput';
 
 describe('ChatbotInput', () => {
-  it('marks the send button as aria-disabled when input is empty', () => {
+  it('announces the disabled state only through the label when input is empty', () => {
     render(<ChatbotInput onSend={() => undefined} />);
     const sendButton = screen.getByRole('button', { name: /enviar mensagem/i });
-    expect(sendButton).toHaveAttribute('aria-disabled', 'true');
-    // O estado desabilitado precisa ir no rótulo: o `disabled` nativo faria o
-    // VoiceOver dizer "escurecido" em vez de "desabilitado" (AE-2667).
+    expect(sendButton).toHaveAttribute('data-disabled', 'true');
+    // O estado desabilitado precisa ir só no rótulo: tanto o `disabled` nativo
+    // quanto `aria-disabled` fazem o VoiceOver dizer "escurecido" (AE-2667).
     expect(sendButton).toHaveAccessibleName('Enviar mensagem, desabilitado');
     expect(sendButton).not.toHaveAttribute('disabled');
+    expect(sendButton).not.toHaveAttribute('aria-disabled');
   });
 
   it('keeps the send button focusable while disabled', async () => {
@@ -29,7 +30,7 @@ describe('ChatbotInput', () => {
       'hello'
     );
     const sendButton = screen.getByRole('button', { name: /enviar mensagem/i });
-    expect(sendButton).toHaveAttribute('aria-disabled', 'false');
+    expect(sendButton).toHaveAttribute('data-disabled', 'false');
     expect(sendButton).toHaveAccessibleName('Enviar mensagem');
   });
 
@@ -102,9 +103,10 @@ describe('ChatbotInput', () => {
       name: /enviar mensagem/i,
     });
     expect(textarea).toBeDisabled();
-    expect(sendButton).toHaveAttribute('aria-disabled', 'true');
+    expect(sendButton).toHaveAttribute('data-disabled', 'true');
+    expect(sendButton).toHaveAccessibleName('Enviar mensagem, desabilitado');
 
-    // O botão com `aria-disabled` continua clicável e focável, então o clique
+    // O botão desabilitado continua clicável e focável, então o clique
     // e as teclas de ativação chegam ao handler — a guarda do `submit` é o
     // que impede o envio.
     await userEvent.click(sendButton);
