@@ -155,13 +155,13 @@ export default function SupportTicketDetailsTab({
 
       <section
         aria-label="Resumo da IA"
-        className="flex flex-col gap-1.5 rounded-xl border border-primary-100 bg-primary-50 p-3"
+        className="flex flex-col gap-1.5 rounded-xl border border-info-100 bg-info-background p-3"
       >
         <Text
           as="h3"
           size="xs"
           weight="bold"
-          color="text-primary-800"
+          color="text-info-800"
           className="uppercase"
         >
           <span aria-hidden="true">✦ </span>Resumo da IA
