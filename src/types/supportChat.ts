@@ -46,6 +46,18 @@ export interface SupportChatAttachment {
 }
 
 /**
+ * Where an agent reply goes: to the requester (`USER`) or only to the team
+ * (`INTERNAL_NOTE`, same value as the message type shown in the backoffice)
+ */
+export const SUPPORT_CHAT_REPLY_MODE = {
+  USER: 'USER',
+  INTERNAL_NOTE: 'INTERNAL_NOTE',
+} as const;
+
+export type SupportChatReplyMode =
+  (typeof SUPPORT_CHAT_REPLY_MODE)[keyof typeof SUPPORT_CHAT_REPLY_MODE];
+
+/**
  * Kind of event shown between chat messages
  */
 export const SUPPORT_CHAT_EVENT_TYPE = {

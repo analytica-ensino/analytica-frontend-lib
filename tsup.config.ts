@@ -173,6 +173,8 @@ export default defineConfig({
     'SupportChatMessage/index':
       'src/components/SupportChat/SupportChatMessage.tsx',
     'SupportChatEvent/index': 'src/components/SupportChat/SupportChatEvent.tsx',
+    'SupportChatComposer/index':
+      'src/components/SupportChat/SupportChatComposer.tsx',
     'types/supportChat/index': 'src/types/supportChat.ts',
 
     // SendActivityModal

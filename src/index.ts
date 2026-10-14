@@ -1234,15 +1234,19 @@ export { default as SupportChatMessage } from './components/SupportChat/SupportC
 export type { SupportChatMessageProps } from './components/SupportChat/SupportChatMessage';
 export { default as SupportChatEvent } from './components/SupportChat/SupportChatEvent';
 export type { SupportChatEventProps } from './components/SupportChat/SupportChatEvent';
+export { default as SupportChatComposer } from './components/SupportChat/SupportChatComposer';
+export type { SupportChatComposerProps } from './components/SupportChat/SupportChatComposer';
 export {
   SUPPORT_CHAT_MESSAGE_TYPE,
   SUPPORT_CHAT_SEND_STATUS,
   SUPPORT_CHAT_EVENT_TYPE,
+  SUPPORT_CHAT_REPLY_MODE,
 } from './types/supportChat';
 export type {
   SupportChatMessageType,
   SupportChatSendStatus,
   SupportChatEventType,
+  SupportChatReplyMode,
   SupportChatAttachment,
   SupportChatAuthor,
   SupportChatFaqReference,
