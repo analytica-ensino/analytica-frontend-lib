@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Badge from '../Badge/Badge';
 import Chips from '../Chips/Chips';
 import Text from '../Text/Text';
 import { Skeleton } from '../Skeleton/Skeleton';
@@ -48,25 +49,27 @@ const FILTERS: { value: SupportHistoryFilter; label: string }[] = [
   { value: SUPPORT_HISTORY_FILTER.AI, label: 'IA' },
 ];
 
+// `warning` rather than `orange` for the human statuses: the `orange-*`
+// colors are not theme tokens, so they would not follow dark mode.
 const STATUS_BADGE: Record<
   SupportTicketCardStatus,
-  { label: string; className: string }
+  { label: string; action: 'info' | 'warning' | 'success' }
 > = {
   [SUPPORT_TICKET_CARD_STATUS.IN_PROGRESS]: {
     label: 'EM ANDAMENTO',
-    className: 'bg-primary-50 text-primary-800',
+    action: 'info',
   },
   [SUPPORT_TICKET_CARD_STATUS.WAITING_HUMAN]: {
     label: 'AGUARDANDO HUMANO',
-    className: 'bg-warning-background text-warning-800',
+    action: 'warning',
   },
   [SUPPORT_TICKET_CARD_STATUS.HUMAN]: {
     label: 'HUMANO',
-    className: 'bg-warning-background text-warning-800',
+    action: 'warning',
   },
   [SUPPORT_TICKET_CARD_STATUS.DONE]: {
     label: 'CONCLUÍDO',
-    className: 'bg-success-background text-success-800',
+    action: 'success',
   },
 };
 
@@ -96,14 +99,14 @@ const TicketCardBody = ({
         <Text size="xs" color="text-text-600">
           #{ticket.id} · {formatCardDate(ticket.createdAt)}
         </Text>
-        <span
-          className={cn(
-            'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold',
-            badge.className
-          )}
+        <Badge
+          variant="solid"
+          action={badge.action}
+          size="small"
+          className="shrink-0 font-bold"
         >
           {badge.label}
-        </span>
+        </Badge>
       </div>
       <Text
         size="sm"
