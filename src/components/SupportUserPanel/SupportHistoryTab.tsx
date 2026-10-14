@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
+import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 import Badge from '../Badge/Badge';
 import Chips from '../Chips/Chips';
 import Text from '../Text/Text';
@@ -7,9 +8,11 @@ import { cn } from '../../utils/utils';
 import {
   SUPPORT_HISTORY_FILTER,
   SUPPORT_TICKET_CARD_STATUS,
+  SUPPORT_TICKET_PRIORITY,
   type SupportHistoryFilter,
   type SupportHistorySummary,
   type SupportTicketCardStatus,
+  type SupportTicketPriority,
   type SupportTicketSummary,
 } from '../../types/supportUserPanel';
 import { StatTile } from './SupportPanelShared';
@@ -78,68 +81,141 @@ const resolverLabel = (ticket: SupportTicketSummary) => {
   return ticket.resolvedBy.type === 'ai' ? 'IA' : ticket.resolvedBy.name;
 };
 
-const TicketCardBody = ({
+const PRIORITY_LABELS: Record<SupportTicketPriority, string> = {
+  [SUPPORT_TICKET_PRIORITY.LOW]: 'Baixa',
+  [SUPPORT_TICKET_PRIORITY.NORMAL]: 'Normal',
+  [SUPPORT_TICKET_PRIORITY.HIGH]: 'Alta',
+  [SUPPORT_TICKET_PRIORITY.URGENT]: 'Urgente',
+};
+
+/**
+ * Ticket of the history list. The primary info is always visible; the
+ * chevron expands the secondary details (priority, channel, duration) and
+ * the link that opens the ticket.
+ */
+const TicketCard = ({
   ticket,
   current,
+  onOpen,
 }: {
   ticket: SupportTicketSummary;
   current: boolean;
+  onOpen?: () => void;
 }) => {
+  const [expanded, setExpanded] = useState(false);
+  const detailsId = useId();
   const badge = STATUS_BADGE[ticket.status];
   const resolver = current ? 'Você' : resolverLabel(ticket);
-  const reason = [ticket.reason, ticket.subreason].filter(Boolean).join(' · ');
-  let duration: string | null = null;
-  if (current) duration = 'Ticket atual';
-  else if (ticket.durationMin != null)
-    duration = formatDuration(ticket.durationMin);
+  const meta = [
+    formatCardDate(ticket.createdAt),
+    ticket.reason,
+    ticket.subreason,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+  const details: [string, string][] = [];
+  if (ticket.priority) {
+    details.push(['Prioridade', PRIORITY_LABELS[ticket.priority]]);
+  }
+  if (ticket.channel) details.push(['Canal', ticket.channel]);
+  if (current) details.push(['Duração', 'Ticket atual']);
+  else if (ticket.durationMin != null) {
+    details.push(['Duração', formatDuration(ticket.durationMin)]);
+  }
+  const canOpen = !current && Boolean(onOpen);
+  const expandable = details.length > 0 || canOpen;
 
   return (
-    <>
+    <div
+      aria-current={current ? 'true' : undefined}
+      className={cn(
+        'flex w-full flex-col gap-1.5 rounded-xl border px-3 py-2.5',
+        current
+          ? 'border-primary-100 bg-primary-50'
+          : 'border-border-200 bg-background hover:border-primary-100'
+      )}
+    >
       <div className="flex items-center justify-between gap-2">
         <Text size="xs" color="text-text-600">
-          #{ticket.id} · {formatCardDate(ticket.createdAt)}
+          #{ticket.id}
         </Text>
-        <Badge
-          variant="solid"
-          action={badge.action}
-          size="small"
-          className="shrink-0 font-bold"
-        >
-          {badge.label}
-        </Badge>
+        <div className="flex shrink-0 items-center gap-1">
+          <Badge
+            variant="solid"
+            action={badge.action}
+            size="small"
+            className="font-bold"
+          >
+            {badge.label}
+          </Badge>
+          {expandable && (
+            <button
+              type="button"
+              onClick={() => setExpanded((open) => !open)}
+              aria-expanded={expanded}
+              aria-controls={detailsId}
+              aria-label={`${expanded ? 'Recolher' : 'Expandir'} ticket #${ticket.id}`}
+              className="rounded-sm p-0.5 text-text-600 hover:text-text-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info"
+            >
+              <CaretDownIcon
+                size={14}
+                aria-hidden="true"
+                className={cn('transition-transform', expanded && 'rotate-180')}
+              />
+            </button>
+          )}
+        </div>
       </div>
       <Text
         size="sm"
         weight="semibold"
         color="text-text-950"
-        className="line-clamp-2 text-left"
+        className="line-clamp-2"
       >
         {ticket.title}
       </Text>
-      {reason && (
+      <Text size="xs" color="text-text-600">
+        {meta}
+      </Text>
+      {resolver && (
         <Text size="xs" color="text-text-600">
-          {reason}
+          {current ? 'Atendido por: ' : 'Resolvido por: '}
+          <span className="font-medium text-text-950">{resolver}</span>
         </Text>
       )}
-      {(resolver || duration) && (
-        <div className="flex items-center justify-between gap-2 text-xs text-text-600">
-          <span>
-            {resolver && (
-              <>
-                {current ? 'Atendido por: ' : 'Resolvido por: '}
-                <span className="font-medium text-text-950">{resolver}</span>
-              </>
-            )}
-          </span>
-          {duration && <span>{duration}</span>}
+      {expandable && expanded && (
+        <div
+          id={detailsId}
+          className="flex flex-col gap-1.5 border-t border-border-100 pt-2"
+        >
+          {details.length > 0 && (
+            <dl className="flex flex-col gap-1">
+              {details.map(([key, value]) => (
+                <div
+                  key={key}
+                  className="flex items-baseline justify-between gap-3 text-xs"
+                >
+                  <dt className="text-text-600">{key}</dt>
+                  <dd className="font-medium text-text-950">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          {canOpen && (
+            <button
+              type="button"
+              onClick={onOpen}
+              className="self-start rounded-sm text-xs font-medium text-primary-800 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info"
+            >
+              Abrir atendimento
+            </button>
+          )}
         </div>
       )}
-    </>
+    </div>
   );
 };
-
-const cardClasses =
-  'flex w-full flex-col gap-1.5 rounded-xl border px-3 py-2.5 text-left';
 
 /**
  * History tab: summary stats, single-choice filter and the contact's
@@ -238,30 +314,13 @@ export default function SupportHistoryTab({
                 const isCurrent = ticket.id === currentTicketId;
                 return (
                   <li key={ticket.id}>
-                    {isCurrent || !onOpenTicket ? (
-                      <div
-                        aria-current={isCurrent ? 'true' : undefined}
-                        className={cn(
-                          cardClasses,
-                          isCurrent
-                            ? 'border-primary-100 bg-primary-50'
-                            : 'border-border-200 bg-background'
-                        )}
-                      >
-                        <TicketCardBody ticket={ticket} current={isCurrent} />
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => onOpenTicket(ticket.id)}
-                        className={cn(
-                          cardClasses,
-                          'border-border-200 bg-background hover:border-primary-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info'
-                        )}
-                      >
-                        <TicketCardBody ticket={ticket} current={false} />
-                      </button>
-                    )}
+                    <TicketCard
+                      ticket={ticket}
+                      current={isCurrent}
+                      onOpen={
+                        onOpenTicket ? () => onOpenTicket(ticket.id) : undefined
+                      }
+                    />
                   </li>
                 );
               })}

@@ -301,7 +301,8 @@ describe('SupportUserPanel', () => {
       expect(items[1]).toHaveTextContent('Resolvido pela Carla');
       expect(items[2]).toHaveTextContent('Resolvido pela IA');
       expect(items[2]).toHaveTextContent('Resolvido por: IA');
-      expect(items[2]).toHaveTextContent('3 min');
+      // Secondary info stays hidden until the card is expanded.
+      expect(items[2]).not.toHaveTextContent('3 min');
       expect(screen.getByText('EM ANDAMENTO')).toBeInTheDocument();
       expect(screen.getByText('AGUARDANDO HUMANO')).toBeInTheDocument();
       expect(screen.getAllByText('CONCLUÍDO')).toHaveLength(2);
@@ -309,15 +310,60 @@ describe('SupportUserPanel', () => {
       expect(items).toHaveLength(4);
     });
 
-    it('opens another ticket but not the current one', () => {
+    it('expands a card to show its details and open it', () => {
       const onOpenTicket = jest.fn();
-      openHistory({ onOpenTicket });
-      fireEvent.click(
-        screen.getByRole('button', { name: /Resolvido pela Carla/ })
-      );
-      expect(onOpenTicket).toHaveBeenCalledWith(2);
+      openHistory({
+        onOpenTicket,
+        tickets: tickets.map((t) =>
+          t.id === 3
+            ? {
+                ...t,
+                priority: SUPPORT_TICKET_PRIORITY.HIGH,
+                channel: SUPPORT_CHANNEL.WEB,
+              }
+            : t
+        ),
+      });
+      const toggle = screen.getByRole('button', { name: 'Expandir ticket #3' });
+      expect(toggle).toHaveAttribute('aria-expanded', 'false');
+
+      fireEvent.click(toggle);
       expect(
-        screen.queryByRole('button', { name: /Ticket atual/ })
+        screen.getByRole('button', { name: 'Recolher ticket #3' })
+      ).toHaveAttribute('aria-expanded', 'true');
+      const card = screen.getAllByRole('listitem')[2];
+      expect(card).toHaveTextContent('PrioridadeAlta');
+      expect(card).toHaveTextContent('CanalWeb');
+      expect(card).toHaveTextContent('Duração3 min');
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Abrir atendimento' })
+      );
+      expect(onOpenTicket).toHaveBeenCalledWith(3);
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Recolher ticket #3' })
+      );
+      expect(card).not.toHaveTextContent('Duração');
+    });
+
+    it('does not offer to open the current ticket', () => {
+      openHistory({ onOpenTicket: jest.fn() });
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Expandir ticket #1' })
+      );
+      expect(screen.getAllByRole('listitem')[0]).toHaveTextContent(
+        'DuraçãoTicket atual'
+      );
+      expect(
+        screen.queryByRole('button', { name: 'Abrir atendimento' })
+      ).not.toBeInTheDocument();
+    });
+
+    it('hides the toggle when there is nothing to expand', () => {
+      openHistory();
+      expect(
+        screen.queryByRole('button', { name: 'Expandir ticket #2' })
       ).not.toBeInTheDocument();
     });
 

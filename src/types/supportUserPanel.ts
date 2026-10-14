@@ -112,6 +112,10 @@ export interface SupportTicketSummary {
   createdAt: string;
   resolvedBy?: SupportTicketResolver;
   durationMin?: number | null;
+  /** Shown when the card is expanded */
+  priority?: SupportTicketPriority | null;
+  /** Shown when the card is expanded */
+  channel?: SupportChannel | null;
 }
 
 /** Aggregated numbers shown above the history list */

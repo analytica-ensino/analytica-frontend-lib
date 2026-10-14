@@ -59,6 +59,8 @@ const tickets: SupportTicketSummary[] = [
     createdAt: daysAgo(6),
     resolvedBy: { type: 'agent', name: 'Carla' },
     durationMin: 32,
+    priority: SUPPORT_TICKET_PRIORITY.HIGH,
+    channel: SUPPORT_CHANNEL.WEB,
   },
   {
     id: 4502,
@@ -69,6 +71,8 @@ const tickets: SupportTicketSummary[] = [
     createdAt: daysAgo(30),
     resolvedBy: { type: 'ai' },
     durationMin: 3,
+    priority: SUPPORT_TICKET_PRIORITY.NORMAL,
+    channel: SUPPORT_CHANNEL.APP,
   },
 ];
 
