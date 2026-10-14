@@ -130,14 +130,16 @@ const TicketCard = ({
     <div
       aria-current={current ? 'true' : undefined}
       className={cn(
-        'flex w-full flex-col gap-1.5 rounded-xl border px-3 py-2.5',
-        current
-          ? 'border-primary-100 bg-primary-50'
-          : 'border-border-200 bg-background hover:border-primary-100'
+        'flex w-full flex-col gap-1.5 rounded-xl border border-border-200 bg-background px-3 py-2.5 hover:border-primary-100'
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <Text size="xs" color="text-text-600">
+        {/* The current ticket is marked by color only (no background). */}
+        <Text
+          size="xs"
+          weight={current ? 'semibold' : undefined}
+          color={current ? 'text-primary-800' : 'text-text-600'}
+        >
           #{ticket.id}
         </Text>
         <div className="flex shrink-0 items-center gap-1">
