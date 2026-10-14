@@ -67,13 +67,14 @@ export function useOptimisticValue<T>(
       setCurrent(next);
       try {
         await save(next);
-        addToast({ title: 'Salvo', action: 'success' });
+        addToast({ title: 'Salvo', action: 'success', position: 'top-right' });
       } catch {
         setCurrent(previous);
         addToast({
           title: 'Não foi possível salvar',
           description: 'A alteração foi desfeita. Tente novamente.',
           action: 'warning',
+          position: 'top-right',
         });
       }
     },

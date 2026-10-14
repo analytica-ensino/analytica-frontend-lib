@@ -38,9 +38,13 @@ const CopyField = ({ label, value }: { label: string; value?: string }) => {
     if (!value) return;
     try {
       await navigator.clipboard.writeText(value);
-      addToast({ title: 'Copiado', action: 'success' });
+      addToast({ title: 'Copiado', action: 'success', position: 'top-right' });
     } catch {
-      addToast({ title: 'Não foi possível copiar', action: 'warning' });
+      addToast({
+        title: 'Não foi possível copiar',
+        action: 'warning',
+        position: 'top-right',
+      });
     }
   };
 
@@ -120,6 +124,7 @@ export default function SupportProfileTab({
       addToast({
         title: 'Não foi possível adicionar a nota',
         action: 'warning',
+        position: 'top-right',
       });
     } finally {
       setSavingNote(false);

@@ -239,6 +239,10 @@ describe('SupportUserPanel', () => {
       fireEvent.click(screen.getByText('mariana@exemplo.com'));
       await waitFor(() => expect(lastToast()).toBe('Copiado'));
       expect(writeText).toHaveBeenCalledWith('mariana@exemplo.com');
+      // Floats over the page instead of rendering inline where Toaster sits.
+      expect(useToastStore.getState().toasts.at(-1)?.position).toBe(
+        'top-right'
+      );
     });
 
     it('warns when copying fails', async () => {
