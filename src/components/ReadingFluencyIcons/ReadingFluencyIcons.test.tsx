@@ -8,6 +8,11 @@ import {
   PlayIconReadingFluency,
   PauseIconReadingFluency,
   CloseIconReadingFluency,
+  BookIconReadingFluency,
+  MathIconReadingFluency,
+  MathCoverIconReadingFluency,
+  NextIconReadingFluency,
+  TicoVoiceIconReadingFluency,
 } from './index';
 import type { ReadingFluencyIconProps } from './types';
 
@@ -53,6 +58,21 @@ const ICONS: Array<{
     name: 'CloseIconReadingFluency',
     Icon: CloseIconReadingFluency,
     defaultSize: 37,
+  },
+  {
+    name: 'BookIconReadingFluency',
+    Icon: BookIconReadingFluency,
+    defaultSize: 32,
+  },
+  {
+    name: 'MathIconReadingFluency',
+    Icon: MathIconReadingFluency,
+    defaultSize: 32,
+  },
+  {
+    name: 'NextIconReadingFluency',
+    Icon: NextIconReadingFluency,
+    defaultSize: 24,
   },
 ];
 
@@ -150,5 +170,113 @@ describe('CloseIconReadingFluency shadow filter ids', () => {
 
     expect(ids).toHaveLength(2);
     expect(ids[0]).not.toBe(ids[1]);
+  });
+});
+
+/**
+ * Ilustrações que não são quadradas: `size` define a largura e a altura sai
+ * proporcional ao viewBox nativo.
+ */
+const NON_SQUARE_ICONS: Array<{
+  name: string;
+  Icon: FC<ReadingFluencyIconProps>;
+  width: number;
+  height: number;
+}> = [
+  {
+    name: 'MathCoverIconReadingFluency',
+    Icon: MathCoverIconReadingFluency,
+    width: 76,
+    height: 95,
+  },
+  {
+    name: 'TicoVoiceIconReadingFluency',
+    Icon: TicoVoiceIconReadingFluency,
+    width: 61,
+    height: 50,
+  },
+];
+
+describe.each(NON_SQUARE_ICONS)('$name', ({ name, Icon, width, height }) => {
+  it('uses the native size and viewBox by default', () => {
+    const { container } = render(<Icon />);
+    const svg = getSvg(container);
+    expect(svg).toHaveAttribute('width', String(width));
+    expect(svg).toHaveAttribute('height', String(height));
+    expect(svg).toHaveAttribute('viewBox', `0 0 ${width} ${height}`);
+  });
+
+  it('treats size as the width and keeps the aspect ratio', () => {
+    const { container } = render(<Icon size={width * 2} />);
+    const svg = getSvg(container);
+    expect(svg).toHaveAttribute('width', String(width * 2));
+    expect(svg).toHaveAttribute('height', String(height * 2));
+  });
+
+  it('forwards className and is decorative', () => {
+    const { container } = render(<Icon className="h-full w-full" />);
+    const svg = getSvg(container);
+    expect(svg).toHaveClass('h-full', 'w-full');
+    expect(svg).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('exposes the correct displayName', () => {
+    expect((Icon as FC & { displayName?: string }).displayName).toBe(name);
+  });
+});
+
+describe('NextIconReadingFluency', () => {
+  it('paints with currentColor so it follows the button text color', () => {
+    const { container } = render(<NextIconReadingFluency />);
+    expect(container.querySelector('path')).toHaveAttribute(
+      'fill',
+      'currentColor'
+    );
+  });
+});
+
+describe.each([
+  { name: 'MathCoverIconReadingFluency', Icon: MathCoverIconReadingFluency },
+  { name: 'MathIconReadingFluency', Icon: MathIconReadingFluency },
+  { name: 'BookIconReadingFluency', Icon: BookIconReadingFluency },
+])('$name ids', ({ Icon }) => {
+  it('references its defs through colon-free ids that exist in the svg', () => {
+    const { container } = render(<Icon />);
+
+    const ids = Array.from(container.querySelectorAll('[id]')).map(
+      (node) => node.getAttribute('id') as string
+    );
+    expect(ids.length).toBeGreaterThan(0);
+    ids.forEach((id) => expect(id).not.toMatch(/[^a-zA-Z0-9_-]/));
+
+    const refs = Array.from(
+      container.querySelectorAll('[filter], [clip-path]')
+    ).map(
+      (node) =>
+        (node.getAttribute('filter') ??
+          node.getAttribute('clip-path')) as string
+    );
+    expect(refs.length).toBeGreaterThan(0);
+    refs.forEach((ref) => {
+      const id = /url\(#(.+)\)/.exec(ref)?.[1];
+      expect(ids).toContain(id);
+    });
+  });
+
+  it('gives each instance distinct ids (no collision between cards)', () => {
+    const { container } = render(
+      <div>
+        <Icon />
+        <Icon />
+      </div>
+    );
+    const [first, second] = Array.from(container.querySelectorAll('svg'));
+    const firstIds = Array.from(first.querySelectorAll('[id]')).map((node) =>
+      node.getAttribute('id')
+    );
+    const secondIds = Array.from(second.querySelectorAll('[id]')).map((node) =>
+      node.getAttribute('id')
+    );
+    firstIds.forEach((id) => expect(secondIds).not.toContain(id));
   });
 });
