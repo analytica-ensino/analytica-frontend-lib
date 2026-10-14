@@ -104,13 +104,10 @@ describe('SupportChatComposer', () => {
     expect(onSend).not.toHaveBeenCalled();
   });
 
-  it('hides the image and FAQ actions when their callbacks are missing', () => {
+  it('hides the image action when its callback is missing', () => {
     render(<SupportChatComposer onSend={jest.fn()} />);
 
     expect(screen.queryByLabelText('Anexar imagem')).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: /FAQ/ })
-    ).not.toBeInTheDocument();
     expect(
       screen.getByText('Enter envia · Shift+Enter quebra linha')
     ).toBeInTheDocument();
@@ -138,14 +135,6 @@ describe('SupportChatComposer', () => {
     expect(onAttachImages).toHaveBeenCalledTimes(1);
   });
 
-  it('calls the FAQ action', () => {
-    const onFaqClick = jest.fn();
-    render(<SupportChatComposer onSend={jest.fn()} onFaqClick={onFaqClick} />);
-
-    fireEvent.click(screen.getByRole('button', { name: /FAQ/ }));
-    expect(onFaqClick).toHaveBeenCalledTimes(1);
-  });
-
   it('blocks everything when disabled', () => {
     const onSend = jest.fn();
     render(
@@ -153,13 +142,11 @@ describe('SupportChatComposer', () => {
         disabled
         onSend={onSend}
         onAttachImages={jest.fn()}
-        onFaqClick={jest.fn()}
       />
     );
 
     expect(field()).toBeDisabled();
     expect(screen.getByLabelText('Anexar imagem')).toBeDisabled();
-    expect(screen.getByRole('button', { name: /FAQ/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Enviar' })).toBeDisabled();
     fireEvent.keyDown(field(), { key: 'Enter' });
     expect(onSend).not.toHaveBeenCalled();

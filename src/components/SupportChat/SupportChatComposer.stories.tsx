@@ -19,7 +19,6 @@ export const Default: Story = () => {
         onAttachImages={(files) =>
           push(`onAttachImages: ${files.map((file) => file.name).join(', ')}`)
         }
-        onFaqClick={() => push('onFaqClick')}
       />
       {log.map((entry, index) => (
         <Text key={index} size="sm" color="text-text-700">
@@ -39,13 +38,12 @@ export const InternalNote: Story = () => (
       defaultMode={SUPPORT_CHAT_REPLY_MODE.INTERNAL_NOTE}
       onSend={() => undefined}
       onAttachImages={() => undefined}
-      onFaqClick={() => undefined}
     />
   </div>
 );
 
 /**
- * Without the image and FAQ actions
+ * Without the image action
  */
 export const WithoutActions: Story = () => (
   <div className="w-[640px] p-4">
@@ -62,7 +60,6 @@ export const Disabled: Story = () => (
       disabled
       onSend={() => undefined}
       onAttachImages={() => undefined}
-      onFaqClick={() => undefined}
     />
   </div>
 );

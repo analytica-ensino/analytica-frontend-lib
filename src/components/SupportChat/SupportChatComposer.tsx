@@ -1,6 +1,5 @@
 import { useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import { ImageIcon } from '@phosphor-icons/react/dist/csr/Image';
-import { LinkIcon } from '@phosphor-icons/react/dist/csr/Link';
 import Chips from '../Chips/Chips';
 import TextArea from '../TextArea/TextArea';
 import Button from '../Button/Button';
@@ -24,8 +23,6 @@ export interface SupportChatComposerProps {
   onModeChange?: (mode: SupportChatReplyMode) => void;
   /** Images picked with the image button; without it the button is hidden */
   onAttachImages?: (files: File[]) => void;
-  /** FAQ button; without it the button is hidden */
-  onFaqClick?: () => void;
   /** Blocks sending (e.g. while a reply is being sent) */
   disabled?: boolean;
   /** Placeholder of the text field */
@@ -53,7 +50,6 @@ const MODE_OPTIONS: ReadonlyArray<{
  * <SupportChatComposer
  *   onSend={({ text, mode }) => sendReply(text, mode)}
  *   onAttachImages={(files) => upload(files)}
- *   onFaqClick={openFaq}
  * />
  * ```
  */
@@ -62,7 +58,6 @@ const SupportChatComposer = ({
   defaultMode = SUPPORT_CHAT_REPLY_MODE.USER,
   onModeChange,
   onAttachImages,
-  onFaqClick,
   disabled = false,
   placeholder = 'Escreva sua resposta…',
   className,
@@ -134,7 +129,7 @@ const SupportChatComposer = ({
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center">
           {onAttachImages && (
             <>
               <input
@@ -154,18 +149,6 @@ const SupportChatComposer = ({
                 onClick={() => fileInputRef.current?.click()}
               />
             </>
-          )}
-          {onFaqClick && (
-            <Button
-              variant="link"
-              size="small"
-              iconLeft={<LinkIcon size={16} />}
-              onClick={onFaqClick}
-              disabled={disabled}
-              className="p-0 font-normal text-text-700"
-            >
-              FAQ
-            </Button>
           )}
         </div>
 
