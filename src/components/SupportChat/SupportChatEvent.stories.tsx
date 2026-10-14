@@ -1,5 +1,6 @@
 import type { Story } from '@ladle/react';
 import SupportChatEvent from './SupportChatEvent';
+import SupportChatTypingIndicator from './SupportChatTypingIndicator';
 import { SUPPORT_CHAT_EVENT_TYPE } from '../../types/supportChat';
 
 /**
@@ -19,11 +20,22 @@ export const AllTypes: Story = () => (
 export const InConversation: Story = () => (
   <div className="flex w-full max-w-3xl flex-col gap-4 p-4">
     <SupportChatEvent type={SUPPORT_CHAT_EVENT_TYPE.DATE} text="Hoje" />
+    <SupportChatEvent text="Atendimento iniciado via Web" time="13:52" />
     <SupportChatEvent
       type={SUPPORT_CHAT_EVENT_TYPE.TRANSFER}
       text="IA transferiu para humano — motivo: não encontrou resposta na FAQ"
-      time="13:45"
+      time="13:56"
     />
     <SupportChatEvent text="Atendimento passou para humano" time="13:49" />
+    <SupportChatEvent text="Concluído automaticamente pela IA" time="12:44" />
+  </div>
+);
+
+/**
+ * "Fulano está digitando…" indicator, shown at the end of the conversation
+ */
+export const Typing: Story = () => (
+  <div className="flex w-full max-w-3xl flex-col gap-4 p-4">
+    <SupportChatTypingIndicator name="Beatriz" />
   </div>
 );

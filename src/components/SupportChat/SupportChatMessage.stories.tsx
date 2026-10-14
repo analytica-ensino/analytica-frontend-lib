@@ -1,6 +1,7 @@
 import type { Story } from '@ladle/react';
 import SupportChatMessage from './SupportChatMessage';
 import SupportChatEvent from './SupportChatEvent';
+import SupportChatTypingIndicator from './SupportChatTypingIndicator';
 import {
   SUPPORT_CHAT_EVENT_TYPE,
   SUPPORT_CHAT_MESSAGE_TYPE,
@@ -61,6 +62,7 @@ export const AllTypes: Story = () => (
       time="13:52"
       author={agent}
     />
+    <SupportChatTypingIndicator name={user.name} />
   </div>
 );
 
