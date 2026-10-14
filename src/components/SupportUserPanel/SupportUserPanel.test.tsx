@@ -134,12 +134,11 @@ describe('SupportUserPanel', () => {
   describe('tabs', () => {
     it('opens on the ticket details tab', () => {
       renderPanel();
-      expect(
-        screen.getByRole('tab', { name: 'Detalhes do ticket' })
-      ).toHaveAttribute('aria-selected', 'true');
-      expect(screen.getByRole('tabpanel')).toHaveAccessibleName(
-        'Detalhes do ticket'
+      expect(screen.getByRole('tab', { name: 'Detalhes' })).toHaveAttribute(
+        'aria-selected',
+        'true'
       );
+      expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Detalhes');
     });
 
     it('switches tabs on click and notifies', () => {
@@ -170,9 +169,7 @@ describe('SupportUserPanel', () => {
     it('ignores shortcuts when disabled', () => {
       renderPanel({ enableShortcuts: false });
       fireEvent.keyDown(window, { altKey: true, code: 'Digit1' });
-      expect(screen.getByRole('tabpanel')).toHaveAccessibleName(
-        'Detalhes do ticket'
-      );
+      expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Detalhes');
     });
 
     it('follows a controlled tab', () => {

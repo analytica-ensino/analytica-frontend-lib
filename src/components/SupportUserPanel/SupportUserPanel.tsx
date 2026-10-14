@@ -18,7 +18,7 @@ import SupportTicketDetailsTab, {
 const TABS: { value: SupportUserPanelTab; label: string }[] = [
   { value: SUPPORT_USER_PANEL_TAB.PROFILE, label: 'Perfil' },
   { value: SUPPORT_USER_PANEL_TAB.HISTORY, label: 'Histórico' },
-  { value: SUPPORT_USER_PANEL_TAB.TICKET, label: 'Detalhes do ticket' },
+  { value: SUPPORT_USER_PANEL_TAB.TICKET, label: 'Detalhes' },
 ];
 
 /** Props for the support user panel */
@@ -41,7 +41,7 @@ export interface SupportUserPanelProps {
 /**
  * Right-side panel of the agent's ticket screen (300px). Shows the contact
  * of the open conversation and the current ticket in three tabs: Perfil,
- * Histórico and Detalhes do ticket.
+ * Histórico and Detalhes (the current ticket).
  *
  * Presentational: data comes in through props and every change goes out
  * through callbacks. Saves made from the ticket tab are optimistic, with a
@@ -99,14 +99,20 @@ export default function SupportUserPanel({
           onValueChange={(value) => changeTab(value as SupportUserPanelTab)}
           className="!py-0"
         >
-          <MenuContent variant="menu2">
+          {/* Equal widths (`w-full`) leave ~89px per tab in 300px. Each tab
+              takes the width of its label and the leftover is shared, so
+              longer labels still fit on one line. */}
+          <MenuContent
+            variant="menu2"
+            className="!gap-1 [&>li]:!w-auto [&>li]:flex-auto [&>li]:!px-0"
+          >
             {TABS.map((item) => (
               <MenuItem
                 key={item.value}
                 value={item.value}
                 variant="menu2"
                 aria-controls={`support-user-panel-${item.value}`}
-                className="!text-sm whitespace-nowrap"
+                className="!px-0 !text-[13px] whitespace-nowrap"
               >
                 {item.label}
               </MenuItem>
