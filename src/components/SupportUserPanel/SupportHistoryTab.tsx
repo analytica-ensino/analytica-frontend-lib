@@ -194,20 +194,24 @@ export default function SupportHistoryTab({
         />
       </div>
 
-      <fieldset className="flex flex-wrap gap-1.5">
-        <legend className="sr-only">Filtrar tickets</legend>
+      <div
+        role="radiogroup"
+        aria-label="Filtrar tickets"
+        className="flex flex-wrap gap-1.5"
+      >
         {FILTERS.map((item) => (
           <Chips
             key={item.value}
+            role="radio"
+            aria-checked={filter === item.value}
             selected={filter === item.value}
-            aria-pressed={filter === item.value}
             onClick={() => selectFilter(item.value)}
             className="px-3 py-1 text-xs"
           >
             {item.label}
           </Chips>
         ))}
-      </fieldset>
+      </div>
 
       {loading ? (
         <div

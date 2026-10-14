@@ -327,15 +327,23 @@ describe('SupportUserPanel', () => {
         onFilterChange,
         tickets: tickets.filter((t) => t.id !== 3),
       });
-      fireEvent.click(screen.getByRole('button', { name: 'IA' }));
+      expect(screen.getByRole('radio', { name: 'Todos' })).toHaveAttribute(
+        'aria-checked',
+        'true'
+      );
+      fireEvent.click(screen.getByRole('radio', { name: 'IA' }));
       expect(onFilterChange).toHaveBeenCalledWith('ai');
+      expect(screen.getByRole('radio', { name: 'IA' })).toHaveAttribute(
+        'aria-checked',
+        'true'
+      );
       expect(
         screen.getByText('Nenhum ticket com esse filtro')
       ).toBeInTheDocument();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Abertos' }));
+      fireEvent.click(screen.getByRole('radio', { name: 'Abertos' }));
       expect(screen.getAllByRole('listitem')).toHaveLength(2);
-      fireEvent.click(screen.getByRole('button', { name: 'Concluídos' }));
+      fireEvent.click(screen.getByRole('radio', { name: 'Concluídos' }));
       expect(screen.getAllByRole('listitem')).toHaveLength(1);
     });
 
