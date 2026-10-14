@@ -389,16 +389,21 @@ describe('SupportUserPanel', () => {
         ticket: { ticket, reasonOptions, ...ticketProps },
       });
 
+    const priorityBox = () =>
+      screen.getByRole('combobox', { name: /^Prioridade/ });
+
+    const pickPriority = (label: string) => {
+      fireEvent.click(priorityBox());
+      fireEvent.click(screen.getByRole('option', { name: label }));
+    };
+
     it('renders stats, summary and timeline', () => {
       openTicket();
       expect(screen.getByText('WhatsApp')).toBeInTheDocument();
       expect(screen.getByText('10 min')).toBeInTheDocument();
       expect(screen.getByText('Resumo gerado')).toBeInTheDocument();
       expect(screen.getByText('Reaberto')).toBeInTheDocument();
-      expect(screen.getByRole('radio', { name: /Normal/ })).toHaveAttribute(
-        'aria-checked',
-        'true'
-      );
+      expect(priorityBox()).toHaveTextContent('Normal');
     });
 
     it('shows the placeholder summary and skeletons', () => {
@@ -419,14 +424,11 @@ describe('SupportUserPanel', () => {
     it('saves the priority optimistically', async () => {
       const onPriorityChange = jest.fn().mockResolvedValue(undefined);
       openTicket({ onPriorityChange });
-      fireEvent.click(screen.getByRole('radio', { name: /Normal/ }));
+      pickPriority('Normal');
       expect(onPriorityChange).not.toHaveBeenCalled();
 
-      fireEvent.click(screen.getByRole('radio', { name: /Urgente/ }));
-      expect(screen.getByRole('radio', { name: /Urgente/ })).toHaveAttribute(
-        'aria-checked',
-        'true'
-      );
+      pickPriority('Urgente');
+      expect(priorityBox()).toHaveTextContent('Urgente');
       await waitFor(() => expect(lastToast()).toBe('Salvo'));
       expect(onPriorityChange).toHaveBeenCalledWith('urgent');
     });
@@ -434,18 +436,15 @@ describe('SupportUserPanel', () => {
     it('rolls the priority back when saving fails', async () => {
       const onPriorityChange = jest.fn().mockRejectedValue(new Error('x'));
       openTicket({ onPriorityChange });
-      fireEvent.click(screen.getByRole('radio', { name: /Alta/ }));
+      pickPriority('Alta');
       await waitFor(() => expect(lastToast()).toBe('Não foi possível salvar'));
-      expect(screen.getByRole('radio', { name: /Normal/ })).toHaveAttribute(
-        'aria-checked',
-        'true'
-      );
+      expect(priorityBox()).toHaveTextContent('Normal');
     });
 
     it('saves the reason', async () => {
       const onReasonChange = jest.fn().mockResolvedValue(undefined);
       openTicket({ onReasonChange });
-      fireEvent.click(screen.getByRole('combobox'));
+      fireEvent.click(screen.getByRole('combobox', { name: /^Motivo/ }));
       fireEvent.click(screen.getByRole('option', { name: 'Login' }));
       await waitFor(() => expect(onReasonChange).toHaveBeenCalledWith('login'));
     });
@@ -461,8 +460,8 @@ describe('SupportUserPanel', () => {
         onReasonChange: jest.fn(),
       });
       expect(screen.getByText('45 min')).toBeInTheDocument();
-      expect(screen.getByRole('combobox')).toBeDisabled();
-      expect(screen.getByRole('radio', { name: /Alta/ })).toBeDisabled();
+      expect(screen.getByRole('combobox', { name: /^Motivo/ })).toBeDisabled();
+      expect(priorityBox()).toBeDisabled();
     });
 
     it('keeps the wait counter running while nobody answered', () => {

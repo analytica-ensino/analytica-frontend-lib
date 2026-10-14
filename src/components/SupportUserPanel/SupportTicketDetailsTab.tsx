@@ -1,5 +1,4 @@
 import { useId } from 'react';
-import Chips from '../Chips/Chips';
 import Select, {
   SelectContent,
   SelectItem,
@@ -129,27 +128,29 @@ export default function SupportTicketDetailsTab({
 
       <div className="flex flex-col gap-1.5">
         <FieldLabel id={priorityLabelId}>Prioridade</FieldLabel>
-        <div
-          role="radiogroup"
-          aria-labelledby={priorityLabelId}
-          className="flex flex-wrap gap-1.5"
+        <Select
+          value={priority}
+          onValueChange={(value) => {
+            if (value !== priority) {
+              setPriority(value as SupportTicketPriority);
+            }
+          }}
         >
-          {PRIORITIES.map((item) => (
-            <Chips
-              key={item.value}
-              role="radio"
-              aria-checked={priority === item.value}
-              selected={priority === item.value}
-              disabled={readOnly || !onPriorityChange}
-              onClick={() => {
-                if (priority !== item.value) setPriority(item.value);
-              }}
-              className="px-3 py-1 text-xs"
-            >
-              {item.label}
-            </Chips>
-          ))}
-        </div>
+          <SelectTrigger
+            aria-labelledby={priorityLabelId}
+            disabled={readOnly || !onPriorityChange}
+            className="w-full"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {PRIORITIES.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <section
