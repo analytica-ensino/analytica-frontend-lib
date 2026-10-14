@@ -27,6 +27,11 @@ const VARIANT_CLASSES: Record<
 export interface ScoreCircleProps {
   /** Valor atual do score */
   value: number;
+  /**
+   * Como o valor é escrito, no lugar do número cru — ex: "8,0" para uma nota
+   * de 0 a 10 com uma casa decimal. O anel continua sendo desenhado por `value`.
+   */
+  displayValue?: string;
   /** Valor máximo (default: 1000) */
   max?: number;
   /** Variante de cor do anel. Default: 'green' */
@@ -62,6 +67,7 @@ export interface ScoreCircleProps {
  */
 const ScoreCircle = ({
   value,
+  displayValue,
   max = 1000,
   variant = 'green',
   size = 180,
@@ -85,7 +91,8 @@ const ScoreCircle = ({
    * arco —, então sem esta parte ele não existe pra quem não enxerga. "800 de
    * 1000" sozinho também não diz o quanto isso representa.
    */
-  const score = label ? `${label}: ${value} de ${max}` : `${value} de ${max}`;
+  const shown = displayValue ?? String(value);
+  const score = label ? `${label}: ${shown} de ${max}` : `${shown} de ${max}`;
   const accessibleLabel = `${score}. Desempenho: ${Math.round(percentage * 100)} por cento.`;
 
   return (
@@ -139,7 +146,7 @@ const ScoreCircle = ({
           weight="bold"
           className={`${styles.score} leading-none text-4xl`}
         >
-          {value}
+          {shown}
         </Text>
         <Text size="xs" className="text-text-700">
           de {max}

@@ -160,3 +160,94 @@ export interface EnemClassroomStartResponse {
     deadlineAt: string;
   };
 }
+
+/** A difficulty band of the student's result, as the API names it. */
+export type EnemClassroomDifficultyLevel = 'FACIL' | 'MEDIO' | 'DIFICIL';
+
+/** The four numbers an area card and a component row both show. */
+export interface EnemClassroomResultBreakdown {
+  answered: number;
+  correct: number;
+  incorrect: number;
+  /** correct / answered, 0-100; null when nothing was answered. */
+  correctPercentage: number | null;
+}
+
+/** A component named under the score as the best or the weakest. */
+export interface EnemClassroomSubjectHighlight {
+  subjectId: string;
+  subjectName: string;
+  /** 0-100 */
+  correctPercentage: number;
+}
+
+/** An area of knowledge with how the student did in it. */
+export interface EnemClassroomResultArea extends EnemClassroomResultBreakdown {
+  areaKnowledgeId: string;
+  areaKnowledgeName: string;
+}
+
+/** A curricular component with how the student did in it. */
+export interface EnemClassroomResultSubject extends EnemClassroomResultBreakdown {
+  subjectId: string;
+  subjectName: string;
+  areaKnowledgeId: string;
+  areaKnowledgeName: string;
+}
+
+/** How the student did at one difficulty — the "28 de 30" of a bar. */
+export interface EnemClassroomDifficultyResult {
+  level: EnemClassroomDifficultyLevel;
+  /** Questions of that difficulty in the student's block. */
+  answered: number;
+  correct: number;
+}
+
+/**
+ * The student's own result for one momento.
+ *
+ * `GET /enem-classroom/activities/:activityId/result`, student only, addressed
+ * by the **activity** — the id the history row and the notification carry.
+ * Every counter describes the block this student received: with a language
+ * choice two students of the same exam hold different questions, so "45 de 90"
+ * is theirs and never the exam's.
+ */
+export interface EnemClassroomStudentResult {
+  activityId: string;
+  examId: string;
+  title: string;
+  language: EnemClassroomLanguage | null;
+  /** ISO 8601. Null while the attempt is still open. */
+  answeredAt: string | null;
+  /** From "Iniciar" to the submission; null until there is one. */
+  elapsedSeconds: number | null;
+  /** 0-10; null until the submission writes it. */
+  finalScore: number | null;
+  /** What everyone who sat the exam averaged, 0-10; null before any grade. */
+  cohortAverageScore: number | null;
+  /**
+   * At or above the average — which of the summary's two messages to show.
+   * Decided by the API so the message never disagrees with a rounding; null
+   * when either side of the comparison is missing.
+   */
+  aboveAverage: boolean | null;
+  answered: number;
+  correct: number;
+  incorrect: number;
+  blank: number;
+  /** correct / answered, 0-100; null when nothing was answered. */
+  correctPercentage: number | null;
+  /** Null when no question of the block is mapped to a component. */
+  bestSubject: EnemClassroomSubjectHighlight | null;
+  worstSubject: EnemClassroomSubjectHighlight | null;
+  areas: EnemClassroomResultArea[];
+  subjects: EnemClassroomResultSubject[];
+  /** Always three rows, in FACIL, MEDIO, DIFICIL order. */
+  difficulties: EnemClassroomDifficultyResult[];
+}
+
+/** `GET /enem-classroom/activities/:activityId/result` response */
+export interface EnemClassroomStudentResultResponse {
+  message: string;
+  data: EnemClassroomStudentResult;
+}
