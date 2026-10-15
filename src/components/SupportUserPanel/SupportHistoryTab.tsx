@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 import Badge from '../Badge/Badge';
+import Button from '../Button/Button';
 import Chips from '../Chips/Chips';
 import Text from '../Text/Text';
 import { Skeleton } from '../Skeleton/Skeleton';
@@ -152,8 +153,8 @@ const TicketCard = ({
             {badge.label}
           </Badge>
           {expandable && (
-            <button
-              type="button"
+            <Button
+              variant="raw"
               onClick={() => setExpanded((open) => !open)}
               aria-expanded={expanded}
               aria-controls={detailsId}
@@ -165,7 +166,7 @@ const TicketCard = ({
                 aria-hidden="true"
                 className={cn('transition-transform', expanded && 'rotate-180')}
               />
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -183,7 +184,9 @@ const TicketCard = ({
       {resolver && (
         <Text size="xs" color="text-text-600">
           {current ? 'Atendido por: ' : 'Resolvido por: '}
-          <span className="font-medium text-text-950">{resolver}</span>
+          <Text as="span" size="xs" weight="medium" color="text-text-950">
+            {resolver}
+          </Text>
         </Text>
       )}
       {expandable && expanded && (
@@ -196,22 +199,27 @@ const TicketCard = ({
               {details.map(([key, value]) => (
                 <div
                   key={key}
-                  className="flex items-baseline justify-between gap-3 text-xs"
+                  className="flex items-baseline justify-between gap-3"
                 >
-                  <dt className="text-text-600">{key}</dt>
-                  <dd className="font-medium text-text-950">{value}</dd>
+                  <Text as="dt" size="xs" color="text-text-600">
+                    {key}
+                  </Text>
+                  <Text as="dd" size="xs" weight="medium" color="text-text-950">
+                    {value}
+                  </Text>
                 </div>
               ))}
             </dl>
           )}
           {canOpen && (
-            <button
-              type="button"
+            <Button
+              variant="link"
+              size="extra-small"
               onClick={onOpen}
-              className="self-start rounded-sm text-xs font-medium text-primary-800 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info"
+              className="self-start p-0! font-medium"
             >
               Abrir atendimento
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -336,13 +344,14 @@ export default function SupportHistoryTab({
           )}
 
           {canShowMore && (
-            <button
-              type="button"
+            <Button
+              variant="link"
+              size="extra-small"
               onClick={showMore}
-              className="self-center rounded-sm text-xs font-medium text-primary-800 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info"
+              className="self-center p-0! font-medium"
             >
               Ver todos os atendimentos
-            </button>
+            </Button>
           )}
         </>
       )}
