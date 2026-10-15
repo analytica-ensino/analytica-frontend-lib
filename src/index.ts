@@ -1246,6 +1246,35 @@ export type { SupportTimelineItemProps } from './components/SupportTimeline/Supp
 export { SUPPORT_TIMELINE_STATUS } from './types/supportTimeline';
 export type { SupportTimelineStatus } from './types/supportTimeline';
 
+// Support User Panel (SAC)
+export { default as SupportUserPanel } from './components/SupportUserPanel/SupportUserPanel';
+export type { SupportUserPanelProps } from './components/SupportUserPanel/SupportUserPanel';
+export type { SupportProfileTabProps } from './components/SupportUserPanel/SupportProfileTab';
+export type { SupportHistoryTabProps } from './components/SupportUserPanel/SupportHistoryTab';
+export type { SupportTicketDetailsTabProps } from './components/SupportUserPanel/SupportTicketDetailsTab';
+export {
+  SUPPORT_USER_PANEL_TAB,
+  SUPPORT_CHANNEL,
+  SUPPORT_TICKET_PRIORITY,
+  SUPPORT_TICKET_CARD_STATUS,
+  SUPPORT_HISTORY_FILTER,
+} from './types/supportUserPanel';
+export type {
+  SupportUserPanelTab,
+  SupportChannel,
+  SupportTicketPriority,
+  SupportTicketCardStatus,
+  SupportHistoryFilter,
+  SupportContact,
+  SupportContactNote,
+  SupportTicketResolver,
+  SupportTicketSummary,
+  SupportHistorySummary,
+  SupportTicketTimelineEvent,
+  SupportReasonOption,
+  SupportTicketDetails,
+} from './types/supportUserPanel';
+
 // Support Chat (SAC)
 export { default as SupportChatMessage } from './components/SupportChat/SupportChatMessage';
 export type { SupportChatMessageProps } from './components/SupportChat/SupportChatMessage';
