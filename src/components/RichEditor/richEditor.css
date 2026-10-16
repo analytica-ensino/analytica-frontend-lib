@@ -168,3 +168,30 @@
   );
   pointer-events: none;
 }
+
+/*
+ * RichEditor — vídeo incorporado (`enableVideoEmbed`).
+ *
+ * Caixa 16:9 para o player. No editor o iframe não recebe cliques: sem isso o
+ * clique cai dentro do player e o bloco não pode ser selecionado nem apagado.
+ */
+[data-analytica-rich-editor] .ProseMirror .video-embed {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: 0.5rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: var(--color-background-100);
+}
+
+[data-analytica-rich-editor] .ProseMirror .video-embed iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  pointer-events: none;
+}
+
+[data-analytica-rich-editor] .ProseMirror .video-embed.ProseMirror-selectednode {
+  outline: 2px solid var(--color-primary-500);
+}

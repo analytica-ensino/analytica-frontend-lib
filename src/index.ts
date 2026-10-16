@@ -809,6 +809,9 @@ export { default as DownloadButton } from './components/DownloadButton/DownloadB
 
 // RichEditor - WYSIWYG editor with LaTeX support (requires @tiptap/* dependencies)
 export { RichEditor } from './components/RichEditor/RichEditor';
+export { default as ArticleContent } from './components/ArticleContent/ArticleContent';
+export type { ArticleContentProps } from './components/ArticleContent/ArticleContent';
+export { toVideoEmbedUrl, isAllowedVideoEmbedSrc } from './utils/videoEmbed';
 export { FormulaDialog } from './components/RichEditor/components/FormulaDialog';
 export { MathNode } from './components/RichEditor/components/MathNode';
 export {
