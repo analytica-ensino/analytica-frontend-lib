@@ -39,13 +39,6 @@ interface RichEditorProps {
    * file — the editor schema rejects base64 sources.
    */
   readonly allowImagePaste?: boolean;
-  /**
-   * Adds a "Vídeo" toolbar button that embeds YouTube/Vimeo players. Off by
-   * default: without it, iframes in loaded or pasted HTML are dropped as before.
-   */
-  readonly enableVideoEmbed?: boolean;
-  /** Adds an emoji picker to the toolbar. Off by default. */
-  readonly enableEmoji?: boolean;
 }
 
 interface ErrorBoundaryState {
