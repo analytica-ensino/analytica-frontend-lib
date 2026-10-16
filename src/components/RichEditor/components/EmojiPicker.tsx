@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import Button from '../../Button/Button';
 
 /** Emojis offered by the picker, in display order */
 export const RICH_EDITOR_EMOJIS = [
@@ -58,9 +59,9 @@ export function EmojiPicker({
           className="absolute left-0 top-full z-20 mt-1 grid w-72 grid-cols-8 gap-1 rounded-lg border border-border-200 bg-background p-2 shadow-lg"
         >
           {RICH_EDITOR_EMOJIS.map((emoji) => (
-            <button
+            <Button
               key={emoji}
-              type="button"
+              variant="raw"
               aria-label={`Inserir ${emoji}`}
               onClick={() => {
                 onSelect(emoji);
@@ -69,7 +70,7 @@ export function EmojiPicker({
               className="flex h-8 w-8 items-center justify-center rounded text-lg hover:bg-background-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info"
             >
               {emoji}
-            </button>
+            </Button>
           ))}
         </div>
       )}

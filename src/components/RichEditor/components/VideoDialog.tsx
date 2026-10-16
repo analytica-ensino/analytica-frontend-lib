@@ -60,7 +60,7 @@ export function VideoDialog({ open, onClose, onInsert }: VideoDialogProps) {
       }
     >
       <div className="flex flex-col gap-2">
-        <Text weight="medium" className="text-xs text-text-600 block">
+        <Text weight="medium" size="xs" color="text-text-600" className="block">
           Link do vídeo
         </Text>
         <Input
@@ -73,11 +73,11 @@ export function VideoDialog({ open, onClose, onInsert }: VideoDialogProps) {
           }}
           placeholder="https://www.youtube.com/watch?v=..."
         />
-        <Text size="xs" className="text-text-400">
+        <Text size="xs" color="text-text-400">
           Aceita links do YouTube e do Vimeo.
         </Text>
         {error && (
-          <Text size="xs" role="alert" className="text-error-600">
+          <Text size="xs" role="alert" color="text-error-600">
             {error}
           </Text>
         )}
