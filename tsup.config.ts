@@ -186,6 +186,7 @@ export default defineConfig({
     'SupportUserPanel/index':
       'src/components/SupportUserPanel/SupportUserPanel.tsx',
     'types/supportUserPanel/index': 'src/types/supportUserPanel.ts',
+    'ArticleContent/index': 'src/components/ArticleContent/ArticleContent.tsx',
     'SupportChatMessage/index':
       'src/components/SupportChat/SupportChatMessage.tsx',
     'SupportChatEvent/index': 'src/components/SupportChat/SupportChatEvent.tsx',
