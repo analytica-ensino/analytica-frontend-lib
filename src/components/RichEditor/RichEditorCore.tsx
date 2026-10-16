@@ -32,9 +32,13 @@ import { ColumnsPlusRightIcon } from '@phosphor-icons/react/dist/csr/ColumnsPlus
 import { RowsIcon } from '@phosphor-icons/react/dist/csr/Rows';
 import { ColumnsIcon } from '@phosphor-icons/react/dist/csr/Columns';
 import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
+import { VideoIcon } from '@phosphor-icons/react/dist/csr/Video';
+import { SmileyIcon } from '@phosphor-icons/react/dist/csr/Smiley';
 import { useState, useRef, useEffect, ReactNode } from 'react';
 import { FormulaDialog } from './components/FormulaDialog';
 import { ImageDialog } from './components/ImageDialog';
+import { VideoDialog } from './components/VideoDialog';
+import { EmojiPicker } from './components/EmojiPicker';
 import { createPastedImageHandler } from './components/pastedImage';
 import { resolveInsertWidth } from './components/imageSize';
 import { hasColorMarkup } from '../../utils/htmlColors';
@@ -144,6 +148,13 @@ interface RichEditorProps {
    * file — the editor schema rejects base64 sources.
    */
   readonly allowImagePaste?: boolean;
+  /**
+   * Adds a "Vídeo" toolbar button that embeds YouTube/Vimeo players. Off by
+   * default: without it, iframes in loaded or pasted HTML are dropped as before.
+   */
+  readonly enableVideoEmbed?: boolean;
+  /** Adds an emoji picker to the toolbar. Off by default. */
+  readonly enableEmoji?: boolean;
 }
 
 export function RichEditor({
@@ -153,9 +164,13 @@ export function RichEditor({
   onGenerateLatexWithAI,
   onUploadImage,
   allowImagePaste = false,
+  enableVideoEmbed = false,
+  enableEmoji = false,
 }: RichEditorProps) {
   const [formulaOpen, setFormulaOpen] = useState(false);
   const [imageOpen, setImageOpen] = useState(false);
+  const [videoOpen, setVideoOpen] = useState(false);
+  const [emojiOpen, setEmojiOpen] = useState(false);
   const [isPastingImage, setIsPastingImage] = useState(false);
   const [pasteError, setPasteError] = useState('');
   const lastContentRef = useRef(content);
@@ -182,7 +197,9 @@ export function RichEditor({
   const pasteTokenRef = useRef(0);
 
   const editor = useEditor({
-    extensions: createRichEditorExtensions(placeholder),
+    extensions: createRichEditorExtensions(placeholder, {
+      videoEmbed: enableVideoEmbed,
+    }),
     content: prepareContent(content),
     // External updates do not reach this callback: the sync effect below calls
     // setContent with `emitUpdate: false`.
@@ -256,7 +273,7 @@ export function RichEditor({
    * @param loaded - O HTML como chegou na prop `content`
    */
   const emitColorlessContent = (loaded: string) => {
-    if (!editor || !hasColorMarkup(loaded)) return;
+    if (!editor || editor.isDestroyed || !hasColorMarkup(loaded)) return;
 
     const html = editor.getHTML();
     lastContentRef.current = html;
@@ -265,7 +282,11 @@ export function RichEditor({
 
   // Update editor content when prop changes externally (e.g., from loadQuestion)
   useEffect(() => {
-    if (!editor || content === undefined) return;
+    // `useEditor` destroys an instance whose component left the screen (e.g.
+    // a Suspense boundary hiding and showing the tree) and only hands back the
+    // new one on the next render. In between, `editor` is the destroyed
+    // instance: its command manager is gone and `commands` would throw.
+    if (!editor || editor.isDestroyed || content === undefined) return;
 
     // Na primeira renderização o conteúdo já entrou pelo `useEditor`, então só
     // o que chega depois precisa ser reaplicado.
@@ -379,7 +400,7 @@ export function RichEditor({
   };
 
   // `toolbar` só é nulo junto com o editor, mas o TypeScript não sabe disso.
-  if (!editor || !toolbar) return null;
+  if (!editor || editor.isDestroyed || !toolbar) return null;
 
   // `data-analytica-rich-editor` scopes the image resize handle styles shipped
   // in the library's global stylesheet, so they cannot leak into another Tiptap
@@ -561,6 +582,34 @@ export function RichEditor({
           <ImageIcon size={16} />
         </ToolbarBtn>
 
+        {enableVideoEmbed && (
+          <ToolbarBtn
+            onClick={() => setVideoOpen(true)}
+            active={false}
+            title="Inserir vídeo"
+          >
+            <VideoIcon size={16} />
+          </ToolbarBtn>
+        )}
+
+        {enableEmoji && (
+          <EmojiPicker
+            open={emojiOpen}
+            onClose={() => setEmojiOpen(false)}
+            onSelect={(emoji) =>
+              editor.chain().focus().insertContent(emoji).run()
+            }
+          >
+            <ToolbarBtn
+              onClick={() => setEmojiOpen((open) => !open)}
+              active={emojiOpen}
+              title="Inserir emoji"
+            >
+              <SmileyIcon size={16} />
+            </ToolbarBtn>
+          </EmojiPicker>
+        )}
+
         {/* Table */}
         <ToolbarBtn
           onClick={() => editor.chain().focus().insertTable(NEW_TABLE).run()}
@@ -684,6 +733,16 @@ export function RichEditor({
         onInsert={insertFormula}
         onGenerateWithAI={onGenerateLatexWithAI}
       />
+
+      {enableVideoEmbed && (
+        <VideoDialog
+          open={videoOpen}
+          onClose={() => setVideoOpen(false)}
+          onInsert={(src) =>
+            editor.chain().focus().setVideoEmbed({ src }).run()
+          }
+        />
+      )}
 
       <ImageDialog
         open={imageOpen}
