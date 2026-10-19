@@ -128,18 +128,28 @@
   font-weight: 600;
 }
 
+/* The player keeps 16:9 at any width. A width chosen in the editor is saved
+   on the iframe `width` attribute and used as is (never wider than the
+   article); without it the player fills the line. */
 [data-analytica-article] .video-embed,
 [data-analytica-article] [data-video-embed] {
   position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border-radius: 0.75rem;
-  overflow: hidden;
-  background: var(--color-background-100);
+  max-width: 100%;
+  margin: 0.5rem 0;
 }
 
 [data-analytica-article] iframe {
+  display: block;
   width: 100%;
-  height: 100%;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
   border: 0;
+  border-radius: 0.75rem;
+  background: var(--color-background-100);
+}
+
+/* `width: auto` lets the `width` attribute size the player */
+[data-analytica-article] iframe[width] {
+  width: auto;
 }

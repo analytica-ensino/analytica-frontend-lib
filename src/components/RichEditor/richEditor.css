@@ -175,10 +175,13 @@
  * Caixa 16:9 para o player. No editor o iframe não recebe cliques: sem isso o
  * clique cai dentro do player e o bloco não pode ser selecionado nem apagado.
  */
+/* Without a stored width the player fills the line; a resize sets an inline
+   width on the wrapper (the node view), capped by the editor width. The 16:9
+   box lives on the iframe so the height follows whatever width is chosen. */
 [data-analytica-rich-editor] .ProseMirror .video-embed {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  max-width: 100%;
   margin: 0.5rem 0;
   border-radius: 0.5rem;
   overflow: hidden;
@@ -186,8 +189,10 @@
 }
 
 [data-analytica-rich-editor] .ProseMirror .video-embed iframe {
+  display: block;
   width: 100%;
-  height: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
   border: 0;
   pointer-events: none;
 }
