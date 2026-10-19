@@ -1960,6 +1960,13 @@
       "require": "./dist/MultiCheckSelect/index.js",
       "default": "./dist/MultiCheckSelect/index.mjs"
     },
+    "./education-stage-select": {
+      "types": "./dist/EducationStageSelect/index.d.ts",
+      "module": "./dist/EducationStageSelect/index.mjs",
+      "import": "./dist/EducationStageSelect/index.mjs",
+      "require": "./dist/EducationStageSelect/index.js",
+      "default": "./dist/EducationStageSelect/index.mjs"
+    },
     "./activity-create/activitycreatecontent": {
       "types": "./dist/ActivityCreate/ActivityCreateContent/index.d.ts",
       "module": "./dist/ActivityCreate/ActivityCreateContent/index.mjs",

@@ -1,35 +1,12 @@
-import { useEffect } from 'react';
+import { useCallback } from 'react';
 import { ClockIcon } from '@phosphor-icons/react/dist/csr/Clock';
-import Select, {
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '../Select/Select';
 import { MultiCheckSelect } from '../MultiCheckSelect/MultiCheckSelect';
+import { EducationStageSelect } from '../EducationStageSelect/EducationStageSelect';
 import { EDUCATION_STAGE_OPTIONS, EXAM_DURATION_OPTIONS } from './constants';
 import type { EnemMomentEducationStage } from './types';
 
 const formatSelectedDurations = (count: number) =>
   count === 1 ? '1 tempo selecionado' : `${count} tempos selecionados`;
-
-/**
- * The "Série" options to offer, given what the school actually has.
- *
- * Keeps the order of `EDUCATION_STAGE_OPTIONS` instead of the caller's, so the
- * regular 3rd year stays first however the scope came back.
- *
- * @param availableStages - Stages the school has; `undefined` means unknown
- * @returns The options to render
- */
-const resolveStageOptions = (
-  availableStages?: readonly EnemMomentEducationStage[]
-) => {
-  if (!availableStages) return EDUCATION_STAGE_OPTIONS;
-  return EDUCATION_STAGE_OPTIONS.filter((option) =>
-    availableStages.includes(option.value)
-  );
-};
 
 /**
  * The picks of the Momento ENEM screens: "Tempo de prova" and the teaching
@@ -60,23 +37,14 @@ export function EnemMomentHeaderFilters({
    */
   availableStages?: readonly EnemMomentEducationStage[];
 }>) {
-  const stageOptions = resolveStageOptions(availableStages);
-  const stageIsOffered = stageOptions.some(
-    (option) => option.value === educationStage
+  // A stage is always picked here (no "all" item), so `null` never comes back.
+  const handleStageChange = useCallback(
+    (stage: EnemMomentEducationStage | null) => {
+      if (stage) onEducationStageChange(stage);
+    },
+    [onEducationStageChange]
   );
 
-  /*
-    A primitive, and not the options array: `resolveStageOptions` filters, so
-    it hands back a new array on every render and an effect watching it would
-    fire forever. This settles to null as soon as the cut is corrected.
-  */
-  const stageToFallBackTo =
-    stageIsOffered || stageOptions.length === 0 ? null : stageOptions[0].value;
-
-  useEffect(() => {
-    if (!stageToFallBackTo) return;
-    onEducationStageChange(stageToFallBackTo);
-  }, [stageToFallBackTo, onEducationStageChange]);
   return (
     <>
       <MultiCheckSelect
@@ -90,29 +58,12 @@ export function EnemMomentHeaderFilters({
         aria-label="Tempo de prova"
       />
 
-      {/* The width goes on the root, not only on the trigger: the root is
-          `w-full`, and in a header that wraps (the gestor's) a full-width item
-          drops to a line of its own, far from "Tempo de prova". */}
-      {stageOptions.length > 1 && (
-        <Select
-          value={educationStage}
-          onValueChange={(value) =>
-            onEducationStageChange(value as EnemMomentEducationStage)
-          }
-          className="w-auto"
-        >
-          <SelectTrigger className="w-auto min-w-45 gap-2" aria-label="Série">
-            <SelectValue placeholder="Série" />
-          </SelectTrigger>
-          <SelectContent>
-            {stageOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
+      <EducationStageSelect
+        value={educationStage}
+        onChange={handleStageChange}
+        options={EDUCATION_STAGE_OPTIONS}
+        availableStages={availableStages}
+      />
     </>
   );
 }
