@@ -86,6 +86,8 @@ export default defineConfig({
     'ReportTabs/index': 'src/components/shared/ReportTabs.tsx',
     'MultiCheckSelect/index':
       'src/components/MultiCheckSelect/MultiCheckSelect.tsx',
+    'EducationStageSelect/index':
+      'src/components/EducationStageSelect/EducationStageSelect.tsx',
     'VerticalBarChart/index':
       'src/components/VerticalBarChart/VerticalBarChart.tsx',
     'ProficiencyChart/index':
