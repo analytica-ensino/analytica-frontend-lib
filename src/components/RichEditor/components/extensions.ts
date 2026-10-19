@@ -8,6 +8,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import Image from '@tiptap/extension-image';
 import { TableKit } from '@tiptap/extension-table';
 import { MathNode } from './MathNode';
+import { VideoEmbedNode } from './VideoEmbedNode';
 import {
   MIN_IMAGE_HEIGHT,
   MIN_IMAGE_WIDTH,
@@ -91,8 +92,14 @@ const ResizableImage = Image.extend({
  * the text itself is kept. Bold, italic, alignment and the rest are unaffected:
  * they are separate marks.
  */
-export function createRichEditorExtensions(placeholder: string) {
+export function createRichEditorExtensions(
+  placeholder: string,
+  options: { videoEmbed?: boolean } = {}
+) {
   return [
+    // Opt-in: without it the schema has no match for `<iframe>`, so editors
+    // that never asked for video keep dropping any iframe that is pasted in.
+    ...(options.videoEmbed ? [VideoEmbedNode] : []),
     StarterKit,
     Underline,
     Subscript,
