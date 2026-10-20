@@ -53,6 +53,19 @@ export interface EnemMomentReportConfig {
   active: boolean;
   /** In-classroom ENEM exam IDs, in the order the backoffice arranged them. */
   examIds: string[];
+  /**
+   * Of `examIds`, the ones whose result the students may already see. Empty by default,
+   * and empty blocks everyone: the exam is corrected on submission, so an early release
+   * hands the score to whoever sat it before the rest of the network. `active` is about
+   * the manager's report; this is about the student's own screen.
+   */
+  releasedExamIds: string[];
+  /**
+   * Whether the students may simulate SISU with their Momento ENEM scores (the
+   * "Simulador SISU do Momento ENEM"). Off by default and separate from the `simulator`
+   * module, the manual calculator where the student types the scores.
+   */
+  sisuSimulator: boolean;
 }
 
 export interface ReportsConfig {
@@ -110,6 +123,8 @@ export const DEFAULT_PERFORMANCE_GRAPHS: PerformanceGraphsConfig = {
 export const DEFAULT_ENEM_MOMENT_REPORT: EnemMomentReportConfig = {
   active: false,
   examIds: [],
+  releasedExamIds: [],
+  sisuSimulator: false,
 };
 
 export const DEFAULT_REPORTS: ReportsConfig = {
@@ -298,13 +313,18 @@ export const mergeModulesConfig = (
       ...v.reports,
       // One level deeper than its siblings: enemMoment is an object, so a stored
       // row carrying only `{ active: true }` would otherwise arrive without the
-      // `examIds` array every consumer iterates.
+      // arrays every consumer iterates.
       enemMoment: {
         ...DEFAULT_ENEM_MOMENT_REPORT,
         ...v.reports?.enemMoment,
         examIds: v.reports?.enemMoment?.examIds
           ? [...(v.reports.enemMoment.examIds as string[])]
           : [],
+        releasedExamIds: v.reports?.enemMoment?.releasedExamIds
+          ? [...(v.reports.enemMoment.releasedExamIds as string[])]
+          : [],
+        // Only a real `true` turns it on (not "true" or 1 from a hand-edited row).
+        sisuSimulator: v.reports?.enemMoment?.sisuSimulator === true,
       },
     },
     simulatedScore: { ...DEFAULT_SIMULATED_SCORE, ...v.simulatedScore },

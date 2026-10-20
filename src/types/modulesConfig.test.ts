@@ -9,6 +9,8 @@ describe('mergeModulesConfig — reports.enemMoment', () => {
     expect(mergeModulesConfig().reports.enemMoment).toEqual({
       active: false,
       examIds: [],
+      releasedExamIds: [],
+      sisuSimulator: false,
     });
   });
 
@@ -20,6 +22,8 @@ describe('mergeModulesConfig — reports.enemMoment', () => {
     expect(merged.reports.enemMoment).toEqual({
       active: true,
       examIds: ['exam-1', 'exam-2'],
+      releasedExamIds: [],
+      sisuSimulator: false,
     });
   });
 
@@ -30,7 +34,12 @@ describe('mergeModulesConfig — reports.enemMoment', () => {
       reports: { enemMoment: { active: true } },
     });
 
-    expect(merged.reports.enemMoment).toEqual({ active: true, examIds: [] });
+    expect(merged.reports.enemMoment).toEqual({
+      active: true,
+      examIds: [],
+      releasedExamIds: [],
+      sisuSimulator: false,
+    });
   });
 
   it('keeps the other report toggles when only enemMoment is stored', () => {
@@ -50,7 +59,7 @@ describe('mergeModulesConfig — reports.enemMoment', () => {
     });
 
     expect(merged.reports.questionnairesReports).toBe(true);
-    expect(merged.reports.enemMoment).toEqual({ active: false, examIds: [] });
+    expect(merged.reports.enemMoment).toEqual(DEFAULT_ENEM_MOMENT_REPORT);
   });
 
   it('does not hand out the default array itself', () => {
@@ -67,12 +76,48 @@ describe('mergeModulesConfig — reports.enemMoment', () => {
     );
   });
 
-  it('copies the stored array instead of aliasing it', () => {
-    const stored = { active: true, examIds: ['exam-1'] };
+  it('copies the stored arrays instead of aliasing them', () => {
+    const stored = {
+      active: true,
+      examIds: ['exam-1'],
+      releasedExamIds: ['exam-1'],
+    };
     const merged = mergeModulesConfig({ reports: { enemMoment: stored } });
 
     merged.reports.enemMoment.examIds.push('exam-2');
+    merged.reports.enemMoment.releasedExamIds.push('exam-2');
 
     expect(stored.examIds).toEqual(['exam-1']);
+    expect(stored.releasedExamIds).toEqual(['exam-1']);
+  });
+
+  it('keeps the released exams and the SISU simulator', () => {
+    const merged = mergeModulesConfig({
+      reports: {
+        enemMoment: {
+          active: true,
+          examIds: ['exam-1', 'exam-2'],
+          releasedExamIds: ['exam-1'],
+          sisuSimulator: true,
+        },
+      },
+    });
+
+    expect(merged.reports.enemMoment).toEqual({
+      active: true,
+      examIds: ['exam-1', 'exam-2'],
+      releasedExamIds: ['exam-1'],
+      sisuSimulator: true,
+    });
+  });
+
+  it('turns the SISU simulator on only with a real true', () => {
+    const merged = mergeModulesConfig({
+      reports: {
+        enemMoment: { sisuSimulator: 'true' as unknown as boolean },
+      },
+    });
+
+    expect(merged.reports.enemMoment.sisuSimulator).toBe(false);
   });
 });
