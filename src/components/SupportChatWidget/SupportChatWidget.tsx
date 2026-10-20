@@ -45,7 +45,10 @@ export interface SupportChatWidgetProps {
   theme?: SupportChatTheme;
   onOpen?: () => void;
   onSend?: (message: SupportChatMessage) => void;
-  /** Called when the conversation is closed (not when minimized) */
+  /**
+   * Called when the window is closed with X. Closing only hides it: the
+   * conversation stays connected and new replies count as unread.
+   */
   onClose?: () => void;
 }
 
@@ -261,13 +264,17 @@ const SupportChatWidgetContent = ({
 
   const close = () => {
     setWindowState('closed');
+    onClose?.();
+  };
+
+  /** Drop a finished conversation so the next message opens a new ticket */
+  const startOver = () => {
     setDraft('');
     setFiles([]);
     setFileError(null);
     setUnread(0);
     seenCount.current = 0;
     reset();
-    onClose?.();
   };
 
   const submit = async () => {
@@ -334,7 +341,7 @@ const SupportChatWidgetContent = ({
               </Button>
               <Button
                 variant="raw"
-                aria-label="Encerrar conversa"
+                aria-label="Fechar"
                 onClick={close}
                 className="p-1 rounded hover:bg-white/20"
               >
@@ -366,12 +373,14 @@ const SupportChatWidgetContent = ({
           )}
 
           {closed ? (
-            <Text
-              size="sm"
-              className="px-4 py-3 text-text-500 text-center border-t border-border-100"
-            >
-              Este atendimento foi encerrado.
-            </Text>
+            <div className="flex flex-col items-center gap-2 px-4 py-3 border-t border-border-100">
+              <Text size="sm" className="text-text-500 text-center">
+                Este atendimento foi encerrado.
+              </Text>
+              <Button variant="link" size="small" onClick={startOver}>
+                Iniciar nova conversa
+              </Button>
+            </div>
           ) : (
             <form
               className="flex flex-col gap-2 px-3 py-3 border-t border-border-100"

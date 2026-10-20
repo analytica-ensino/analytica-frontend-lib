@@ -220,6 +220,46 @@ describe('TicketListItem', () => {
       expect(screen.getByText('Não lido')).toBeInTheDocument();
     });
 
+    it('shows how many messages are unread in place of the dot', () => {
+      renderItem({ unread: true, unreadCount: 3 });
+
+      expect(
+        screen.getByTestId('ticket-list-item-unread-count')
+      ).toHaveTextContent('3');
+      expect(
+        screen.getByLabelText('3 mensagens não lidas')
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByTestId('ticket-list-item-unread')
+      ).not.toBeInTheDocument();
+    });
+
+    it('marks the row as unread from the count alone', () => {
+      renderItem({ unreadCount: 1 });
+
+      expect(screen.getByLabelText('1 mensagem não lida')).toBeInTheDocument();
+    });
+
+    it('caps the count at 99+', () => {
+      renderItem({ unreadCount: 150 });
+
+      expect(
+        screen.getByTestId('ticket-list-item-unread-count')
+      ).toHaveTextContent('99+');
+      expect(
+        screen.getByLabelText('150 mensagens não lidas')
+      ).toBeInTheDocument();
+    });
+
+    it('keeps the plain dot when the count is zero', () => {
+      renderItem({ unread: true, unreadCount: 0 });
+
+      expect(screen.getByTestId('ticket-list-item-unread')).toBeInTheDocument();
+      expect(
+        screen.queryByTestId('ticket-list-item-unread-count')
+      ).not.toBeInTheDocument();
+    });
+
     it('applies the attendance tone', () => {
       renderItem({ attendanceLabel: 'HUMANO', attendanceTone: 'info' });
 

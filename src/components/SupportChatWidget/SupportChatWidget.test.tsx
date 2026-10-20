@@ -192,9 +192,43 @@ describe('SupportChatWidget', () => {
       screen.getByText('Este atendimento foi encerrado.')
     ).toBeInTheDocument();
     expect(screen.queryByLabelText('Mensagem')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Iniciar nova conversa'));
+    expect(screen.queryByText('Olá')).not.toBeInTheDocument();
+    expect(
+      screen.getByText('Olá! Como podemos te ajudar?')
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Mensagem')).toBeInTheDocument();
   });
 
-  it('closing resets the conversation and calls onClose', async () => {
+  it('closing with X only hides: the conversation and unread count go on', async () => {
+    const { adapter, emit } = createAdapter();
+    const onClose = jest.fn();
+    render(
+      <SupportChatWidget adapter={adapter} channel="app" onClose={onClose} />
+    );
+
+    fireEvent.click(screen.getByLabelText('Abrir suporte'));
+    await sendText('oi');
+    fireEvent.click(screen.getByLabelText('Fechar'));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    emit({
+      type: 'new_message',
+      payload: {
+        message: buildMessage('a2', 'Resposta', SUPPORT_CHAT_AUTHOR.AGENT),
+      },
+    });
+    expect(screen.getByLabelText('1 novas mensagens')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Abrir suporte'));
+    expect(screen.getByText('oi')).toBeInTheDocument();
+    expect(screen.getByText('Resposta')).toBeInTheDocument();
+  });
+
+  it('closing calls onClose and keeps the theme', async () => {
     const { adapter } = createAdapter();
     const onClose = jest.fn();
     render(
@@ -212,11 +246,11 @@ describe('SupportChatWidget', () => {
 
     fireEvent.click(screen.getByLabelText('Abrir ajuda'));
     await sendText('oi');
-    fireEvent.click(screen.getByLabelText('Encerrar conversa'));
+    fireEvent.click(screen.getByLabelText('Fechar'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByLabelText('Abrir ajuda'));
-    expect(screen.queryByText('oi')).not.toBeInTheDocument();
+    expect(screen.getByText('oi')).toBeInTheDocument();
     expect(screen.getByLabelText('Enviar')).toHaveStyle({
       backgroundColor: '#123456',
     });
