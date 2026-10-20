@@ -52,6 +52,10 @@ export interface SupportChatWidgetProps {
   onClose?: () => void;
 }
 
+/** Label read by screen readers on the unread badge of the launcher */
+const formatNewMessagesLabel = (count: number): string =>
+  count === 1 ? '1 nova mensagem' : `${count} novas mensagens`;
+
 /** The requester side of the conversation (user or visitor) */
 const isOwnMessage = (message: SupportChatMessage) =>
   message.senderRole === SUPPORT_CHAT_AUTHOR.USER ||
@@ -374,7 +378,7 @@ const SupportChatWidgetContent = ({
 
           {closed ? (
             <div className="flex flex-col items-center gap-2 px-4 py-3 border-t border-border-100">
-              <Text size="sm" className="text-text-500 text-center">
+              <Text size="sm" color="text-text-500" className="text-center">
                 Este atendimento foi encerrado.
               </Text>
               <Button variant="link" size="small" onClick={startOver}>
@@ -462,7 +466,7 @@ const SupportChatWidgetContent = ({
               as="span"
               size="xs"
               color="text-white"
-              aria-label={`${unread} novas mensagens`}
+              aria-label={formatNewMessagesLabel(unread)}
               className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-error-500 flex items-center justify-center"
             >
               {unread}

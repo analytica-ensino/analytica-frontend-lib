@@ -168,13 +168,11 @@ describe('SupportChatWidget', () => {
         message: buildMessage('a1', 'Olá', SUPPORT_CHAT_AUTHOR.AGENT),
       },
     });
-    expect(screen.getByLabelText('1 novas mensagens')).toBeInTheDocument();
+    expect(screen.getByLabelText('1 nova mensagem')).toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText('Abrir suporte'));
     expect(screen.getByText('Olá')).toBeInTheDocument();
-    expect(
-      screen.queryByLabelText('1 novas mensagens')
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('1 nova mensagem')).not.toBeInTheDocument();
 
     emit({ type: 'error', payload: { message: 'Conexão perdida' } });
     expect(screen.getByRole('alert')).toHaveTextContent('Conexão perdida');
@@ -221,7 +219,15 @@ describe('SupportChatWidget', () => {
         message: buildMessage('a2', 'Resposta', SUPPORT_CHAT_AUTHOR.AGENT),
       },
     });
-    expect(screen.getByLabelText('1 novas mensagens')).toBeInTheDocument();
+    expect(screen.getByLabelText('1 nova mensagem')).toBeInTheDocument();
+
+    emit({
+      type: 'new_message',
+      payload: {
+        message: buildMessage('a3', 'Mais uma', SUPPORT_CHAT_AUTHOR.AGENT),
+      },
+    });
+    expect(screen.getByLabelText('2 novas mensagens')).toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText('Abrir suporte'));
     expect(screen.getByText('oi')).toBeInTheDocument();
