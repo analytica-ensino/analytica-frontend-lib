@@ -240,6 +240,9 @@ export default defineConfig({
     'hooks/useSimulations/index': 'src/hooks/useSimulations.ts',
     'types/simulations/index': 'src/types/simulations.ts',
 
+    // Student page header (Simulados' title row), shared by every page.
+    'PageHeader/index': 'src/components/PageHeader/PageHeader.tsx',
+
     // Lessons catalogue (subjects -> topics -> lesson page), shared by the
     // student portal and the teacher/manager preview.
     'LessonsCatalog/index': 'src/components/LessonsCatalog/index.ts',

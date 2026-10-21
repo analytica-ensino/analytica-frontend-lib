@@ -8,6 +8,7 @@ import {
   IconRender,
   CardProgress,
   EmptyState,
+  PageHeader,
 } from '../../index';
 import { useTheme } from '../../hooks/useTheme';
 import { getSubjectColorWithOpacity } from '../../utils/utils';
@@ -37,6 +38,12 @@ export interface LessonsCatalogPageProps {
   readonly mode?: LessonsMode;
   /** Page heading. */
   readonly title?: string;
+  /**
+   * `page`: the student portal's page header (`PageHeader`, as on Simulados:
+   * h1 aligned by the base of a 64px row, the search beside it). `default`:
+   * the catalogue's own heading, kept for the teacher and manager previews.
+   */
+  readonly headerVariant?: 'default' | 'page';
   /** Image shown when a search returns no results. */
   readonly noSearchImage?: string;
 }
@@ -71,6 +78,7 @@ export function LessonsCatalogPage({
   mode = 'student',
   title = 'Aulas',
   noSearchImage,
+  headerVariant = 'default',
 }: LessonsCatalogPageProps) {
   const navigate = useNavigate();
   const useClassesCatalog = useMemo(() => createUseClassesCatalog(api), [api]);
@@ -317,11 +325,15 @@ export function LessonsCatalogPage({
   if (loading) {
     return (
       <div className="flex flex-col w-full h-full bg-secondary-50">
-        <div className="flex flex-row items-center justify-between pt-4 pb-2 gap-4">
-          <Text size="2xl" weight="bold" className="text-text-950">
-            {title}
-          </Text>
-        </div>
+        {headerVariant === 'page' ? (
+          <PageHeader title={title} />
+        ) : (
+          <div className="flex flex-row items-center justify-between pt-4 pb-2 gap-4">
+            <Text size="2xl" weight="bold" className="text-text-950">
+              {title}
+            </Text>
+          </div>
+        )}
 
         <div className="flex flex-col pb-8">
           <div className="flex flex-col">
@@ -390,36 +402,51 @@ export function LessonsCatalogPage({
     );
   }
 
+  const searchField = (
+    <Search
+      options={loading ? [] : subjectOptions}
+      placeholder={
+        loading
+          ? 'Carregando componentes curriculares...'
+          : 'Buscar componente curricular ou aula'
+      }
+      value={searchTerm}
+      onChange={handleSearchChange}
+      onSelect={handleSubjectSelect}
+      resultsCount={searchResultsCount}
+      showDropdown={false}
+      onClear={() => {
+        setSearchTerm('');
+        clearLessonSearch();
+        if (error) {
+          clearError();
+        }
+      }}
+      className={`w-full ${loading ? 'opacity-75' : ''}`}
+    />
+  );
+
   return (
     <div className="flex flex-col w-full h-full bg-secondary-50">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 pb-2 gap-4">
-        <Text size="2xl" weight="bold" className="text-text-950">
-          {title}
-        </Text>
-        <div className="w-full sm:w-auto sm:flex-1 sm:max-w-[500px]">
-          <Search
-            options={loading ? [] : subjectOptions}
-            placeholder={
-              loading
-                ? 'Carregando componentes curriculares...'
-                : 'Buscar componente curricular ou aula'
-            }
-            value={searchTerm}
-            onChange={handleSearchChange}
-            onSelect={handleSubjectSelect}
-            resultsCount={searchResultsCount}
-            showDropdown={false}
-            onClear={() => {
-              setSearchTerm('');
-              clearLessonSearch();
-              if (error) {
-                clearError();
-              }
-            }}
-            className={`w-full ${loading ? 'opacity-75' : ''}`}
-          />
+      {headerVariant === 'page' ? (
+        // On phones the search wraps to its own line under the title. The
+        // 10px top padding is the offset the 64px row's centring gives the
+        // title on the other pages (Simulados), which a wrapped row loses.
+        <PageHeader title={title} className="not-sm:flex-wrap not-sm:pt-2.5">
+          <div className="w-full sm:w-auto sm:flex-1 sm:max-w-[500px] sm:self-end">
+            {searchField}
+          </div>
+        </PageHeader>
+      ) : (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 pb-2 gap-4">
+          <Text size="2xl" weight="bold" className="text-text-950">
+            {title}
+          </Text>
+          <div className="w-full sm:w-auto sm:flex-1 sm:max-w-[500px]">
+            {searchField}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex flex-col pb-8">{renderContent()}</div>
     </div>

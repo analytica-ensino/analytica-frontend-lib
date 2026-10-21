@@ -83,14 +83,22 @@ function LocationProbe() {
 
 function renderPage(
   api: jest.Mocked<BaseApiClient>,
-  mode: 'student' | 'preview' = 'student'
+  mode: 'student' | 'preview' = 'student',
+  headerVariant?: 'default' | 'page'
 ) {
   return render(
     <MemoryRouter initialEntries={['/aulas']}>
       <Routes>
         <Route
           path="/aulas"
-          element={<LessonsCatalogPage api={api} routes={ROUTES} mode={mode} />}
+          element={
+            <LessonsCatalogPage
+              api={api}
+              routes={ROUTES}
+              mode={mode}
+              headerVariant={headerVariant}
+            />
+          }
         />
         <Route path="/aulas/:subjectId/topicos" element={<LocationProbe />} />
       </Routes>
@@ -99,6 +107,40 @@ function renderPage(
 }
 
 describe('LessonsCatalogPage', () => {
+  describe('header', () => {
+    it("uses the student portal's page header when asked (h1, search beside it)", async () => {
+      const api = makeApi();
+      renderPage(api, 'student', 'page');
+
+      await screen.findByText('Biologia');
+      const title = screen.getByRole('heading', { level: 1, name: 'Aulas' });
+      expect(title).toHaveClass('text-lg', 'font-bold');
+      expect(title.parentElement).toHaveClass('min-h-16', 'mb-4');
+      expect(title.parentElement?.querySelector('input')).toBeInTheDocument();
+    });
+
+    it('uses the page header while loading too', () => {
+      const api = makeApi();
+      api.get.mockReturnValue(new Promise(() => {}));
+      renderPage(api, 'student', 'page');
+
+      expect(
+        screen.getByRole('heading', { level: 1, name: 'Aulas' })
+      ).toBeInTheDocument();
+    });
+
+    it('keeps its own heading by default (teacher and manager previews)', async () => {
+      const api = makeApi();
+      renderPage(api, 'preview');
+
+      await screen.findByText('Biologia');
+      expect(
+        screen.queryByRole('heading', { level: 1 })
+      ).not.toBeInTheDocument();
+      expect(screen.getByText('Aulas')).toHaveClass('text-2xl');
+    });
+  });
+
   it('loads and lists the subjects grouped by knowledge area', async () => {
     const api = makeApi();
     renderPage(api);

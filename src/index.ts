@@ -7,6 +7,8 @@ import './styles.css';
 // Layout Components
 export { PageContainer } from './components/PageContainer/PageContainer';
 export type { PageContainerProps } from './components/PageContainer/PageContainer';
+export { PageHeader } from './components/PageHeader/PageHeader';
+export type { PageHeaderProps } from './components/PageHeader/PageHeader';
 
 // Basic Components
 export { default as Text } from './components/Text/Text';
