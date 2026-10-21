@@ -47,6 +47,10 @@ export const fromSupportAnswer = (
   messageType: 'text',
   createdAt: answer.createdAt,
   attachments: answer.attachments ?? [],
+  faq:
+    answer.faqArticleId && answer.faqArticleTitle
+      ? { id: answer.faqArticleId, title: answer.faqArticleTitle }
+      : null,
 });
 
 /**

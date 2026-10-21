@@ -394,6 +394,49 @@ describe('SupportChatWidget images', () => {
   });
 });
 
+describe('SupportChatWidget FAQ reference', () => {
+  const aiAnswer = {
+    ...buildMessage(
+      'ai1',
+      'Clique em "Esqueci a senha".',
+      SUPPORT_CHAT_AUTHOR.AI
+    ),
+    faq: { id: 'art-1', title: 'Como redefinir a senha' },
+  };
+
+  const openWithAiAnswer = async (
+    faqArticleUrl?: (articleId: string) => string
+  ) => {
+    const { adapter, emit } = createAdapter();
+    render(
+      <SupportChatWidget
+        adapter={adapter}
+        channel="app"
+        faqArticleUrl={faqArticleUrl}
+      />
+    );
+    fireEvent.click(screen.getByLabelText('Abrir suporte'));
+    await sendText('esqueci a senha');
+    emit({ type: 'new_message', payload: { message: aiAnswer } });
+  };
+
+  it('links the article the AI answer is based on', async () => {
+    await openWithAiAnswer((id) => `/artigo/${id}`);
+
+    expect(
+      screen.getByText('Baseado na FAQ: Como redefinir a senha').closest('a')
+    ).toHaveAttribute('href', '/artigo/art-1');
+  });
+
+  it('only names the article without a link builder', async () => {
+    await openWithAiAnswer();
+
+    expect(
+      screen.getByText('Baseado na FAQ: Como redefinir a senha').closest('a')
+    ).toBeNull();
+  });
+});
+
 describe('SupportChatWidget optimistic rendering', () => {
   it('shows the message faded while it is being sent', async () => {
     const { adapter } = createAdapter();

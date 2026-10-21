@@ -27,6 +27,12 @@ export interface UseSupportFeatureFlagReturn {
    * mas ainda não teve a key preenchida no backoffice.
    */
   zendeskKey: string | undefined;
+  /**
+   * Link of a FAQ article of the institution (`<faqUrl>/artigo/<id>`), for
+   * the support chat. `undefined` while loading or when the institution has
+   * no FAQ address.
+   */
+  faqArticleUrl: ((articleId: string) => string) | undefined;
   openZendeskChat: () => void;
 }
 
@@ -44,6 +50,7 @@ export const useSupportFeatureFlag = (
 ): UseSupportFeatureFlagReturn => {
   const [supportType, setSupportType] = useState<SupportType | null>(null);
   const [zendeskKey, setZendeskKey] = useState<string | undefined>(undefined);
+  const [faqUrl, setFaqUrl] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const { institutionId } = useAppStore();
 
@@ -65,9 +72,11 @@ export const useSupportFeatureFlag = (
         const version = response?.data?.featureFlags?.version;
         setSupportType(version?.supportType ?? SupportType.NATIVE);
         setZendeskKey(version?.zendeskKey || undefined);
+        setFaqUrl(version?.faqUrl?.trim().replace(/\/+$/, '') || undefined);
       } catch (error) {
         setSupportType(isFlagNotFound(error) ? SupportType.NATIVE : null);
         setZendeskKey(undefined);
+        setFaqUrl(undefined);
       } finally {
         setLoading(false);
       }
@@ -95,6 +104,9 @@ export const useSupportFeatureFlag = (
     isZendesk: supportType === SupportType.ZENDESK,
     isNative: supportType === SupportType.NATIVE,
     zendeskKey,
+    faqArticleUrl: faqUrl
+      ? (articleId: string) => `${faqUrl}/artigo/${articleId}`
+      : undefined,
     openZendeskChat,
   };
 };

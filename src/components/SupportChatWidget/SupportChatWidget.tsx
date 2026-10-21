@@ -50,6 +50,12 @@ export interface SupportChatWidgetProps {
    * conversation stays connected and new replies count as unread.
    */
   onClose?: () => void;
+  /**
+   * Link of a FAQ article, e.g. `(id) => '/artigo/' + id`. With it, the
+   * "Baseado na FAQ" line under an AI answer opens the article; without it
+   * the line only names the article.
+   */
+  faqArticleUrl?: (articleId: string) => string;
 }
 
 /** Label read by screen readers on the unread badge of the launcher */
@@ -149,7 +155,42 @@ const pickImages = (current: File[], picked: File[]) => {
   return { accepted, problem };
 };
 
-const MessageBubble = ({ message }: { message: SupportChatMessage }) => {
+/** "Baseado na FAQ: <title>" under an AI answer, linked when possible */
+const FaqReference = ({
+  faq,
+  faqArticleUrl,
+}: {
+  faq: { id: string; title: string };
+  faqArticleUrl?: (articleId: string) => string;
+}) => {
+  const label = (
+    <Text
+      size="xs"
+      className={cn('text-primary-700', faqArticleUrl && 'underline')}
+    >
+      Baseado na FAQ: {faq.title}
+    </Text>
+  );
+  return (
+    <div data-testid="support-chat-faq" className="mt-1 max-w-[80%]">
+      {faqArticleUrl ? (
+        <a href={faqArticleUrl(faq.id)} target="_blank" rel="noreferrer">
+          {label}
+        </a>
+      ) : (
+        label
+      )}
+    </div>
+  );
+};
+
+const MessageBubble = ({
+  message,
+  faqArticleUrl,
+}: {
+  message: SupportChatMessage;
+  faqArticleUrl?: (articleId: string) => string;
+}) => {
   const own = isOwnMessage(message);
   return (
     <div
@@ -188,6 +229,9 @@ const MessageBubble = ({ message }: { message: SupportChatMessage }) => {
           <AttachmentList items={message.attachments} />
         )}
       </div>
+      {message.faq && (
+        <FaqReference faq={message.faq} faqArticleUrl={faqArticleUrl} />
+      )}
       <Text size="xs" className="text-text-400 mt-1">
         {message.pending ? 'Enviando…' : formatTime(message.createdAt)}
       </Text>
@@ -221,6 +265,7 @@ const SupportChatWidgetContent = ({
   onOpen,
   onSend,
   onClose,
+  faqArticleUrl,
 }: Omit<SupportChatWidgetProps, 'flags'>) => {
   const [windowState, setWindowState] =
     useState<SupportChatWindowState>('closed');
@@ -361,7 +406,11 @@ const SupportChatWidgetContent = ({
               </Text>
             ) : (
               messages.map((message) => (
-                <MessageBubble key={message.id} message={message} />
+                <MessageBubble
+                  key={message.id}
+                  message={message}
+                  faqArticleUrl={faqArticleUrl}
+                />
               ))
             )}
           </div>

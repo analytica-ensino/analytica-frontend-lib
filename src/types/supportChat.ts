@@ -161,6 +161,8 @@ export interface SupportChatMessage {
   messageType: string;
   createdAt: string;
   attachments: SupportChatAttachment[];
+  /** FAQ article an AI message is based on */
+  faq?: { id: string; title: string } | null;
   /** Local only: shown before the server confirms it (optimistic) */
   pending?: boolean;
 }
@@ -291,4 +293,7 @@ export interface SupportChatAnswerApi {
   answer: string;
   createdAt: string;
   attachments?: SupportChatAttachment[];
+  /** FAQ article an AI message is based on */
+  faqArticleId?: string | null;
+  faqArticleTitle?: string | null;
 }

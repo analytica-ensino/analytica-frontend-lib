@@ -64,6 +64,22 @@ const setup = (wsUrl?: string) => {
 };
 
 describe('fromSupportAnswer', () => {
+  it('keeps the FAQ article an AI answer is based on', () => {
+    expect(
+      fromSupportAnswer(
+        {
+          ...answer('a', SUPPORT_CHAT_AUTHOR.AI),
+          faqArticleId: 'art-1',
+          faqArticleTitle: 'Como redefinir a senha',
+        },
+        'Ana'
+      ).faq
+    ).toEqual({ id: 'art-1', title: 'Como redefinir a senha' });
+    expect(
+      fromSupportAnswer(answer('b', SUPPORT_CHAT_AUTHOR.AI), 'Ana').faq
+    ).toBeNull();
+  });
+
   it.each([
     [SUPPORT_CHAT_AUTHOR.GUEST, 'guest', 'Ana'],
     [SUPPORT_CHAT_AUTHOR.USER, 'user', 'Ana'],

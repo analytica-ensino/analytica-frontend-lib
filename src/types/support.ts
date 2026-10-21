@@ -215,5 +215,7 @@ export interface SupportFeatureFlags {
   page: string;
   version: {
     supportType: SupportType;
+    /** Address of the institution FAQ, e.g. https://ajuda.escola.com.br */
+    faqUrl?: string;
   } & SupportZendeskKeys;
 }
