@@ -101,4 +101,35 @@ describe('SupportTicketConversation', () => {
       'Não foi possível enviar'
     );
   });
+
+  it('hides "Concluir" without the conclude prop', () => {
+    render(<SupportTicketConversation {...baseProps()} />);
+
+    expect(
+      screen.queryByRole('button', { name: 'Concluir' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('opens and closes the conclude modal from the header button', () => {
+    render(
+      <SupportTicketConversation
+        {...baseProps()}
+        conclude={{
+          ticketId: 'ticket-1',
+          ticketLabel: '4819',
+          apiClient: { patch: jest.fn() },
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Concluir' }));
+    expect(
+      screen.getByText('Concluir atendimento #4819')
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(
+      screen.queryByText('Concluir atendimento #4819')
+    ).not.toBeInTheDocument();
+  });
 });

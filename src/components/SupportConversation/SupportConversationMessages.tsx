@@ -48,6 +48,22 @@ const ConversationItem = ({ item }: { item: SupportConversationItem }) => {
           time={item.time}
         />
       );
+    case SUPPORT_CONVERSATION_ITEM.AI:
+      return (
+        <SupportChatEvent
+          type={SUPPORT_CHAT_EVENT_TYPE.AI}
+          text={item.text}
+          time={item.time}
+        />
+      );
+    case SUPPORT_CONVERSATION_ITEM.DONE:
+      return (
+        <SupportChatEvent
+          type={SUPPORT_CHAT_EVENT_TYPE.SUCCESS}
+          text={item.text}
+          time={item.time}
+        />
+      );
     default:
       return (
         <SupportChatMessage
