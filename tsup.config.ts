@@ -188,6 +188,15 @@ export default defineConfig({
     'SupportUserPanel/index':
       'src/components/SupportUserPanel/SupportUserPanel.tsx',
     'types/supportUserPanel/index': 'src/types/supportUserPanel.ts',
+    'SupportStatusBanner/index':
+      'src/components/SupportConversation/SupportStatusBanner.tsx',
+    'SupportConversationHeader/index':
+      'src/components/SupportConversation/SupportConversationHeader.tsx',
+    'SupportConversationMessages/index':
+      'src/components/SupportConversation/SupportConversationMessages.tsx',
+    'SupportTicketConversation/index':
+      'src/components/SupportConversation/SupportTicketConversation.tsx',
+    'types/supportConversation/index': 'src/types/supportConversation.ts',
     'ArticleContent/index': 'src/components/ArticleContent/ArticleContent.tsx',
     'SupportChatMessage/index':
       'src/components/SupportChat/SupportChatMessage.tsx',

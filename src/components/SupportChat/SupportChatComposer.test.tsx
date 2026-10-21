@@ -159,4 +159,124 @@ describe('SupportChatComposer', () => {
       'mt-4'
     );
   });
+
+  describe('quick replies, FAQ and internal note', () => {
+    const quickReplies = [
+      { id: 'q1', title: 'Saudação', text: 'Olá! Vou te ajudar.' },
+      { id: 'q2', title: 'Atualizar o app', text: 'Atualize para a 3.8.' },
+    ];
+
+    it('hides the quick replies and FAQ buttons without their props', () => {
+      render(<SupportChatComposer onSend={jest.fn()} />);
+
+      expect(
+        screen.queryByRole('button', { name: /Respostas rápidas/ })
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /FAQ/ })
+      ).not.toBeInTheDocument();
+      expect(field()).toHaveAttribute('placeholder', 'Escreva sua resposta…');
+    });
+
+    it('opens the quick replies from the button and fills the field', () => {
+      render(
+        <SupportChatComposer onSend={jest.fn()} quickReplies={quickReplies} />
+      );
+
+      expect(field()).toHaveAttribute(
+        'placeholder',
+        'Escreva sua resposta… digite / para respostas rápidas'
+      );
+      fireEvent.click(
+        screen.getByRole('button', { name: /Respostas rápidas/ })
+      );
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('menuitem', { name: /Saudação/ }));
+
+      expect(field()).toHaveValue('Olá! Vou te ajudar.');
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    });
+
+    it('opens the menu with "/" and filters by what follows it', () => {
+      render(
+        <SupportChatComposer onSend={jest.fn()} quickReplies={quickReplies} />
+      );
+
+      type('/');
+      expect(screen.getAllByRole('menuitem')).toHaveLength(2);
+
+      type('/atual');
+      expect(screen.getAllByRole('menuitem')).toHaveLength(1);
+      expect(screen.getByRole('menuitem')).toHaveTextContent('Atualizar o app');
+
+      type('/nada');
+      expect(
+        screen.getByText('Nenhuma resposta rápida encontrada')
+      ).toBeInTheDocument();
+    });
+
+    it('closes the menu with Escape and clears the slash command', () => {
+      render(
+        <SupportChatComposer onSend={jest.fn()} quickReplies={quickReplies} />
+      );
+
+      type('/sau');
+      fireEvent.keyDown(field(), { key: 'Escape' });
+
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+      expect(field()).toHaveValue('');
+    });
+
+    it('closes the menu opened by the button with Escape, keeping the text', () => {
+      render(
+        <SupportChatComposer onSend={jest.fn()} quickReplies={quickReplies} />
+      );
+
+      type('rascunho');
+      fireEvent.click(
+        screen.getByRole('button', { name: /Respostas rápidas/ })
+      );
+      fireEvent.keyDown(field(), { key: 'Escape' });
+
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+      expect(field()).toHaveValue('rascunho');
+    });
+
+    it('does not open the menu while disabled', () => {
+      render(
+        <SupportChatComposer
+          onSend={jest.fn()}
+          quickReplies={quickReplies}
+          disabled
+        />
+      );
+
+      type('/');
+
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    });
+
+    it('calls onOpenFaq', () => {
+      const onOpenFaq = jest.fn();
+      render(<SupportChatComposer onSend={jest.fn()} onOpenFaq={onOpenFaq} />);
+
+      fireEvent.click(screen.getByRole('button', { name: /FAQ/ }));
+
+      expect(onOpenFaq).toHaveBeenCalledTimes(1);
+    });
+
+    it('paints the field with the note color in internal note mode', () => {
+      render(<SupportChatComposer onSend={jest.fn()} />);
+
+      expect(field()).not.toHaveClass('bg-exam-3');
+      fireEvent.click(screen.getByRole('button', { name: /Nota interna/ }));
+
+      expect(field()).toHaveClass('bg-exam-3');
+      expect(field()).toHaveAttribute(
+        'placeholder',
+        'Escreva uma nota para a equipe…'
+      );
+    });
+  });
 });
