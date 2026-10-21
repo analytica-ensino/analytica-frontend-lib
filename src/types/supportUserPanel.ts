@@ -101,9 +101,17 @@ export type SupportTicketResolver =
   | { type: 'ai' }
   | { type: 'agent'; name: string };
 
+/**
+ * Id of a support ticket: a number (e.g. 4821) or a UUID. When it is not
+ * meant for display, give the ticket a `code`.
+ */
+export type SupportTicketId = number | string;
+
 /** Ticket card of the history tab */
 export interface SupportTicketSummary {
-  id: number;
+  id: SupportTicketId;
+  /** Shown on the card; defaults to `#{id}` (e.g. "#3F4A5B" for a UUID) */
+  code?: string;
   title: string;
   reason?: string | null;
   subreason?: string | null;
@@ -141,7 +149,7 @@ export interface SupportReasonOption {
 
 /** Current ticket details */
 export interface SupportTicketDetails {
-  id: number;
+  id: SupportTicketId;
   channel: SupportChannel;
   /** ISO date */
   openedAt: string;

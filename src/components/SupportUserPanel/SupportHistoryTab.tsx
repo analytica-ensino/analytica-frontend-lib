@@ -13,6 +13,7 @@ import {
   type SupportHistoryFilter,
   type SupportHistorySummary,
   type SupportTicketCardStatus,
+  type SupportTicketId,
   type SupportTicketPriority,
   type SupportTicketSummary,
 } from '../../types/supportUserPanel';
@@ -31,7 +32,7 @@ const PAGE_SIZE = 10;
 /** Props for the history tab */
 export interface SupportHistoryTabProps {
   /** Id of the ticket open in the conversation (pinned on top, not clickable) */
-  currentTicketId: number;
+  currentTicketId: SupportTicketId;
   /** Every ticket of the contact, including the current one */
   tickets: SupportTicketSummary[];
   summary: SupportHistorySummary;
@@ -41,7 +42,7 @@ export interface SupportHistoryTabProps {
   /** Asks the consumer for the next page once the loaded cards run out */
   onLoadMore?: () => void;
   /** Opens another ticket in the central area */
-  onOpenTicket?: (ticketId: number) => void;
+  onOpenTicket?: (ticketId: SupportTicketId) => void;
   /** Notified on filter change (e.g. to filter on the server) */
   onFilterChange?: (filter: SupportHistoryFilter) => void;
 }
@@ -141,7 +142,7 @@ const TicketCard = ({
           weight={current ? 'semibold' : undefined}
           color={current ? 'text-primary-800' : 'text-text-600'}
         >
-          #{ticket.id}
+          {ticket.code ?? `#${ticket.id}`}
         </Text>
         <div className="flex shrink-0 items-center gap-1">
           <Badge
@@ -158,7 +159,7 @@ const TicketCard = ({
               onClick={() => setExpanded((open) => !open)}
               aria-expanded={expanded}
               aria-controls={detailsId}
-              aria-label={`${expanded ? 'Recolher' : 'Expandir'} ticket #${ticket.id}`}
+              aria-label={`${expanded ? 'Recolher' : 'Expandir'} ticket ${ticket.code ?? `#${ticket.id}`}`}
               className="rounded-sm p-0.5 text-text-600 hover:text-text-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info"
             >
               <CaretDownIcon

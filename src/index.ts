@@ -1274,6 +1274,7 @@ export type {
   SupportContactNote,
   SupportTicketResolver,
   SupportTicketSummary,
+  SupportTicketId,
   SupportHistorySummary,
   SupportTicketTimelineEvent,
   SupportReasonOption,
@@ -1305,6 +1306,33 @@ export type {
   SupportChatFaqReference,
 } from './types/supportChat';
 export { getInitials } from './utils/getInitials';
+
+// Support Conversation (SAC backoffice — central area of the ticket screen)
+export { default as SupportTicketConversation } from './components/SupportConversation/SupportTicketConversation';
+export type { SupportTicketConversationProps } from './components/SupportConversation/SupportTicketConversation';
+export { default as SupportConversationHeader } from './components/SupportConversation/SupportConversationHeader';
+export type { SupportConversationHeaderProps } from './components/SupportConversation/SupportConversationHeader';
+export { default as SupportConversationMessages } from './components/SupportConversation/SupportConversationMessages';
+export type { SupportConversationMessagesProps } from './components/SupportConversation/SupportConversationMessages';
+export { default as SupportStatusBanner } from './components/SupportConversation/SupportStatusBanner';
+export type { SupportStatusBannerProps } from './components/SupportConversation/SupportStatusBanner';
+export {
+  SUPPORT_CONVERSATION_ITEM,
+  SUPPORT_STATUS_BANNER_VARIANT,
+} from './types/supportConversation';
+export type {
+  SupportConversationItem,
+  SupportConversationItemKind,
+  SupportConversationDateItem,
+  SupportConversationEventItem,
+  SupportConversationMessageItem,
+  SupportStatusBannerVariant,
+  SupportStatusBannerAction,
+  SupportConversationStatusTone,
+  SupportConversationOption,
+  SupportConversationChannel,
+  SupportQuickReply,
+} from './types/supportConversation';
 
 // Support Conclusion (SAC backoffice)
 export { default as SupportConcludeModal } from './components/SupportConcludeModal/SupportConcludeModal';
