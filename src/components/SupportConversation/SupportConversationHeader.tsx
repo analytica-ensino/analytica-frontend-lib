@@ -59,6 +59,12 @@ export interface SupportConversationHeaderProps {
   actions?: ReactNode;
   /** Locks the selects (e.g. concluded ticket) */
   readOnly?: boolean;
+  /**
+   * One row only: code, name and the status badge (read-only), plus the
+   * actions and the details toggle. The status and "Atendido por" selects and
+   * the channel are left to the details panel, saving vertical space.
+   */
+  compact?: boolean;
   className?: string;
 }
 
@@ -93,6 +99,7 @@ export default function SupportConversationHeader({
   onToggleDetails,
   actions,
   readOnly = false,
+  compact = false,
   className,
 }: Readonly<SupportConversationHeaderProps>) {
   const attendedByLabelId = useId();
@@ -114,7 +121,8 @@ export default function SupportConversationHeader({
   return (
     <header
       className={cn(
-        'flex flex-col gap-3 border-b border-border-100 px-6 py-4',
+        'flex flex-col gap-3 border-b border-border-100 px-6',
+        compact ? 'py-3' : 'py-4',
         className
       )}
     >
@@ -132,6 +140,7 @@ export default function SupportConversationHeader({
           >
             {name}
           </Text>
+          {compact && <span className="shrink-0 self-center">{badge}</span>}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {actions}
@@ -148,86 +157,88 @@ export default function SupportConversationHeader({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-        <div className="flex items-center gap-2">
-          <Text size="sm" color="text-text-600">
-            Status
-          </Text>
-          {canChangeStatus ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                aria-label={`Status: ${status.label}. Alterar status`}
-                className="flex items-center gap-1 rounded-md p-0.5 hover:bg-background-50"
+      {!compact && (
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          <div className="flex items-center gap-2">
+            <Text size="sm" color="text-text-600">
+              Status
+            </Text>
+            {canChangeStatus ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  aria-label={`Status: ${status.label}. Alterar status`}
+                  className="flex items-center gap-1 rounded-md p-0.5 hover:bg-background-50"
+                >
+                  {badge}
+                  <CaretDownIcon size={16} className="text-text-600" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {statusOptions?.map((option) => (
+                    <DropdownMenuItem
+                      key={option.value}
+                      onClick={() => onStatusChange?.(option.value)}
+                    >
+                      {option.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              badge
+            )}
+          </div>
+
+          {attendedByOptions && attendedByOptions.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Text
+                id={attendedByLabelId}
+                size="sm"
+                color="text-text-600"
+                className="shrink-0"
               >
-                {badge}
-                <CaretDownIcon size={16} className="text-text-600" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                {statusOptions?.map((option) => (
-                  <DropdownMenuItem
-                    key={option.value}
-                    onClick={() => onStatusChange?.(option.value)}
-                  >
-                    {option.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            badge
+                Atendido por
+              </Text>
+              <Select
+                value={attendedBy}
+                onValueChange={(value) => {
+                  if (value !== attendedBy) onAttendedByChange?.(value);
+                }}
+              >
+                <SelectTrigger
+                  aria-labelledby={attendedByLabelId}
+                  disabled={readOnly || !onAttendedByChange}
+                  className="w-48"
+                >
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {attendedByOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {channelText && (
+            <div
+              className="ml-auto flex items-center gap-1.5 text-text-600"
+              data-testid="support-conversation-channel"
+            >
+              {channel && (
+                <span aria-hidden="true" className="flex">
+                  {channel.icon ?? CHANNEL_ICONS[channel.label]}
+                </span>
+              )}
+              <Text size="sm" color="text-text-600">
+                {channelText}
+              </Text>
+            </div>
           )}
         </div>
-
-        {attendedByOptions && attendedByOptions.length > 0 && (
-          <div className="flex items-center gap-2">
-            <Text
-              id={attendedByLabelId}
-              size="sm"
-              color="text-text-600"
-              className="shrink-0"
-            >
-              Atendido por
-            </Text>
-            <Select
-              value={attendedBy}
-              onValueChange={(value) => {
-                if (value !== attendedBy) onAttendedByChange?.(value);
-              }}
-            >
-              <SelectTrigger
-                aria-labelledby={attendedByLabelId}
-                disabled={readOnly || !onAttendedByChange}
-                className="w-48"
-              >
-                <SelectValue placeholder="Selecione" />
-              </SelectTrigger>
-              <SelectContent>
-                {attendedByOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {channelText && (
-          <div
-            className="ml-auto flex items-center gap-1.5 text-text-600"
-            data-testid="support-conversation-channel"
-          >
-            {channel && (
-              <span aria-hidden="true" className="flex">
-                {channel.icon ?? CHANNEL_ICONS[channel.label]}
-              </span>
-            )}
-            <Text size="sm" color="text-text-600">
-              {channelText}
-            </Text>
-          </div>
-        )}
-      </div>
+      )}
     </header>
   );
 }

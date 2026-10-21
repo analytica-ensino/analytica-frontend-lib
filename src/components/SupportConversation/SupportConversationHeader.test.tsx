@@ -184,4 +184,30 @@ describe('SupportConversationHeader', () => {
       screen.getByTestId('support-conversation-status')
     ).toBeInTheDocument();
   });
+
+  it('compact mode keeps one row: badge next to the name, no selects or channel', () => {
+    renderHeader({
+      compact: true,
+      statusOptions: [{ value: 'HUMANO', label: 'Humano' }],
+      onStatusChange: jest.fn(),
+      attendedBy: 'HUMANO',
+      attendedByOptions: [{ value: 'HUMANO', label: 'Humano' }],
+      onAttendedByChange: jest.fn(),
+      channel: { label: 'Web' },
+      institution: 'CE Santos Dumont',
+      onToggleDetails: jest.fn(),
+    });
+
+    expect(screen.getByTestId('support-conversation-status')).toHaveTextContent(
+      'HUMANO'
+    );
+    expect(screen.queryByText('Status')).not.toBeInTheDocument();
+    expect(screen.queryByText('Atendido por')).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('support-conversation-channel')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Abrir detalhes' })
+    ).toBeInTheDocument();
+  });
 });

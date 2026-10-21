@@ -536,6 +536,97 @@ describe('SupportUserPanel', () => {
       await waitFor(() => expect(onReasonChange).toHaveBeenCalledWith('login'));
     });
 
+    describe('status and "Atendido por"', () => {
+      const statusOptions = [
+        { value: 'ABERTO', label: 'Aberto' },
+        { value: 'FECHADO', label: 'Concluído' },
+      ];
+      const handlerOptions = [
+        { value: 'HUMANO', label: 'Humano' },
+        { value: 'IA', label: 'IA' },
+      ];
+      const statusBox = () => screen.getByRole('combobox', { name: /^Status/ });
+      const handlerBox = () =>
+        screen.getByRole('combobox', { name: /^Atendido por/ });
+
+      it('hides both selects without their options', () => {
+        openTicket();
+        expect(
+          screen.queryByRole('combobox', { name: /^Status/ })
+        ).not.toBeInTheDocument();
+        expect(
+          screen.queryByRole('combobox', { name: /^Atendido por/ })
+        ).not.toBeInTheDocument();
+      });
+
+      it('saves the status and who handles the ticket', async () => {
+        const onStatusChange = jest.fn().mockResolvedValue(undefined);
+        const onHandlerChange = jest.fn().mockResolvedValue(undefined);
+        openTicket({
+          status: 'ABERTO',
+          statusOptions,
+          onStatusChange,
+          handler: 'HUMANO',
+          handlerOptions,
+          onHandlerChange,
+        });
+        expect(statusBox()).toHaveTextContent('Aberto');
+        expect(handlerBox()).toHaveTextContent('Humano');
+
+        fireEvent.click(statusBox());
+        fireEvent.click(screen.getByRole('option', { name: 'Aberto' }));
+        expect(onStatusChange).not.toHaveBeenCalled();
+
+        fireEvent.click(statusBox());
+        fireEvent.click(screen.getByRole('option', { name: 'Concluído' }));
+        await waitFor(() =>
+          expect(onStatusChange).toHaveBeenCalledWith('FECHADO')
+        );
+
+        fireEvent.click(handlerBox());
+        fireEvent.click(screen.getByRole('option', { name: 'IA' }));
+        await waitFor(() => expect(onHandlerChange).toHaveBeenCalledWith('IA'));
+      });
+
+      it('rolls the status back when saving fails', async () => {
+        openTicket({
+          status: 'ABERTO',
+          statusOptions,
+          onStatusChange: jest.fn().mockRejectedValue(new Error('x')),
+        });
+
+        fireEvent.click(statusBox());
+        fireEvent.click(screen.getByRole('option', { name: 'Concluído' }));
+
+        await waitFor(() =>
+          expect(lastToast()).toBe('Não foi possível salvar')
+        );
+        expect(statusBox()).toHaveTextContent('Aberto');
+      });
+
+      it('keeps the status editable on a concluded ticket, but not the handler', () => {
+        openTicket({
+          ticket: { ...ticket, done: true },
+          status: 'FECHADO',
+          statusOptions,
+          onStatusChange: jest.fn(),
+          handler: 'HUMANO',
+          handlerOptions,
+          onHandlerChange: jest.fn(),
+        });
+
+        expect(statusBox()).not.toBeDisabled();
+        expect(handlerBox()).toBeDisabled();
+      });
+
+      it('disables the selects without their handlers', () => {
+        openTicket({ statusOptions, handlerOptions });
+
+        expect(statusBox()).toBeDisabled();
+        expect(handlerBox()).toBeDisabled();
+      });
+    });
+
     it('locks the fields of a concluded ticket', () => {
       openTicket({
         ticket: {

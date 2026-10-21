@@ -37,7 +37,66 @@ export interface SupportTicketDetailsTabProps {
   onReasonChange?: (reason: string) => Promise<void> | void;
   /** Persists the priority; reject to roll back */
   onPriorityChange?: (priority: SupportTicketPriority) => Promise<void> | void;
+  /**
+   * Current status of the ticket (e.g. "EM_ANDAMENTO"). With `statusOptions`
+   * the tab shows a Status select on top; it stays editable on a concluded
+   * ticket, so the agent can reopen it.
+   */
+  status?: string;
+  statusOptions?: SupportReasonOption[];
+  /** Persists the status; reject to roll back */
+  onStatusChange?: (status: string) => Promise<void> | void;
+  /** Who handles the ticket (e.g. "HUMANO"); shown with `handlerOptions` */
+  handler?: string;
+  handlerOptions?: SupportReasonOption[];
+  /** Persists who handles the ticket; reject to roll back */
+  onHandlerChange?: (handler: string) => Promise<void> | void;
 }
+
+/** Labelled select of the tab, with optimistic save and rollback */
+const OptionSelect = ({
+  label,
+  value,
+  options,
+  onChange,
+  disabled,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  options: SupportReasonOption[];
+  onChange: (value: string) => void;
+  disabled: boolean;
+  placeholder?: string;
+}) => {
+  const labelId = useId();
+  return (
+    <div className="flex flex-col gap-1.5">
+      <FieldLabel id={labelId}>{label}</FieldLabel>
+      <Select
+        value={value}
+        onValueChange={(next) => {
+          if (next !== value) onChange(next);
+        }}
+      >
+        <SelectTrigger
+          aria-labelledby={labelId}
+          disabled={disabled}
+          className="w-full"
+        >
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
 
 const PRIORITIES: { value: SupportTicketPriority; label: string }[] = [
   { value: SUPPORT_TICKET_PRIORITY.LOW, label: 'Baixa' },
@@ -64,9 +123,10 @@ const DetailsSkeleton = () => (
 );
 
 /**
- * Ticket details tab: channel/time stats, the editable reason and priority
- * (read-only once the ticket is concluded), the AI summary and the status
- * timeline.
+ * Ticket details tab: channel/time stats, the optional status and "Atendido
+ * por" selects, the editable reason and priority (read-only once the ticket
+ * is concluded, except the status, which can reopen it), the AI summary and
+ * the status timeline.
  */
 export default function SupportTicketDetailsTab({
   ticket,
@@ -74,6 +134,12 @@ export default function SupportTicketDetailsTab({
   reasonOptions,
   onReasonChange,
   onPriorityChange,
+  status,
+  statusOptions,
+  onStatusChange,
+  handler,
+  handlerOptions,
+  onHandlerChange,
 }: Readonly<SupportTicketDetailsTabProps>) {
   const reasonLabelId = useId();
   const priorityLabelId = useId();
@@ -82,6 +148,14 @@ export default function SupportTicketDetailsTab({
   const [reason, setReason] = useOptimisticValue(
     ticket?.reason ?? '',
     onReasonChange
+  );
+  const [statusValue, setStatusValue] = useOptimisticValue(
+    status ?? '',
+    onStatusChange
+  );
+  const [handlerValue, setHandlerValue] = useOptimisticValue(
+    handler ?? '',
+    onHandlerChange
   );
   const [priority, setPriority] = useOptimisticValue<SupportTicketPriority>(
     ticket?.priority ?? SUPPORT_TICKET_PRIORITY.NORMAL,
@@ -105,6 +179,26 @@ export default function SupportTicketDetailsTab({
         <StatTile label="Tempo de espera" value={formatDuration(waitingMin)} />
         <StatTile label="Tempo total" value={formatDuration(totalMin)} />
       </div>
+
+      {statusOptions && statusOptions.length > 0 && (
+        <OptionSelect
+          label="Status"
+          value={statusValue}
+          options={statusOptions}
+          onChange={(value) => void setStatusValue(value)}
+          disabled={!onStatusChange}
+        />
+      )}
+
+      {handlerOptions && handlerOptions.length > 0 && (
+        <OptionSelect
+          label="Atendido por"
+          value={handlerValue}
+          options={handlerOptions}
+          onChange={(value) => void setHandlerValue(value)}
+          disabled={readOnly || !onHandlerChange}
+        />
+      )}
 
       <div className="flex flex-col gap-1.5">
         <FieldLabel id={reasonLabelId}>Motivo</FieldLabel>
