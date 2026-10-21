@@ -43,6 +43,9 @@ export interface SupportChatComposerProps {
 }
 
 /** Mode chips, in display order */
+/** Starting height of the text field, in px: a single line */
+const COMPOSER_MIN_HEIGHT = 48;
+
 /** Quick replies whose title or text contains the query (case-insensitive) */
 const filterQuickReplies = (
   replies: SupportQuickReply[],
@@ -219,8 +222,11 @@ const SupportChatComposer = ({
           onKeyDown={handleKeyDown}
           disabled={disabled}
           autoResize
+          // One line to start (24px of text + 24px of padding); it grows as
+          // the agent types, instead of the TextArea default of 96px
+          minHeight={COMPOSER_MIN_HEIGHT}
           className={cn(
-            'min-h-20 rounded-lg',
+            'rounded-lg',
             // Internal notes get the note color so they are not sent by mistake
             isNote && 'bg-exam-3 border-warning-200'
           )}

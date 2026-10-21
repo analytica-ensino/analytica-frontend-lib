@@ -279,4 +279,10 @@ describe('SupportChatComposer', () => {
       );
     });
   });
+
+  it('starts the field at a single line instead of the tall default', () => {
+    render(<SupportChatComposer onSend={jest.fn()} />);
+
+    expect(field().style.height).toBe('48px');
+  });
 });
