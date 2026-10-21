@@ -1216,6 +1216,51 @@ describe('Internal Helper Functions', () => {
       expect(notification.entityId).toBe('sim-1');
     });
 
+    it('should map the backend sisu_simulator entity type', async () => {
+      const mockResponse: BackendNotificationsResponse = {
+        notifications: [
+          {
+            id: '1',
+            senderUserInstitutionId: null,
+            receiverUserInstitutionId: 'user-1',
+            title: 'Simule sua aprovação no ENEM!',
+            description:
+              'Use a sua nota do Momento ENEM e simule onde seria aprovado!',
+            // Snake case on the backend so it upper-cases to SISU_SIMULATOR.
+            entityType: 'sisu_simulator',
+            entityId: 'exam-1',
+            read: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            sender: null,
+            activity: null,
+            recommendedClass: null,
+          },
+        ],
+        pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      };
+
+      const mockApiClient: NotificationApiClient = {
+        get: jest.fn().mockResolvedValue({ data: mockResponse }),
+        patch: jest.fn(),
+        delete: jest.fn(),
+      };
+
+      const useStore = createNotificationStore(mockApiClient);
+      const { result } = renderHook(() => useStore());
+
+      await act(async () => {
+        await result.current.fetchNotifications();
+      });
+
+      const notification = result.current.notifications[0];
+      expect(notification.type).toBe('SISU_SIMULATOR');
+      expect(notification.entityType).toBe(
+        NotificationEntityType.SISU_SIMULATOR
+      );
+      expect(notification.entityId).toBe('exam-1');
+    });
+
     it('should handle lowercase entity types correctly', async () => {
       const mockResponse: BackendNotificationsResponse = {
         notifications: [

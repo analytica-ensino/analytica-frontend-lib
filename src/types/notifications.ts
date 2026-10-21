@@ -13,7 +13,8 @@ export type NotificationType =
   | 'GENERAL'
   | 'ANNOUNCEMENT'
   | 'RECOMMENDEDCLASS'
-  | 'SIMULATION';
+  | 'SIMULATION'
+  | 'SISU_SIMULATOR';
 
 /**
  * Entity type for navigation
@@ -28,6 +29,13 @@ export enum NotificationEntityType {
    * navigation is decided from `entityType` alone.
    */
   SIMULATION = 'SIMULATION',
+  /**
+   * "Simule sua aprovação no ENEM!": opens the Momento ENEM SISU simulator. The
+   * backend stores it as `sisu_simulator` (snake case, so it upper-cases to
+   * this). The simulator reads every momento, so `entityId` is not part of the
+   * route.
+   */
+  SISU_SIMULATOR = 'SISU_SIMULATOR',
 }
 
 /**
