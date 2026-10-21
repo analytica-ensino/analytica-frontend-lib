@@ -41,6 +41,13 @@ export interface AppLayoutProps {
    * `max-w-[1000px]` is kept, so other consumers are unaffected.
    */
   contentMaxWidth?: string;
+  /**
+   * Extra classes for the full-width page wrapper (forwarded to
+   * `PageContainer`'s `className`). Pass e.g. `pb-0` for full-height screens
+   * that should reach the bottom of the window. Other consumers are
+   * unaffected when omitted.
+   */
+  contentClassName?: string;
   /** Page content (e.g. `<Outlet />`). */
   children: ReactNode;
   /**
@@ -66,6 +73,7 @@ export const AppLayout = ({
   onMenuItemClick,
   menuMaxWidth,
   contentMaxWidth,
+  contentClassName,
   children,
   bottomSlot,
 }: AppLayoutProps) => {
@@ -102,7 +110,10 @@ export const AppLayout = ({
         </MenuOverflow>
       </nav>
       <main className="md:[height:calc(100dvh-120px)] md:overflow-auto w-full">
-        <PageContainer innerClassName={contentMaxWidth}>
+        <PageContainer
+          className={contentClassName}
+          innerClassName={contentMaxWidth}
+        >
           {children}
         </PageContainer>
       </main>

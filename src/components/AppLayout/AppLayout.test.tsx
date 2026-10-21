@@ -172,4 +172,29 @@ describe('AppLayout', () => {
     expect(screen.getByRole('main')).toHaveTextContent('Conteúdo');
     expect(screen.getByRole('main')).not.toHaveTextContent('Painel');
   });
+
+  it('keeps the page bottom padding by default and lets the consumer drop it', () => {
+    const page = (contentClassName?: string) => {
+      const { unmount } = render(
+        <AppLayout
+          header={<div />}
+          menuItems={baseItems}
+          activeMenuValue="home"
+          onMenuItemClick={jest.fn()}
+          contentClassName={contentClassName}
+        >
+          <div data-testid="page-body" />
+        </AppLayout>
+      );
+      const wrapper = screen.getByTestId('page-body').parentElement
+        ?.parentElement as HTMLElement;
+      const className = wrapper.className;
+      unmount();
+      return className;
+    };
+
+    expect(page()).toContain('pb-5');
+    expect(page('pb-0')).toContain('pb-0');
+    expect(page('pb-0')).not.toContain('pb-5');
+  });
 });
