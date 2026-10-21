@@ -123,9 +123,7 @@ describe('SupportTicketConversation', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Concluir' }));
-    expect(
-      screen.getByText('Concluir atendimento #4819')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Concluir atendimento #4819')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
     expect(

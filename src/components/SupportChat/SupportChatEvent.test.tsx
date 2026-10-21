@@ -39,6 +39,16 @@ describe('SupportChatEvent', () => {
     ).toBeInTheDocument();
   });
 
+  it.each([
+    [SUPPORT_CHAT_EVENT_TYPE.AI, 'bg-primary-50', 'text-primary-700'],
+    [SUPPORT_CHAT_EVENT_TYPE.SUCCESS, 'bg-success-50', 'text-success-700'],
+  ])('renders the %s pill in its colors', (type, pill, text) => {
+    render(<SupportChatEvent type={type} text="Evento" time="14:00" />);
+
+    expect(screen.getByText('Evento · 14:00')).toHaveClass(text);
+    expect(getPill()).toHaveClass(pill);
+  });
+
   it('renders the transfer pill in warning colors', () => {
     render(
       <SupportChatEvent
