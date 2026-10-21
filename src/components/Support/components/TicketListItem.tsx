@@ -127,6 +127,12 @@ export type TicketListItemProps = {
   lastMessageAt: Date | string;
   /** Acende o ponto azul antes do tempo e anuncia "Não lido". */
   unread?: boolean;
+  /**
+   * Quantas mensagens ainda não foram lidas. Acima de zero, troca o ponto por
+   * uma pílula com o número (`99+` a partir de 100) e já marca a linha como não
+   * lida, sem precisar de `unread`.
+   */
+  unreadCount?: number;
   /** Foto. Sem foto, o avatar mostra as iniciais de `name`. */
   avatarSrc?: string;
   /** Badge do perfil. Texto livre: o vocabulário do SAC ainda não está fechado. */
@@ -152,6 +158,13 @@ export type TicketListItemProps = {
   /** Classes CSS adicionais. */
   className?: string;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
+
+/** Acima disso a pílula de não lidas mostra `99+`. */
+const MAX_UNREAD_SHOWN = 99;
+
+/** Rótulo lido por leitor de tela na pílula de não lidas. */
+const formatUnreadLabel = (count: number): string =>
+  count === 1 ? '1 mensagem não lida' : `${count} mensagens não lidas`;
 
 /**
  * Linha da lista de tickets do SAC.
@@ -192,6 +205,7 @@ export const TicketListItem = forwardRef<
       name,
       lastMessageAt,
       unread = false,
+      unreadCount = 0,
       avatarSrc,
       profileLabel,
       profileTone = 'muted',
@@ -247,7 +261,22 @@ export const TicketListItem = forwardRef<
             >
               {name}
             </Text>
-            {unread && (
+            {unreadCount > 0 && (
+              <Text
+                as="span"
+                size="xs"
+                weight="bold"
+                color="text-white"
+                data-testid="ticket-list-item-unread-count"
+                aria-label={formatUnreadLabel(unreadCount)}
+                className="shrink-0 min-w-5 h-5 px-1.5 rounded-full bg-[#1C61B2] flex items-center justify-center"
+              >
+                {unreadCount > MAX_UNREAD_SHOWN
+                  ? `${MAX_UNREAD_SHOWN}+`
+                  : unreadCount}
+              </Text>
+            )}
+            {unread && unreadCount <= 0 && (
               <>
                 <span
                   data-testid="ticket-list-item-unread"

@@ -45,9 +45,16 @@ export interface SupportChatWidgetProps {
   theme?: SupportChatTheme;
   onOpen?: () => void;
   onSend?: (message: SupportChatMessage) => void;
-  /** Called when the conversation is closed (not when minimized) */
+  /**
+   * Called when the window is closed with X. Closing only hides it: the
+   * conversation stays connected and new replies count as unread.
+   */
   onClose?: () => void;
 }
+
+/** Label read by screen readers on the unread badge of the launcher */
+const formatNewMessagesLabel = (count: number): string =>
+  count === 1 ? '1 nova mensagem' : `${count} novas mensagens`;
 
 /** The requester side of the conversation (user or visitor) */
 const isOwnMessage = (message: SupportChatMessage) =>
@@ -261,13 +268,17 @@ const SupportChatWidgetContent = ({
 
   const close = () => {
     setWindowState('closed');
+    onClose?.();
+  };
+
+  /** Drop a finished conversation so the next message opens a new ticket */
+  const startOver = () => {
     setDraft('');
     setFiles([]);
     setFileError(null);
     setUnread(0);
     seenCount.current = 0;
     reset();
-    onClose?.();
   };
 
   const submit = async () => {
@@ -334,7 +345,7 @@ const SupportChatWidgetContent = ({
               </Button>
               <Button
                 variant="raw"
-                aria-label="Encerrar conversa"
+                aria-label="Fechar"
                 onClick={close}
                 className="p-1 rounded hover:bg-white/20"
               >
@@ -366,12 +377,14 @@ const SupportChatWidgetContent = ({
           )}
 
           {closed ? (
-            <Text
-              size="sm"
-              className="px-4 py-3 text-text-500 text-center border-t border-border-100"
-            >
-              Este atendimento foi encerrado.
-            </Text>
+            <div className="flex flex-col items-center gap-2 px-4 py-3 border-t border-border-100">
+              <Text size="sm" color="text-text-500" className="text-center">
+                Este atendimento foi encerrado.
+              </Text>
+              <Button variant="link" size="small" onClick={startOver}>
+                Iniciar nova conversa
+              </Button>
+            </div>
           ) : (
             <form
               className="flex flex-col gap-2 px-3 py-3 border-t border-border-100"
@@ -453,7 +466,7 @@ const SupportChatWidgetContent = ({
               as="span"
               size="xs"
               color="text-white"
-              aria-label={`${unread} novas mensagens`}
+              aria-label={formatNewMessagesLabel(unread)}
               className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-error-500 flex items-center justify-center"
             >
               {unread}
