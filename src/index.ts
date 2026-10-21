@@ -1272,6 +1272,7 @@ export type {
   SupportContactNote,
   SupportTicketResolver,
   SupportTicketSummary,
+  SupportTicketId,
   SupportHistorySummary,
   SupportTicketTimelineEvent,
   SupportReasonOption,

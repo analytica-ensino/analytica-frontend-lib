@@ -351,6 +351,35 @@ describe('SupportUserPanel', () => {
       expect(card).not.toHaveTextContent('Duração');
     });
 
+    it('accepts UUID ids and shows the display code', () => {
+      const onOpenTicket = jest.fn();
+      const uuid = '0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b';
+      const other = '0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f9999';
+      openHistory({
+        onOpenTicket,
+        currentTicketId: uuid,
+        tickets: [
+          { ...tickets[0], id: uuid, code: '#3F4A5B' },
+          { ...tickets[2], id: other, code: '#3F9999' },
+        ],
+        summary: { total: 2, resolved: 1, avgMin: 3 },
+      });
+
+      const items = screen.getAllByRole('listitem');
+      expect(items[0]).toHaveTextContent('#3F4A5B');
+      // The current ticket is pinned on top
+      expect(items[0]).toHaveTextContent('Atendido por: Você');
+      expect(items[1]).toHaveTextContent('#3F9999');
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Expandir ticket #3F9999' })
+      );
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Abrir atendimento' })
+      );
+      expect(onOpenTicket).toHaveBeenCalledWith(other);
+    });
+
     it('does not offer to open the current ticket', () => {
       openHistory({ onOpenTicket: jest.fn() });
       fireEvent.click(
