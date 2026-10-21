@@ -88,4 +88,32 @@ describe('SupportConversationMessages', () => {
     rerender(<SupportConversationMessages items={[]} emptyText="Vazio" />);
     expect(screen.getByText('Vazio')).toBeInTheDocument();
   });
+
+  it('renders the AI and conclusion events in their colors', () => {
+    render(
+      <SupportConversationMessages
+        items={[
+          {
+            kind: SUPPORT_CONVERSATION_ITEM.AI,
+            id: 'e1',
+            text: 'Assistente virtual assumiu o atendimento',
+            time: '14:00',
+          },
+          {
+            kind: SUPPORT_CONVERSATION_ITEM.DONE,
+            id: 'e2',
+            text: 'Atendimento concluído',
+            time: '14:30',
+          },
+        ]}
+      />
+    );
+
+    expect(
+      screen.getByText('Assistente virtual assumiu o atendimento · 14:00')
+    ).toHaveClass('text-primary-700');
+    expect(screen.getByText('Atendimento concluído · 14:30')).toHaveClass(
+      'text-success-700'
+    );
+  });
 });

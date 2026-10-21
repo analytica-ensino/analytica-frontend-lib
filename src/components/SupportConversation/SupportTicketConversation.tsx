@@ -1,5 +1,10 @@
+import { useState } from 'react';
 import { LockSimpleIcon } from '@phosphor-icons/react/dist/csr/LockSimple';
 import Text from '../Text/Text';
+import Button from '../Button/Button';
+import SupportConcludeModal, {
+  type SupportConcludeModalProps,
+} from '../SupportConcludeModal/SupportConcludeModal';
 import SupportChatComposer, {
   type SupportChatComposerProps,
 } from '../SupportChat/SupportChatComposer';
@@ -34,6 +39,11 @@ export interface SupportTicketConversationProps {
   lockedMessage?: string | null;
   /** Message shown above the composer (e.g. a send error) */
   alert?: string | null;
+  /**
+   * Shows the "Concluir" button in the header, which opens the
+   * SupportConcludeModal with these props; omit or null to hide it
+   */
+  conclude?: Omit<SupportConcludeModalProps, 'isOpen' | 'onClose'> | null;
   className?: string;
 }
 
@@ -68,15 +78,34 @@ export default function SupportTicketConversation({
   composer,
   lockedMessage,
   alert,
+  conclude,
   className,
 }: Readonly<SupportTicketConversationProps>) {
+  const [isConcludeOpen, setConcludeOpen] = useState(false);
+
+  const actions = conclude ? (
+    <>
+      <Button
+        variant="outline"
+        action="positive"
+        size="small"
+        onClick={() => setConcludeOpen(true)}
+      >
+        Concluir
+      </Button>
+      {header.actions}
+    </>
+  ) : (
+    header.actions
+  );
+
   return (
     <section
       aria-label="Conversa do atendimento"
       data-testid="support-ticket-conversation"
       className={cn('flex h-full min-h-0 min-w-0 flex-1 flex-col', className)}
     >
-      <SupportConversationHeader {...header} />
+      <SupportConversationHeader {...header} actions={actions} />
 
       {banner && (
         <div className="px-6 pt-4">
@@ -117,6 +146,14 @@ export default function SupportTicketConversation({
           <SupportChatComposer {...composer} />
         )}
       </footer>
+
+      {conclude && (
+        <SupportConcludeModal
+          {...conclude}
+          isOpen={isConcludeOpen}
+          onClose={() => setConcludeOpen(false)}
+        />
+      )}
     </section>
   );
 }

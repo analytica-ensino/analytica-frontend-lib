@@ -23,12 +23,16 @@ export interface SupportChatEventProps {
 const PILL_CLASSES: Record<SupportChatEventType, string> = {
   [SUPPORT_CHAT_EVENT_TYPE.NEUTRAL]: 'bg-background-100',
   [SUPPORT_CHAT_EVENT_TYPE.TRANSFER]: 'bg-warning-50',
+  [SUPPORT_CHAT_EVENT_TYPE.AI]: 'bg-primary-50',
+  [SUPPORT_CHAT_EVENT_TYPE.SUCCESS]: 'bg-success-50',
   [SUPPORT_CHAT_EVENT_TYPE.DATE]: 'bg-background-100',
 };
 
 const TEXT_COLORS: Record<SupportChatEventType, string> = {
   [SUPPORT_CHAT_EVENT_TYPE.NEUTRAL]: 'text-text-600',
   [SUPPORT_CHAT_EVENT_TYPE.TRANSFER]: 'text-warning-700',
+  [SUPPORT_CHAT_EVENT_TYPE.AI]: 'text-primary-700',
+  [SUPPORT_CHAT_EVENT_TYPE.SUCCESS]: 'text-success-700',
   [SUPPORT_CHAT_EVENT_TYPE.DATE]: 'text-text-600',
 };
 
@@ -38,6 +42,8 @@ const TEXT_COLORS: Record<SupportChatEventType, string> = {
  * - NEUTRAL: gray pill, e.g. "Atendimento iniciado via Web",
  *   "Atendimento passou para humano" or "Concluído automaticamente pela IA"
  * - TRANSFER: orange pill, e.g. "IA transferiu para humano — motivo: …"
+ * - AI: blue pill, e.g. "IA assumiu o atendimento"
+ * - SUCCESS: green pill, e.g. "Atendimento concluído — motivo: Login"
  * - DATE: gray pill between two horizontal lines, used as a date separator
  *   (e.g. "Hoje")
  *

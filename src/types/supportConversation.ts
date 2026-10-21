@@ -20,6 +20,10 @@ export const SUPPORT_CONVERSATION_ITEM = {
   SYSTEM: 'system',
   /** Orange handoff event ("IA transferiu para humano — motivo: …") */
   TRANSFER: 'transfer',
+  /** Blue AI event ("IA assumiu o atendimento") */
+  AI: 'ai',
+  /** Green conclusion event ("Atendimento concluído") */
+  DONE: 'done',
   /** Message of the user, the AI, an agent or an internal note */
   MESSAGE: 'message',
 } as const;
@@ -39,7 +43,9 @@ export interface SupportConversationDateItem {
 export interface SupportConversationEventItem {
   kind:
     | typeof SUPPORT_CONVERSATION_ITEM.SYSTEM
-    | typeof SUPPORT_CONVERSATION_ITEM.TRANSFER;
+    | typeof SUPPORT_CONVERSATION_ITEM.TRANSFER
+    | typeof SUPPORT_CONVERSATION_ITEM.AI
+    | typeof SUPPORT_CONVERSATION_ITEM.DONE;
   id: string;
   text: string;
   /** Already formatted time, appended as "text · time" */

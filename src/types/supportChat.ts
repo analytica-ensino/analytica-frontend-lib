@@ -63,6 +63,8 @@ export type SupportChatReplyMode =
 export const SUPPORT_CHAT_EVENT_TYPE = {
   NEUTRAL: 'NEUTRAL',
   TRANSFER: 'TRANSFER',
+  AI: 'AI',
+  SUCCESS: 'SUCCESS',
   DATE: 'DATE',
 } as const;
 
