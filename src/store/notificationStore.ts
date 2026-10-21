@@ -109,6 +109,10 @@ const mapBackendNotification = (
         type = 'SIMULATION';
         entityType = NotificationEntityType.SIMULATION;
         break;
+      case NotificationEntityType.SISU_SIMULATOR:
+        type = 'SISU_SIMULATOR';
+        entityType = NotificationEntityType.SISU_SIMULATOR;
+        break;
       default:
         break;
     }

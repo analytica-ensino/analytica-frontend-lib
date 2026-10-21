@@ -65,6 +65,10 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
                 globalThis.location.href = `/simulados/${entityId}/resultado`;
               }
               break;
+            case NotificationEntityType.SISU_SIMULATOR:
+              // The simulator reads every momento: the id is not in the route.
+              globalThis.location.href = '/simulador-sisu/momento-enem';
+              break;
             default:
               break;
           }
@@ -92,6 +96,8 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
             return 'Ver meta';
           case NotificationEntityType.SIMULATION:
             return 'Ver simulado';
+          case NotificationEntityType.SISU_SIMULATOR:
+            return 'Simular agora';
           default:
             return undefined;
         }

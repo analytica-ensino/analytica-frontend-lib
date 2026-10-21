@@ -117,6 +117,16 @@ describe('useNotifications', () => {
       expect(window.location.href).toBe('/simulados/sim-1/resultado');
     });
 
+    it('should open the Momento ENEM SISU simulator for SISU_SIMULATOR, whatever the id', () => {
+      const { result } = renderHook(() => useNotifications());
+
+      act(() => {
+        result.current.handleNavigate('sisu_simulator', 'exam-1');
+      });
+
+      expect(window.location.href).toBe('/simulador-sisu/momento-enem');
+    });
+
     it('should accept the backend lowercase simulation entity type', () => {
       const { result } = renderHook(() => useNotifications());
 
@@ -225,6 +235,17 @@ describe('useNotifications', () => {
       // case here would silently hide the button for the whole type.
       expect(result.current.getActionLabel('SIMULATION')).toBe('Ver simulado');
       expect(result.current.getActionLabel('simulation')).toBe('Ver simulado');
+    });
+
+    it('should return "Simular agora" for SISU_SIMULATOR', () => {
+      const { result } = renderHook(() => useNotifications());
+
+      expect(result.current.getActionLabel('SISU_SIMULATOR')).toBe(
+        'Simular agora'
+      );
+      expect(result.current.getActionLabel('sisu_simulator')).toBe(
+        'Simular agora'
+      );
     });
 
     it('should handle lowercase entity types', () => {
