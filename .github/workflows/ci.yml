@@ -19,8 +19,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # The run fired by "closed" only exists to cancel the previous one; skipping
-  # setup skips every job that needs it.
+  # The run fired by "closed" only cancels the previous one and removes the PR
+  # dist-tag; skipping setup skips every job that needs it.
   setup:
     name: Setup Dependencies
     if: github.event.action != 'closed'
@@ -58,6 +58,29 @@ jobs:
     permissions:
       contents: write
       id-token: write
+
+  # Every PR commit publishes <package.json version>-pr.<N>.<short sha> under
+  # the pr-<N> dist-tag and comments the version on the PR, so the apps can
+  # try a change before it reaches main. PRs from forks have no NPM_TOKEN.
+  publish-pr:
+    name: Publish PR Version
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    needs: [setup, lint, typecheck]
+    uses: ./.github/workflows/publish-pr.yml
+    with:
+      cache-key: ${{ needs.setup.outputs.cache-key }}
+    secrets: inherit
+    permissions:
+      contents: read
+      pull-requests: write
+
+  untag-pr:
+    name: Remove PR Dist-Tag
+    if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    uses: ./.github/workflows/untag-pr.yml
+    secrets: inherit
+    permissions:
+      contents: read
 
   deploy-ladle:
     name: Deploy Ladle

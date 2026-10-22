@@ -1,0 +1,30 @@
+name: Remove PR Dist-Tag
+
+on:
+  workflow_call:
+
+jobs:
+  untag:
+    name: Remove the PR dist-tag from npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org/'
+
+      # The PR versions stay published; only the pr-<N> pointer goes away.
+      - name: Remove dist-tag
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          TAG: pr-${{ github.event.pull_request.number }}
+        run: |
+          if npm dist-tag ls analytica-frontend-lib | grep -q "^$TAG:"; then
+            npm dist-tag rm analytica-frontend-lib "$TAG"
+          else
+            echo "No $TAG dist-tag (nothing was published for this PR)."
+          fi

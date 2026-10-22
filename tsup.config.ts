@@ -233,10 +233,6 @@ export default defineConfig({
     'SimulationsPage/index': 'src/components/SimulationsPage/index.ts',
     'SimulatedStudentSimulationsModal/index':
       'src/components/SimulatedStudentSimulationsModal/index.ts',
-    // Consumed by the gestor's report modals, which already import
-    // `analytica-frontend-lib/metric-box` and `/modal-components`.
-    'MetricBox/index': 'src/components/shared/MetricBox.tsx',
-    'ModalComponents/index': 'src/components/shared/ModalComponents.tsx',
     'QuestionsPerformanceCard/index':
       'src/components/QuestionsPerformanceCard/index.ts',
     'KnowledgePerformanceCard/index':
