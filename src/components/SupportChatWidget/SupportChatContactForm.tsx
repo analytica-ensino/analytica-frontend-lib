@@ -89,7 +89,7 @@ export const SupportChatContactForm = ({
 
   const advance = async (event: FormEvent) => {
     event.preventDefault();
-    const typed = value.trim();
+    const typed = field === 'email' ? value.trim().toLowerCase() : value.trim();
     const error = validate(field, typed);
     setProblem(error);
     if (error) return;
@@ -104,7 +104,7 @@ export const SupportChatContactForm = ({
     setSaving(true);
     const ok = await onSubmit({
       ...(next.name ? { requesterName: next.name } : {}),
-      ...(next.email ? { email: next.email.toLowerCase() } : {}),
+      ...(next.email ? { email: next.email } : {}),
     });
     setSaving(false);
     if (ok) setSaved(true);
@@ -115,6 +115,7 @@ export const SupportChatContactForm = ({
   return (
     <form
       aria-label="Seus dados"
+      noValidate
       onSubmit={(event) => void advance(event)}
       className="mb-3 ml-1 flex max-w-[85%] flex-col gap-3 rounded-2xl border border-border-100 px-4 py-3"
     >

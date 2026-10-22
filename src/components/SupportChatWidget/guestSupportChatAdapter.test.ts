@@ -95,6 +95,69 @@ describe('fromSupportAnswer', () => {
   });
 });
 
+describe('fromSupportAnswer contactRequest', () => {
+  it('keeps the contact fields an AI answer asks for', () => {
+    expect(
+      fromSupportAnswer(
+        {
+          ...answer('a', SUPPORT_CHAT_AUTHOR.AI),
+          contactRequest: ['name', 'email'],
+        },
+        'Ana'
+      ).contactRequest
+    ).toEqual(['name', 'email']);
+    expect(
+      fromSupportAnswer(answer('b', SUPPORT_CHAT_AUTHOR.AI), 'Ana')
+        .contactRequest
+    ).toBeNull();
+  });
+});
+
+describe('createGuestSupportChatAdapter updateContact', () => {
+  it('saves the contact with the guest token and uses the new name', async () => {
+    const { apiClient, adapter } = setup();
+    const put = jest.fn().mockResolvedValue({ data: {} });
+    (apiClient as unknown as SupportChatHttpClient).put = put;
+    await adapter.startConversation({ message: 'oi', channel: 'login' });
+
+    await adapter.updateContact?.('t1', {
+      requesterName: 'Ana',
+      email: 'ana@x.com',
+    });
+    expect(put).toHaveBeenCalledWith(
+      '/support/guest/t1',
+      { requesterName: 'Ana', email: 'ana@x.com' },
+      { headers: { 'x-support-guest-token': 'tok' } }
+    );
+
+    const messages = await adapter.listMessages('t1');
+    expect(messages[0].senderName).toBe('Ana');
+  });
+
+  it('keeps the name when only the e-mail is sent or the ticket is unknown', async () => {
+    const { apiClient, adapter } = setup();
+    const put = jest.fn().mockResolvedValue({ data: {} });
+    (apiClient as unknown as SupportChatHttpClient).put = put;
+    await adapter.startConversation({ message: 'oi', channel: 'login' });
+
+    await adapter.updateContact?.('t1', { email: 'ana@x.com' });
+    await adapter.updateContact?.('other', { requesterName: 'Bia' });
+    expect(put).toHaveBeenLastCalledWith(
+      '/support/guest/other',
+      { requesterName: 'Bia' },
+      { headers: { 'x-support-guest-token': '' } }
+    );
+    expect((await adapter.listMessages('t1'))[0].senderName).toBe('Visitante');
+  });
+
+  it('fails when the API client has no PUT', async () => {
+    const { adapter } = setup();
+    await expect(
+      adapter.updateContact?.('t1', { email: 'ana@x.com' })
+    ).rejects.toThrow('O cliente da API não envia PUT');
+  });
+});
+
 describe('createGuestSupportChatAdapter', () => {
   const OriginalWebSocket = globalThis.WebSocket;
   beforeEach(() => {
@@ -222,7 +285,8 @@ describe('createGuestSupportChatAdapter', () => {
     ]);
     expect(events[3]).toEqual({ type: 'error', payload: { message: 'texto' } });
     expect(events[4]).toEqual({ type: 'error', payload: { message: '' } });
-    expect(apiClient.get).toHaveBeenCalledTimes(1);
+    // Opening the conversation, plus one REST read when the socket opens
+    expect(apiClient.get).toHaveBeenCalledTimes(2);
 
     socket.onclose?.();
     socket.onerror?.();
@@ -232,6 +296,33 @@ describe('createGuestSupportChatAdapter', () => {
     unsubscribe();
     expect(socket.close).toHaveBeenCalled();
     expect(socket.onclose).toBeNull();
+  });
+
+  it('delivers a seen message again when it comes back with the contact request', async () => {
+    const { adapter } = setup('ws://localhost:3005?channel=support');
+    await adapter.startConversation({ message: 'oi', channel: 'login' });
+    const events: SupportChatEvent[] = [];
+    adapter.subscribe('t1', (event) => events.push(event));
+    const socket = FakeSocket.last;
+    socket.onopen?.();
+
+    const stale = fromSupportAnswer(
+      answer('ai1', SUPPORT_CHAT_AUTHOR.AI),
+      'Visitante'
+    );
+    const marked = { ...stale, contactRequest: ['name', 'email'] as const };
+    // A stale history first, then the message with the request, then the stale copy again
+    socket.frame({ type: 'history', payload: { messages: [stale] } });
+    socket.frame({ type: 'new_message', payload: { message: marked } });
+    socket.frame({ type: 'new_message', payload: { message: marked } });
+    socket.frame({ type: 'new_message', payload: { message: stale } });
+
+    expect(
+      events.map(
+        (event) =>
+          event.type === 'new_message' && event.payload.message.contactRequest
+      )
+    ).toEqual([null, ['name', 'email']]);
   });
 });
 

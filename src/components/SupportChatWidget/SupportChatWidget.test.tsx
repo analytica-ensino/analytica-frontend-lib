@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { SupportChatWidget } from './SupportChatWidget';
 import { SupportType } from '../../types/support';
 import {
@@ -452,5 +452,140 @@ describe('SupportChatWidget optimistic rendering', () => {
     const bubble = screen.getByText('oi').closest('[aria-busy]');
     expect(bubble).toHaveClass('opacity-60');
     expect(screen.getByText('Enviando…')).toBeInTheDocument();
+  });
+});
+
+describe('SupportChatWidget contact form', () => {
+  const contactAsk = (id: string) => ({
+    ...buildMessage(id, 'Qual seu nome e e-mail?', SUPPORT_CHAT_AUTHOR.AI),
+    contactRequest: ['name', 'email'] as SupportChatMessage['contactRequest'],
+  });
+
+  const openWithContactAsk = async (withUpdateContact = true) => {
+    const { adapter, emit } = createAdapter();
+    if (withUpdateContact) {
+      adapter.updateContact = jest.fn().mockResolvedValue(undefined);
+    }
+    render(<SupportChatWidget adapter={adapter} channel="app" />);
+    fireEvent.click(screen.getByLabelText('Abrir suporte'));
+    await sendText('oi');
+    emit({ type: 'new_message', payload: { message: contactAsk('ai1') } });
+    return { adapter, emit };
+  };
+
+  const contactForm = () => screen.getByRole('form', { name: 'Seus dados' });
+
+  const fillContact = async () => {
+    fireEvent.change(screen.getByLabelText('Seu nome'), {
+      target: { value: 'Ana' },
+    });
+    await act(async () => {
+      fireEvent.click(
+        within(contactForm()).getByRole('button', { name: 'Avançar' })
+      );
+    });
+    fireEvent.change(screen.getByLabelText('Seu e-mail'), {
+      target: { value: 'Ana@X.com' },
+    });
+    await act(async () => {
+      fireEvent.click(
+        within(contactForm()).getByRole('button', { name: 'Enviar' })
+      );
+    });
+  };
+
+  it('locks the composer until the contact is saved', async () => {
+    const { adapter, emit } = await openWithContactAsk();
+
+    expect(contactForm()).toBeInTheDocument();
+    const textarea = screen.getByLabelText('Mensagem');
+    expect(textarea).toBeDisabled();
+    expect(textarea).toHaveAttribute(
+      'placeholder',
+      'Preencha seus dados acima'
+    );
+    expect(screen.getByLabelText('Anexar imagem')).toBeDisabled();
+    expect(screen.getByLabelText('Enviar')).toBeDisabled();
+
+    await fillContact();
+    expect(adapter.updateContact).toHaveBeenCalledWith('ticket-1', {
+      requesterName: 'Ana',
+      email: 'ana@x.com',
+    });
+    expect(
+      screen.getByTestId('support-chat-contact-saved')
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Mensagem')).toBeEnabled();
+    expect(screen.getByLabelText('Mensagem')).toHaveAttribute(
+      'placeholder',
+      'Digite sua mensagem'
+    );
+    expect(screen.getByLabelText('Anexar imagem')).toBeEnabled();
+
+    // A later message without a request keeps the saved form in place
+    emit({
+      type: 'new_message',
+      payload: {
+        message: buildMessage('a2', 'Obrigado', SUPPORT_CHAT_AUTHOR.AI),
+      },
+    });
+    expect(
+      screen.getByTestId('support-chat-contact-saved')
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Mensagem')).toBeEnabled();
+  });
+
+  it('shows the form only under the latest request', async () => {
+    const { emit } = await openWithContactAsk();
+    emit({ type: 'new_message', payload: { message: contactAsk('ai2') } });
+
+    expect(screen.getAllByRole('form', { name: 'Seus dados' })).toHaveLength(1);
+    expect(screen.getByLabelText('Mensagem')).toBeDisabled();
+  });
+
+  it('shows no form when the adapter cannot save the contact', async () => {
+    await openWithContactAsk(false);
+
+    expect(screen.getByText('Qual seu nome e e-mail?')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('form', { name: 'Seus dados' })
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Mensagem')).toBeEnabled();
+  });
+
+  it('keeps the composer locked and shows the error when saving fails', async () => {
+    const { adapter } = await openWithContactAsk();
+    (adapter.updateContact as jest.Mock).mockRejectedValueOnce({
+      response: { status: 409 },
+    });
+
+    await fillContact();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'O e-mail deste atendimento já foi informado'
+    );
+    expect(contactForm()).toBeInTheDocument();
+    expect(
+      screen.queryByTestId('support-chat-contact-saved')
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Mensagem')).toBeDisabled();
+  });
+
+  it('starting over clears the request', async () => {
+    const { emit } = await openWithContactAsk();
+    emit({
+      type: 'ticket_updated',
+      payload: {
+        ticketId: 'ticket-1',
+        status: SUPPORT_CHAT_STATUS.FECHADO,
+        handlerType: null,
+        problemType: null,
+      },
+    });
+    fireEvent.click(screen.getByText('Iniciar nova conversa'));
+
+    expect(
+      screen.queryByRole('form', { name: 'Seus dados' })
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Mensagem')).toBeEnabled();
   });
 });
