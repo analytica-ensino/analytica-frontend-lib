@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
+import Input from '../Input/Input';
 import type {
   SupportChatContact,
   SupportChatContactField,
 } from '../../types/supportChat';
-import { cn } from '../../utils/utils';
 
 export interface SupportChatContactFormProps {
   /** Fields the AI asked for, in order (one step each) */
@@ -119,40 +119,23 @@ export const SupportChatContactForm = ({
       onSubmit={(event) => void advance(event)}
       className="mb-3 ml-1 flex max-w-[85%] flex-col gap-3 rounded-2xl border border-border-100 px-4 py-3"
     >
-      <Text
-        as="label"
-        htmlFor={inputId}
-        size="sm"
-        weight="semibold"
-        color="text-text-950"
-      >
-        {config.label}
-      </Text>
-      <input
+      <Input
         id={inputId}
         key={field}
+        label={config.label}
+        variant="rounded"
+        size="small"
         type={config.type}
         autoComplete={config.autoComplete}
         placeholder={config.placeholder}
         value={value}
         autoFocus
         disabled={saving}
-        aria-invalid={!!problem || undefined}
+        errorMessage={problem ?? undefined}
         onChange={(event) =>
           setValues((current) => ({ ...current, [field]: event.target.value }))
         }
-        className={cn(
-          'w-full rounded-full border-2 px-4 py-2 text-sm text-text-900 focus:outline-none',
-          problem
-            ? 'border-error-500'
-            : 'border-border-300 focus:border-primary-500'
-        )}
       />
-      {problem && (
-        <Text size="xs" role="alert" color="text-error-700">
-          {problem}
-        </Text>
-      )}
       <div className="flex items-center justify-between">
         <Text size="xs" color="text-text-500">
           {fields.length > 1 ? `${step + 1} de ${fields.length}` : ''}

@@ -166,8 +166,10 @@ const FaqReference = ({
 }) => {
   const label = (
     <Text
+      as="span"
       size="xs"
-      className={cn('text-primary-700', faqArticleUrl && 'underline')}
+      color="text-primary-700"
+      className={cn(faqArticleUrl && 'underline')}
     >
       Baseado na FAQ: {faq.title}
     </Text>
