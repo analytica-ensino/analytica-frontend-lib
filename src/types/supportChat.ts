@@ -163,6 +163,11 @@ export interface SupportChatMessage {
   attachments: SupportChatAttachment[];
   /** FAQ article an AI message is based on */
   faq?: { id: string; title: string } | null;
+  /**
+   * Contact fields an AI message asks for: the chat shows a form for them
+   * under the message
+   */
+  contactRequest?: SupportChatContactField[] | null;
   /** Local only: shown before the server confirms it (optimistic) */
   pending?: boolean;
 }
@@ -231,6 +236,20 @@ export interface SupportChatAdapter {
     ticketId: string,
     listener: (event: SupportChatEvent) => void
   ): () => void;
+  /**
+   * Save the name and/or e-mail the visitor typed in the contact form.
+   * Without it the chat does not show the form (the AI request stays a text).
+   */
+  updateContact?(ticketId: string, contact: SupportChatContact): Promise<void>;
+}
+
+/** Contact field the AI asks for */
+export type SupportChatContactField = 'name' | 'email';
+
+/** Contact sent by the chat form */
+export interface SupportChatContact {
+  requesterName?: string;
+  email?: string;
 }
 
 /**
@@ -282,6 +301,12 @@ export interface SupportChatHttpClient {
     data?: unknown,
     config?: { headers?: Record<string, string> }
   ) => Promise<{ data: T }>;
+  /** Used to save the visitor contact (PUT /support/guest/:id) */
+  put?: <T>(
+    url: string,
+    data?: unknown,
+    config?: { headers?: Record<string, string> }
+  ) => Promise<{ data: T }>;
 }
 
 /**
@@ -296,4 +321,6 @@ export interface SupportChatAnswerApi {
   /** FAQ article an AI message is based on */
   faqArticleId?: string | null;
   faqArticleTitle?: string | null;
+  /** Contact fields an AI message asks for */
+  contactRequest?: SupportChatContactField[] | null;
 }

@@ -51,6 +51,7 @@ export const fromSupportAnswer = (
     answer.faqArticleId && answer.faqArticleTitle
       ? { id: answer.faqArticleId, title: answer.faqArticleTitle }
       : null,
+  contactRequest: answer.contactRequest ?? null,
 });
 
 /**
@@ -180,6 +181,19 @@ export const createGuestSupportChatAdapter = ({
     },
 
     sendMessage,
+
+    async updateContact(ticketId, contact) {
+      if (!apiClient.put) {
+        throw new Error('O cliente da API não envia PUT');
+      }
+      await apiClient.put(`/support/guest/${ticketId}`, contact, {
+        headers: headersFor(ticketId),
+      });
+      const session = sessions.get(ticketId);
+      if (session && contact.requesterName) {
+        session.name = contact.requesterName;
+      }
+    },
 
     listMessages,
 

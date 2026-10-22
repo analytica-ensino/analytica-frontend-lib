@@ -15,6 +15,7 @@ import {
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import { useSupportChat } from '../../hooks/useSupportChat';
+import { SupportChatContactForm } from './SupportChatContactForm';
 import { SupportType } from '../../types/support';
 import {
   SUPPORT_CHAT_AUTHOR,
@@ -277,12 +278,24 @@ const SupportChatWidgetContent = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const seenCount = useRef(0);
 
-  const { messages, sending, error, closed, send, reset } = useSupportChat({
-    adapter,
-    channel,
-    institutionId,
-    user,
-  });
+  const { messages, sending, error, closed, send, updateContact, reset } =
+    useSupportChat({
+      adapter,
+      channel,
+      institutionId,
+      user,
+    });
+  const [savedContactRequests, setSavedContactRequests] = useState<string[]>(
+    []
+  );
+
+  // Latest AI request for name/e-mail: the form goes under it, and the
+  // composer waits until it is sent
+  const contactRequest = updateContact
+    ? [...messages].reverse().find((message) => message.contactRequest?.length)
+    : undefined;
+  const awaitingContact =
+    !!contactRequest && !savedContactRequests.includes(contactRequest.id);
 
   const isOpen = windowState === 'open';
   const title = theme?.title ?? 'Suporte';
@@ -323,6 +336,7 @@ const SupportChatWidgetContent = ({
     setFileError(null);
     setUnread(0);
     seenCount.current = 0;
+    setSavedContactRequests([]);
     reset();
   };
 
@@ -406,11 +420,30 @@ const SupportChatWidgetContent = ({
               </Text>
             ) : (
               messages.map((message) => (
-                <MessageBubble
-                  key={message.id}
-                  message={message}
-                  faqArticleUrl={faqArticleUrl}
-                />
+                <div key={message.id}>
+                  <MessageBubble
+                    message={message}
+                    faqArticleUrl={faqArticleUrl}
+                  />
+                  {updateContact &&
+                    message.id === contactRequest?.id &&
+                    message.contactRequest && (
+                      <SupportChatContactForm
+                        fields={message.contactRequest}
+                        accentColor={theme?.primaryColor}
+                        onSubmit={async (contact) => {
+                          const ok = await updateContact(contact);
+                          if (ok) {
+                            setSavedContactRequests((ids) => [
+                              ...ids,
+                              message.id,
+                            ]);
+                          }
+                          return ok;
+                        }}
+                      />
+                    )}
+                </div>
               ))
             )}
           </div>
@@ -469,7 +502,9 @@ const SupportChatWidgetContent = ({
                   variant="raw"
                   aria-label="Anexar imagem"
                   disabled={
-                    sending || files.length >= SUPPORT_CHAT_MAX_ATTACHMENTS
+                    sending ||
+                    awaitingContact ||
+                    files.length >= SUPPORT_CHAT_MAX_ATTACHMENTS
                   }
                   onClick={() => fileInputRef.current?.click()}
                   className="p-2 rounded-full text-text-600 hover:bg-background-100 disabled:opacity-50"
@@ -478,7 +513,12 @@ const SupportChatWidgetContent = ({
                 </Button>
                 <textarea
                   aria-label="Mensagem"
-                  placeholder="Digite sua mensagem"
+                  placeholder={
+                    awaitingContact
+                      ? 'Preencha seus dados acima'
+                      : 'Digite sua mensagem'
+                  }
+                  disabled={awaitingContact}
                   rows={1}
                   value={draft}
                   onChange={(event) => setDraft(event.target.value)}
@@ -489,7 +529,11 @@ const SupportChatWidgetContent = ({
                   variant="raw"
                   type="submit"
                   aria-label="Enviar"
-                  disabled={sending || (!draft.trim() && files.length === 0)}
+                  disabled={
+                    sending ||
+                    awaitingContact ||
+                    (!draft.trim() && files.length === 0)
+                  }
                   className="p-2 rounded-full bg-primary-500 text-white disabled:opacity-50"
                   style={accentStyle}
                 >
