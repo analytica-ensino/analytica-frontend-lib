@@ -60,8 +60,8 @@ jobs:
       id-token: write
 
   # Every PR commit publishes <package.json version>-pr.<N>.<short sha> under
-  # the pr-<N> dist-tag, so the apps can try a change before it reaches main.
-  # PRs from forks have no NPM_TOKEN.
+  # the pr-<N> dist-tag and comments the version on the PR, so the apps can
+  # try a change before it reaches main. PRs from forks have no NPM_TOKEN.
   publish-pr:
     name: Publish PR Version
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
@@ -72,6 +72,7 @@ jobs:
     secrets: inherit
     permissions:
       contents: read
+      pull-requests: write
 
   untag-pr:
     name: Remove PR Dist-Tag

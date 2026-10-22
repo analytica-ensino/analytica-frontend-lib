@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      pull-requests: write
 
     steps:
       # Build the PR head, not the merge commit: the version is taken from the
@@ -67,6 +68,7 @@ jobs:
       # --tag keeps "latest" on the main release; pr-<N> always points to the
       # newest build of the PR. npm publish runs prepack, which builds dist.
       - name: Publish package
+        id: publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_OPTIONS: --max-old-space-size=8192
@@ -77,20 +79,31 @@ jobs:
           if [ -n "$(npm view "analytica-frontend-lib@$VERSION" version 2>/dev/null)" ]; then
             echo "$VERSION is already published; pointing $TAG to it."
             npm dist-tag add "analytica-frontend-lib@$VERSION" "$TAG"
+            echo "published=false" >> "$GITHUB_OUTPUT"
           else
             npm publish --access public --tag "$TAG"
+            echo "published=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Write job summary
+      # One comment per new build; a re-run of the same commit doesn't repeat it.
+      - name: Comment the version on the PR
+        if: steps.publish.outputs.published == 'true'
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           VERSION: ${{ steps.version.outputs.version }}
           TAG: ${{ steps.version.outputs.tag }}
         run: |
+          BODY="$RUNNER_TEMP/pr-comment.md"
           {
-            echo "### 📦 analytica-frontend-lib@$VERSION"
+            echo "📦 Versão publicada no npm: \`analytica-frontend-lib@$VERSION\` (commit $HEAD_SHA)"
             echo
-            echo '```'
+            echo '```sh'
             echo "yarn add analytica-frontend-lib@$VERSION"
             echo '```'
-            echo "\`analytica-frontend-lib@$TAG\` resolves to the newest build of this PR."
-          } >> "$GITHUB_STEP_SUMMARY"
+            echo
+            echo "O dist-tag \`$TAG\` sempre aponta para o build mais recente deste PR: \`yarn up analytica-frontend-lib@$TAG\`."
+          } > "$BODY"
+          gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -F body=@"$BODY" > /dev/null
+          cat "$BODY" >> "$GITHUB_STEP_SUMMARY"
