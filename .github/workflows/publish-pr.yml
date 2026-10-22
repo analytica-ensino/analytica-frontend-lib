@@ -1,0 +1,96 @@
+name: Publish PR Version
+
+on:
+  workflow_call:
+    inputs:
+      cache-key:
+        description: "Cache key for node_modules"
+        required: true
+        type: string
+
+jobs:
+  publish:
+    name: Publish PR version to npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      # Build the PR head, not the merge commit: the version is taken from the
+      # head's package.json and carries the head's commit hash.
+      - name: Checkout PR head
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org/'
+          cache: yarn
+
+      - name: Restore node_modules cache
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            node_modules
+            .yarn/cache
+            .pnp.*
+          key: ${{ inputs.cache-key }}
+          fail-on-cache-miss: true
+
+      # The cache is keyed on the merge commit's yarn.lock; this syncs it with
+      # the head's lockfile (a no-op when they match).
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Set PR version
+        id: version
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          BASE=$(node -p "require('./package.json').version")
+          SHORT_SHA=${HEAD_SHA:0:7}
+          # A semver prerelease identifier made only of digits can't start with
+          # 0 (npm silently rewrites 0123456 as 123456). Extend the hash up to
+          # its first letter so the identifier is never numeric.
+          if [[ "$SHORT_SHA" =~ ^[0-9]+$ ]]; then
+            SHORT_SHA=$(grep -oE '^[0-9]+[a-f]' <<< "$HEAD_SHA")
+          fi
+          VERSION="${BASE}-pr.${PR_NUMBER}.${SHORT_SHA}"
+          npm version "$VERSION" --no-git-tag-version
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=pr-${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      # --tag keeps "latest" on the main release; pr-<N> always points to the
+      # newest build of the PR. npm publish runs prepack, which builds dist.
+      - name: Publish package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_OPTIONS: --max-old-space-size=8192
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          # A re-run of the same commit finds its version already published.
+          if [ -n "$(npm view "analytica-frontend-lib@$VERSION" version 2>/dev/null)" ]; then
+            echo "$VERSION is already published; pointing $TAG to it."
+            npm dist-tag add "analytica-frontend-lib@$VERSION" "$TAG"
+          else
+            npm publish --access public --tag "$TAG"
+          fi
+
+      - name: Write job summary
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          {
+            echo "### 📦 analytica-frontend-lib@$VERSION"
+            echo
+            echo '```'
+            echo "yarn add analytica-frontend-lib@$VERSION"
+            echo '```'
+            echo "\`analytica-frontend-lib@$TAG\` resolves to the newest build of this PR."
+          } >> "$GITHUB_STEP_SUMMARY"
