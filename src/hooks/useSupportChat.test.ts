@@ -263,4 +263,72 @@ describe('useSupportChat optimistic rendering', () => {
       pending: true,
     });
   });
+
+  describe('updateContact', () => {
+    const withContact = () => {
+      const result = setup();
+      result.adapter.updateContact = jest.fn().mockResolvedValue(undefined);
+      result.hook.rerender();
+      return result;
+    };
+
+    it('is undefined when the adapter cannot save the contact', () => {
+      const { hook } = setup();
+      expect(hook.result.current.updateContact).toBeUndefined();
+    });
+
+    it('resolves false before the ticket exists', async () => {
+      const { adapter, hook } = withContact();
+      let ok: boolean | undefined;
+      await act(async () => {
+        ok = await hook.result.current.updateContact?.({ email: 'a@b.com' });
+      });
+      expect(ok).toBe(false);
+      expect(adapter.updateContact).not.toHaveBeenCalled();
+    });
+
+    it('saves the contact of the current ticket', async () => {
+      const { adapter, hook } = withContact();
+      await act(async () => {
+        await hook.result.current.send('oi');
+      });
+      let ok: boolean | undefined;
+      await act(async () => {
+        ok = await hook.result.current.updateContact?.({
+          requesterName: 'Ana',
+          email: 'ana@x.com',
+        });
+      });
+      expect(ok).toBe(true);
+      expect(adapter.updateContact).toHaveBeenCalledWith('ticket-1', {
+        requesterName: 'Ana',
+        email: 'ana@x.com',
+      });
+      expect(hook.result.current.error).toBeNull();
+    });
+
+    it.each([
+      [
+        { response: { status: 409 } },
+        'O e-mail deste atendimento já foi informado',
+      ],
+      [
+        new Error('Falhou'),
+        'Não foi possível salvar seus dados. Tente de novo.',
+      ],
+      [null, 'Não foi possível salvar seus dados. Tente de novo.'],
+    ])('sets the error when saving fails (%p)', async (failure, expected) => {
+      const { adapter, hook } = withContact();
+      await act(async () => {
+        await hook.result.current.send('oi');
+      });
+      (adapter.updateContact as jest.Mock).mockRejectedValueOnce(failure);
+      let ok: boolean | undefined;
+      await act(async () => {
+        ok = await hook.result.current.updateContact?.({ email: 'a@b.com' });
+      });
+      expect(ok).toBe(false);
+      expect(hook.result.current.error).toBe(expected);
+    });
+  });
 });

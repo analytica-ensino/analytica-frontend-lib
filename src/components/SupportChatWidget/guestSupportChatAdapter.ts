@@ -47,6 +47,11 @@ export const fromSupportAnswer = (
   messageType: 'text',
   createdAt: answer.createdAt,
   attachments: answer.attachments ?? [],
+  faq:
+    answer.faqArticleId && answer.faqArticleTitle
+      ? { id: answer.faqArticleId, title: answer.faqArticleTitle }
+      : null,
+  contactRequest: answer.contactRequest ?? null,
 });
 
 /**
@@ -177,17 +182,40 @@ export const createGuestSupportChatAdapter = ({
 
     sendMessage,
 
+    async updateContact(ticketId, contact) {
+      if (!apiClient.put) {
+        throw new Error('O cliente da API não envia PUT');
+      }
+      await apiClient.put(`/support/guest/${ticketId}`, contact, {
+        headers: headersFor(ticketId),
+      });
+      const session = sessions.get(ticketId);
+      if (session && contact.requesterName) {
+        session.name = contact.requesterName;
+      }
+    },
+
     listMessages,
 
     subscribe(ticketId, listener) {
-      const seen = new Set<string>();
+      // id → what the chat shows besides the text; a message seen again with
+      // more of it (a stale WebSocket history may lack contactRequest/faq) is
+      // delivered again so the chat replaces it
+      const seen = new Map<string, string>();
+      const extrasOf = (message: SupportChatMessage) =>
+        JSON.stringify([message.contactRequest ?? null, message.faq ?? null]);
+      const NO_EXTRAS = JSON.stringify([null, null]);
       let socket: WebSocket | null = null;
       let pollTimer: ReturnType<typeof setInterval> | null = null;
       let active = true;
 
       const deliver = (message: SupportChatMessage) => {
-        if (seen.has(message.id) || !isVisible(message)) return;
-        seen.add(message.id);
+        if (!isVisible(message)) return;
+        const extras = extrasOf(message);
+        const previous = seen.get(message.id);
+        // Same as before, or a poorer copy: nothing new to show
+        if (previous === extras || (previous && extras === NO_EXTRAS)) return;
+        seen.set(message.id, extras);
         listener({ type: 'new_message', payload: { message } });
       };
 
@@ -248,6 +276,9 @@ export const createGuestSupportChatAdapter = ({
         socket.onopen = () => {
           stopPolling();
           socket?.send(JSON.stringify({ type: 'getInitialData' }));
+          // The REST API is the source of truth: a WebSocket deployed apart
+          // from it may send a history without contactRequest/faq
+          void poll();
         };
         socket.onmessage = (event) => handleFrame(String(event.data));
         socket.onclose = startPolling;

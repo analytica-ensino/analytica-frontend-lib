@@ -285,6 +285,48 @@ describe('useSupportFeatureFlag', () => {
       );
     });
   });
+  describe('faqArticleUrl', () => {
+    const flagWith = (version: Record<string, unknown>) => ({
+      data: {
+        featureFlags: {
+          institutionId: 'institution-123',
+          page: 'SUPPORT',
+          version,
+        },
+      },
+    });
+
+    it('deve montar o link do artigo a partir do endereço do FAQ', async () => {
+      const apiClient = createMockApiClient(
+        flagWith({
+          supportType: SupportType.NATIVE,
+          faqUrl: ' https://ajuda.escola.com.br/ ',
+        })
+      );
+
+      const { result } = renderHook(() => useSupportFeatureFlag({ apiClient }));
+
+      await waitFor(() => {
+        expect(result.current.faqArticleUrl?.('art-1')).toBe(
+          'https://ajuda.escola.com.br/artigo/art-1'
+        );
+      });
+    });
+
+    it('deve ficar undefined sem endereço do FAQ', async () => {
+      const apiClient = createMockApiClient(
+        flagWith({ supportType: SupportType.NATIVE })
+      );
+
+      const { result } = renderHook(() => useSupportFeatureFlag({ apiClient }));
+
+      await waitFor(() => {
+        expect(result.current.isNative).toBe(true);
+      });
+      expect(result.current.faqArticleUrl).toBeUndefined();
+    });
+  });
+
   describe('zendeskKey', () => {
     const flagWith = (version: Record<string, unknown>) => ({
       data: {

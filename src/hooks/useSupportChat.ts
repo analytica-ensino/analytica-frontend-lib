@@ -4,6 +4,7 @@ import {
   SUPPORT_CHAT_GUEST_SENDER_ID,
   SUPPORT_CHAT_STATUS,
   type SupportChatAdapter,
+  type SupportChatContact,
   type SupportChatEvent,
   type SupportChatMessage,
   type SupportChatTicket,
@@ -26,6 +27,12 @@ export interface UseSupportChatReturn {
   closed: boolean;
   /** Send a message (text and/or files); the first one opens the ticket */
   send: (content: string, files?: File[]) => Promise<SupportChatMessage | null>;
+  /**
+   * Save the contact typed in the form shown under the AI request. Resolves
+   * false (and sets `error`) when it fails. Undefined when the adapter cannot
+   * save it.
+   */
+  updateContact?: (contact: SupportChatContact) => Promise<boolean>;
   /** Forget the current conversation */
   reset: () => void;
 }
@@ -182,6 +189,26 @@ export const useSupportChat = ({
     [adapter, channel, institutionId, ticketId, user]
   );
 
+  const updateContact = useCallback(
+    async (contact: SupportChatContact) => {
+      if (!ticketId || !adapter.updateContact) return false;
+      setError(null);
+      try {
+        await adapter.updateContact(ticketId, contact);
+        return true;
+      } catch (contactError) {
+        setError(
+          (contactError as { response?: { status?: number } } | null)?.response
+            ?.status === 409
+            ? 'O e-mail deste atendimento já foi informado'
+            : 'Não foi possível salvar seus dados. Tente de novo.'
+        );
+        return false;
+      }
+    },
+    [adapter, ticketId]
+  );
+
   const reset = useCallback(() => {
     setTicket(null);
     setMessages([]);
@@ -195,6 +222,7 @@ export const useSupportChat = ({
     error,
     closed: ticket?.status === SUPPORT_CHAT_STATUS.FECHADO,
     send,
+    updateContact: adapter.updateContact ? updateContact : undefined,
     reset,
   };
 };
