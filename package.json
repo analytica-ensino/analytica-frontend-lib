@@ -2021,7 +2021,7 @@
     "lint": "npx eslint \"{src,app}/**/*.{js,jsx,ts,tsx}\" --fix",
     "lint:ci": "npx eslint \"{src,app}/**/*.{js,jsx,ts,tsx}\"",
     "typecheck": "npx tsc --noEmit",
-    "prepare": "husky install",
+    "prepare": "husky",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -2077,6 +2077,7 @@
     "@tiptap/extension-text-align": "^3.0.0",
     "@tiptap/extension-text-style": "^3.0.0",
     "@tiptap/extension-underline": "^3.0.0",
+    "@tiptap/pm": "^3.0.0",
     "@tiptap/react": "^3.0.0",
     "@tiptap/starter-kit": "^3.0.0",
     "@turf/helpers": ">=7.0.0",
@@ -2126,6 +2127,9 @@
       "optional": true
     },
     "@tiptap/extension-underline": {
+      "optional": true
+    },
+    "@tiptap/pm": {
       "optional": true
     },
     "@tiptap/react": {
@@ -2184,6 +2188,8 @@
     "@tiptap/extension-text-align": "^3.24.0",
     "@tiptap/extension-text-style": "^3.24.0",
     "@tiptap/extension-underline": "^3.24.0",
+    "@tiptap/extensions": "^3.24.0",
+    "@tiptap/pm": "^3.24.0",
     "@tiptap/react": "^3.24.0",
     "@tiptap/starter-kit": "^3.24.0",
     "@turf/helpers": "^7.3.5",
@@ -2222,5 +2228,8 @@
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
     "zod": "^4.4.3"
+  },
+  "resolutions": {
+    "react-inspector": "^9.0.0"
   }
 }
