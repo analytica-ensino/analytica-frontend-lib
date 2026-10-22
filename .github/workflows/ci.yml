@@ -5,10 +5,25 @@ on:
     branches:
       - main
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - closed
+
+# One group per PR: a new commit, or closing/merging the PR, cancels the PR
+# run still in progress. Push runs (deploys) get a unique group and are never
+# cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # The run fired by "closed" only exists to cancel the previous one; skipping
+  # setup skips every job that needs it.
   setup:
     name: Setup Dependencies
+    if: github.event.action != 'closed'
     uses: ./.github/workflows/setup.yml
 
   lint:
