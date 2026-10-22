@@ -76,9 +76,10 @@ jobs:
           TAG: ${{ steps.version.outputs.tag }}
         run: |
           # A re-run of the same commit finds its version already published.
+          # Leave $TAG alone: re-running an older commit must not point it back
+          # to an older build (and NPM_TOKEN can't change dist-tags anyway).
           if [ -n "$(npm view "analytica-frontend-lib@$VERSION" version 2>/dev/null)" ]; then
-            echo "$VERSION is already published; pointing $TAG to it."
-            npm dist-tag add "analytica-frontend-lib@$VERSION" "$TAG"
+            echo "$VERSION is already published; nothing to do."
             echo "published=false" >> "$GITHUB_OUTPUT"
           else
             npm publish --access public --tag "$TAG"
