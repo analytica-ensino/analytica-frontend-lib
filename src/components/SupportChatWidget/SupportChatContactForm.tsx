@@ -76,7 +76,7 @@ export const SupportChatContactForm = ({
         className="mb-3 ml-1 flex max-w-[85%] flex-col gap-1 rounded-2xl border border-border-100 px-4 py-3"
       >
         {fields.map((item) => (
-          <Text key={item} size="xs" className="text-text-600">
+          <Text key={item} size="xs" color="text-text-600">
             {STEPS[item].label}:{' '}
             <Text as="span" size="xs" weight="semibold" color="text-text-900">
               {values[item]}
@@ -119,11 +119,15 @@ export const SupportChatContactForm = ({
       onSubmit={(event) => void advance(event)}
       className="mb-3 ml-1 flex max-w-[85%] flex-col gap-3 rounded-2xl border border-border-100 px-4 py-3"
     >
-      <label htmlFor={inputId}>
-        <Text size="sm" weight="semibold" color="text-text-950">
-          {config.label}
-        </Text>
-      </label>
+      <Text
+        as="label"
+        htmlFor={inputId}
+        size="sm"
+        weight="semibold"
+        color="text-text-950"
+      >
+        {config.label}
+      </Text>
       <input
         id={inputId}
         key={field}
@@ -145,12 +149,12 @@ export const SupportChatContactForm = ({
         )}
       />
       {problem && (
-        <Text size="xs" role="alert" className="text-error-700">
+        <Text size="xs" role="alert" color="text-error-700">
           {problem}
         </Text>
       )}
       <div className="flex items-center justify-between">
-        <Text size="xs" className="text-text-500">
+        <Text size="xs" color="text-text-500">
           {fields.length > 1 ? `${step + 1} de ${fields.length}` : ''}
         </Text>
         <Button
