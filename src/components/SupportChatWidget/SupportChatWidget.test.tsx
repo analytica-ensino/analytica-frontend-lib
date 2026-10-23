@@ -299,7 +299,7 @@ describe('SupportChatWidget images', () => {
     expect(screen.getByLabelText('Enviar')).toBeDisabled();
     const input = screen.getByTestId('support-chat-file-input');
     const click = jest.spyOn(input, 'click');
-    fireEvent.click(screen.getByLabelText('Anexar imagem'));
+    fireEvent.click(screen.getByLabelText('Anexar arquivo'));
     expect(click).toHaveBeenCalled();
     pick([png('a.png'), png('b.png')]);
     expect(screen.getByAltText('a.png')).toHaveAttribute('src', 'blob:preview');
@@ -335,14 +335,14 @@ describe('SupportChatWidget images', () => {
   it.each([
     [
       'type',
-      [new File(['x'], 'a.pdf', { type: 'application/pdf' })],
-      'Envie imagens JPG, PNG, GIF ou WEBP',
+      [new File(['x'], 'a.txt', { type: 'text/plain' })],
+      'Envie imagens (JPG, PNG, GIF, WEBP), PDF ou vídeo (MP4, WEBM, MOV)',
     ],
     ['size', [png('big.png', 6 * 1024 * 1024)], 'big.png passa de 5 MB'],
     [
       'count',
       Array.from({ length: 6 }, (_, i) => png(`${i}.png`)),
-      'Máximo de 5 imagens por mensagem',
+      'Máximo de 5 arquivos por mensagem',
     ],
   ])('refuses images by %s', (_label, files, text) => {
     const { adapter } = createAdapter();
@@ -387,7 +387,7 @@ describe('SupportChatWidget images', () => {
       'src',
       'https://cdn/x.png'
     );
-    expect(screen.getByText('y.pdf')).toHaveAttribute(
+    expect(screen.getByText('y.pdf').closest('a')).toHaveAttribute(
       'href',
       'https://cdn/y.pdf'
     );
@@ -504,7 +504,7 @@ describe('SupportChatWidget contact form', () => {
       'placeholder',
       'Preencha seus dados acima'
     );
-    expect(screen.getByLabelText('Anexar imagem')).toBeDisabled();
+    expect(screen.getByLabelText('Anexar arquivo')).toBeDisabled();
     expect(screen.getByLabelText('Enviar')).toBeDisabled();
 
     await fillContact();
@@ -520,7 +520,7 @@ describe('SupportChatWidget contact form', () => {
       'placeholder',
       'Digite sua mensagem'
     );
-    expect(screen.getByLabelText('Anexar imagem')).toBeEnabled();
+    expect(screen.getByLabelText('Anexar arquivo')).toBeEnabled();
 
     // A later message without a request keeps the saved form in place
     emit({
@@ -587,5 +587,206 @@ describe('SupportChatWidget contact form', () => {
       screen.queryByRole('form', { name: 'Seus dados' })
     ).not.toBeInTheDocument();
     expect(screen.getByLabelText('Mensagem')).toBeEnabled();
+  });
+});
+
+describe('SupportChatWidget article inside the chat', () => {
+  const ARTICLE_ID = '0b6f3c8e-1a2b-4c3d-8e9f-0123456789ab';
+  const aiAnswer = {
+    ...buildMessage('ai1', 'Veja o passo a passo.', SUPPORT_CHAT_AUTHOR.AI),
+    faq: { id: ARTICLE_ID, title: 'Como redefinir a senha' },
+  };
+
+  const openWithArticles = async ({
+    faqArticleUrl,
+    institutionId = 'inst-1',
+    message = aiAnswer,
+  }: {
+    faqArticleUrl?: (articleId: string) => string;
+    institutionId?: string;
+    message?: SupportChatMessage;
+  } = {}) => {
+    const { adapter, emit } = createAdapter();
+    adapter.getArticle = jest.fn().mockResolvedValue({
+      id: ARTICLE_ID,
+      title: 'Como redefinir a senha',
+      body: '<p>Clique em <strong>Esqueci a senha</strong>.</p>',
+      updatedAt: '2026-10-21T12:00:00.000Z',
+    });
+    render(
+      <SupportChatWidget
+        adapter={adapter}
+        channel="app"
+        institutionId={institutionId}
+        faqArticleUrl={faqArticleUrl}
+      />
+    );
+    fireEvent.click(screen.getByLabelText('Abrir suporte'));
+    await sendText('esqueci a senha');
+    emit({ type: 'new_message', payload: { message } });
+    return { adapter, emit };
+  };
+
+  const openFaq = async () => {
+    await act(async () => {
+      fireEvent.click(
+        screen.getByText('Baseado na FAQ: Como redefinir a senha')
+      );
+    });
+  };
+
+  it('opens the FAQ article in the expanded window and goes back', async () => {
+    const { adapter } = await openWithArticles();
+    const dialog = screen.getByRole('dialog', { name: 'Suporte' });
+    expect(dialog).toHaveClass('w-[360px]', 'h-[520px]');
+    expect(
+      screen.getByText('Baseado na FAQ: Como redefinir a senha').closest('a')
+    ).toHaveAttribute('href', '#');
+
+    await openFaq();
+    expect(adapter.getArticle).toHaveBeenCalledWith('inst-1', ARTICLE_ID);
+    expect(screen.getByTestId('support-chat-article')).toBeInTheDocument();
+    expect(screen.getByText('Esqueci a senha')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Mensagem')).not.toBeInTheDocument();
+    expect(screen.queryByText('oi')).not.toBeInTheDocument();
+    expect(dialog).toHaveClass('w-[720px]', 'h-[615px]');
+    expect(
+      screen.queryByLabelText('Abrir em nova aba')
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Reduzir artigo'));
+    expect(dialog).toHaveClass('w-[360px]', 'h-[520px]');
+    fireEvent.click(screen.getByLabelText('Expandir artigo'));
+    expect(dialog).toHaveClass('w-[720px]', 'h-[615px]');
+
+    fireEvent.click(screen.getByLabelText('Voltar para a janela de mensagens'));
+    expect(
+      screen.queryByTestId('support-chat-article')
+    ).not.toBeInTheDocument();
+    expect(dialog).toHaveClass('w-[360px]', 'h-[520px]');
+    expect(screen.getByText('oi')).toBeInTheDocument();
+    expect(screen.getByText('Veja o passo a passo.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Mensagem')).toBeInTheDocument();
+  });
+
+  it('links the article page in a new tab with faqArticleUrl', async () => {
+    await openWithArticles({ faqArticleUrl: (id) => `/artigo/${id}` });
+    expect(
+      screen.getByText('Baseado na FAQ: Como redefinir a senha').closest('a')
+    ).toHaveAttribute('href', `/artigo/${ARTICLE_ID}`);
+
+    await openFaq();
+    expect(screen.getByLabelText('Abrir em nova aba')).toHaveAttribute(
+      'href',
+      `/artigo/${ARTICLE_ID}`
+    );
+  });
+
+  it('opens an article link written in a message', async () => {
+    const { adapter } = await openWithArticles({
+      message: buildMessage(
+        'ag1',
+        `Leia https://faq.escola.com/artigo/${ARTICLE_ID}.`,
+        SUPPORT_CHAT_AUTHOR.AGENT
+      ),
+    });
+
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole('link', {
+          name: `https://faq.escola.com/artigo/${ARTICLE_ID}`,
+        })
+      );
+    });
+    expect(adapter.getArticle).toHaveBeenCalledWith('inst-1', ARTICLE_ID);
+    expect(screen.getByTestId('support-chat-article')).toBeInTheDocument();
+    // Only the title loaded from the article is known here
+    expect(
+      screen.getByRole('heading', { name: 'Como redefinir a senha' })
+    ).toBeInTheDocument();
+  });
+
+  it('keeps the old link without an institution', async () => {
+    await openWithArticles({
+      institutionId: '',
+      faqArticleUrl: (id) => `/artigo/${id}`,
+    });
+    const link = screen
+      .getByText('Baseado na FAQ: Como redefinir a senha')
+      .closest('a');
+    expect(link).toHaveAttribute('target', '_blank');
+    fireEvent.click(link!);
+    expect(
+      screen.queryByTestId('support-chat-article')
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe('SupportChatWidget PDF and video attachments', () => {
+  beforeEach(() => {
+    URL.createObjectURL = jest.fn(() => 'blob:preview');
+    URL.revokeObjectURL = jest.fn();
+  });
+
+  it('shows picked PDF and video as chips and sends them', async () => {
+    const { adapter } = createAdapter();
+    render(<SupportChatWidget adapter={adapter} channel="app" />);
+    fireEvent.click(screen.getByLabelText('Abrir suporte'));
+
+    const input = screen.getByTestId('support-chat-file-input');
+    expect(input.getAttribute('accept')).toContain('application/pdf');
+    expect(input.getAttribute('accept')).toContain('video/mp4');
+    fireEvent.change(input, {
+      target: {
+        files: [
+          new File(['x'], 'guia.pdf', { type: 'application/pdf' }),
+          new File(['x'], 'tela.mp4', { type: 'video/mp4' }),
+        ],
+      },
+    });
+    expect(screen.getByText('guia.pdf')).toBeInTheDocument();
+    expect(screen.getByText('tela.mp4')).toBeInTheDocument();
+    expect(screen.getByLabelText('Remover guia.pdf')).toBeInTheDocument();
+    expect(URL.createObjectURL).not.toHaveBeenCalled();
+
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText('Enviar'));
+    });
+    expect(adapter.startConversation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        files: [
+          expect.objectContaining({ name: 'guia.pdf' }),
+          expect.objectContaining({ name: 'tela.mp4' }),
+        ],
+      })
+    );
+  });
+
+  it('plays a video attachment of a message', async () => {
+    const { adapter, emit } = createAdapter();
+    render(<SupportChatWidget adapter={adapter} channel="app" />);
+    fireEvent.click(screen.getByLabelText('Abrir suporte'));
+    await sendText('oi');
+    emit({
+      type: 'new_message',
+      payload: {
+        message: {
+          ...buildMessage('a1', '', SUPPORT_CHAT_AUTHOR.AGENT),
+          attachments: [
+            {
+              id: 'v1',
+              url: 'https://cdn/tela.mp4',
+              fileName: 'tela.mp4',
+              mimeType: 'video/mp4',
+              size: 1,
+            },
+          ],
+        },
+      },
+    });
+    const video = screen.getByLabelText('tela.mp4');
+    expect(video.tagName).toBe('VIDEO');
+    expect(video).toHaveAttribute('src', 'https://cdn/tela.mp4');
+    expect(video).toHaveAttribute('controls');
   });
 });

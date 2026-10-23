@@ -426,3 +426,46 @@ describe('createGuestSupportChatAdapter uploads', () => {
     );
   });
 });
+
+describe('createGuestSupportChatAdapter getArticle', () => {
+  it('loads the article of the help center', async () => {
+    const { apiClient, adapter } = setup();
+    apiClient.get.mockResolvedValueOnce({
+      data: {
+        data: {
+          article: {
+            id: 'art-1',
+            title: 'Simulados',
+            body: '<p>oi</p>',
+            updatedAt: '2026-10-21T12:00:00.000Z',
+            extra: 'ignored',
+          },
+        },
+      },
+    });
+
+    await expect(adapter.getArticle!('inst-1', 'art-1')).resolves.toEqual({
+      id: 'art-1',
+      title: 'Simulados',
+      body: '<p>oi</p>',
+      updatedAt: '2026-10-21T12:00:00.000Z',
+    });
+    expect(apiClient.get).toHaveBeenCalledWith(
+      '/help-center/inst-1/articles/art-1'
+    );
+  });
+
+  it('uses null when the article has no update date', async () => {
+    const { apiClient, adapter } = setup();
+    apiClient.get.mockResolvedValueOnce({
+      data: { data: { article: { id: 'a', title: 't', body: 'b' } } },
+    });
+
+    await expect(adapter.getArticle!('inst-1', 'a')).resolves.toEqual({
+      id: 'a',
+      title: 't',
+      body: 'b',
+      updatedAt: null,
+    });
+  });
+});

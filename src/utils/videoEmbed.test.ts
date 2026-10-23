@@ -1,4 +1,8 @@
-import { isAllowedVideoEmbedSrc, toVideoEmbedUrl } from './videoEmbed';
+import {
+  embedVideoLinks,
+  isAllowedVideoEmbedSrc,
+  toVideoEmbedUrl,
+} from './videoEmbed';
 
 describe('toVideoEmbedUrl', () => {
   it.each([
@@ -56,5 +60,83 @@ describe('isAllowedVideoEmbedSrc', () => {
     );
     expect(isAllowedVideoEmbedSrc(null)).toBe(false);
     expect(isAllowedVideoEmbedSrc('::')).toBe(false);
+  });
+});
+
+describe('embedVideoLinks', () => {
+  const YT = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+  const YT_EMBED = 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ';
+
+  const parse = (html: string) => {
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    return container;
+  };
+
+  it('replaces a video link alone in its paragraph with the player', () => {
+    const out = parse(
+      embedVideoLinks(`<p>Antes</p><p><a href="${YT}">Assista</a></p>`)
+    );
+    const wrapper = out.querySelector('div[data-video-embed]');
+    expect(wrapper).not.toBeNull();
+    expect(wrapper?.className).toBe('video-embed');
+    const iframe = wrapper?.querySelector('iframe');
+    expect(iframe?.getAttribute('src')).toBe(YT_EMBED);
+    expect(iframe?.getAttribute('title')).toBe('Assista');
+    expect(iframe?.getAttribute('allowfullscreen')).toBe('true');
+    expect(out.querySelector('a')).toBeNull();
+    expect(out.children).toHaveLength(2);
+  });
+
+  it('replaces a video link alone in a list item', () => {
+    const out = parse(
+      embedVideoLinks(
+        '<ul><li><a href="https://vimeo.com/76979871"></a></li></ul>'
+      )
+    );
+    const iframe = out.querySelector('ul > div[data-video-embed] > iframe');
+    expect(iframe?.getAttribute('src')).toBe(
+      'https://player.vimeo.com/video/76979871'
+    );
+    expect(iframe?.getAttribute('title')).toBe('Vídeo');
+    expect(out.querySelector('li')).toBeNull();
+  });
+
+  it('keeps a link inside text and puts the player after the paragraph', () => {
+    const out = parse(
+      embedVideoLinks(`<p>Veja <a href="${YT}">o vídeo</a> aqui</p><p>Fim</p>`)
+    );
+    const [first, second, third] = Array.from(out.children);
+    expect(first.tagName).toBe('P');
+    expect(first.querySelector('a')?.getAttribute('href')).toBe(YT);
+    expect(second.hasAttribute('data-video-embed')).toBe(true);
+    expect(third.textContent).toBe('Fim');
+  });
+
+  it('replaces a video link that has no paragraph around it', () => {
+    const out = parse(embedVideoLinks(`<div><a href="${YT}">vídeo</a></div>`));
+    expect(out.querySelector('a')).toBeNull();
+    expect(
+      out
+        .querySelector('div > div[data-video-embed] iframe')
+        ?.getAttribute('src')
+    ).toBe(YT_EMBED);
+  });
+
+  it('returns the same string when there is no video link', () => {
+    const html = '<p><a href="https://example.com">site</a></p>';
+    expect(embedVideoLinks(html)).toBe(html);
+  });
+
+  it('returns the html unchanged without DOMParser', () => {
+    const original = globalThis.DOMParser;
+    // @ts-expect-error simulating an environment without DOMParser
+    delete globalThis.DOMParser;
+    try {
+      const html = `<p><a href="${YT}">x</a></p>`;
+      expect(embedVideoLinks(html)).toBe(html);
+    } finally {
+      globalThis.DOMParser = original;
+    }
   });
 });

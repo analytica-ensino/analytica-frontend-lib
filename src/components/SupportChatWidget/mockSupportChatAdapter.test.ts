@@ -159,3 +159,47 @@ describe('createMockSupportChatAdapter with files', () => {
     expect((await sent).attachments).toHaveLength(1);
   });
 });
+
+describe('createMockSupportChatAdapter getArticle', () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
+  it('returns a sample article with the asked id', async () => {
+    const adapter = createMockSupportChatAdapter();
+    const loading = adapter.getArticle!('inst-1', 'art-1');
+    await jest.advanceTimersByTimeAsync(300);
+    const article = await loading;
+    expect(article).toEqual(
+      expect.objectContaining({
+        id: 'art-1',
+        title: 'Como gerar e localizar simulados',
+        updatedAt: '2026-10-21T12:00:00.000Z',
+      })
+    );
+    expect(article.body).toContain('youtube.com/watch');
+  });
+});
+
+describe('createMockSupportChatAdapter closed ticket', () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
+  it('refuses messages on a closed ticket', async () => {
+    const adapter = createMockSupportChatAdapter({ replyText: null });
+    const started = adapter.startConversation({
+      message: 'oi',
+      channel: 'login',
+    });
+    await jest.advanceTimersByTimeAsync(300);
+    const { ticket } = await started;
+    // The mock keeps the ticket object it returned: close it in place
+    ticket.status = SUPPORT_CHAT_STATUS.FECHADO;
+
+    const failure = adapter.sendMessage(ticket.id, 'oi de novo');
+    const assertion = expect(failure).rejects.toThrow(
+      'Este atendimento já foi encerrado'
+    );
+    await jest.advanceTimersByTimeAsync(300);
+    await assertion;
+  });
+});
