@@ -12,7 +12,6 @@ import {
   SUPPORT_CHAT_MAX_ATTACHMENTS,
   type SupportChatAttachment,
 } from '../../types/supportChat';
-import { cn } from '../../utils/utils';
 
 /** Value of the `accept` attribute of the file picker */
 export const SUPPORT_CHAT_ACCEPT = Object.keys(
@@ -206,7 +205,7 @@ export const MessageText = ({
   if (cursor < text.length) parts.push(text.slice(cursor));
 
   return (
-    <Text size="sm" color="" className={cn('whitespace-pre-wrap')}>
+    <Text size="sm" color="" className="whitespace-pre-wrap">
       {parts}
     </Text>
   );
