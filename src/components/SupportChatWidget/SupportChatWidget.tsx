@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -7,8 +8,8 @@ import {
 } from 'react';
 import {
   ChatCircleDotsIcon,
-  ImageIcon,
   MinusIcon,
+  PaperclipIcon,
   PaperPlaneTiltIcon,
   XIcon,
 } from '@phosphor-icons/react';
@@ -16,14 +17,19 @@ import Text from '../Text/Text';
 import Button from '../Button/Button';
 import { useSupportChat } from '../../hooks/useSupportChat';
 import { SupportChatContactForm } from './SupportChatContactForm';
+import { SupportChatArticleView } from './SupportChatArticleView';
+import {
+  AttachmentList,
+  MessageText,
+  PendingAttachment,
+  SUPPORT_CHAT_ACCEPT,
+  pickAttachments,
+} from './supportChatContent';
 import { SupportType } from '../../types/support';
 import {
   SUPPORT_CHAT_AUTHOR,
-  SUPPORT_CHAT_IMAGE_TYPES,
   SUPPORT_CHAT_MAX_ATTACHMENTS,
-  SUPPORT_CHAT_MAX_IMAGE_BYTES,
   type SupportChatAdapter,
-  type SupportChatAttachment,
   type SupportChatFlags,
   type SupportChatMessage,
   type SupportChatTheme,
@@ -74,115 +80,51 @@ const formatTime = (createdAt: string) =>
     minute: '2-digit',
   });
 
-const isImage = (mimeType?: string) => Boolean(mimeType?.startsWith('image/'));
-
-const AttachmentList = ({ items }: { items: SupportChatAttachment[] }) => (
-  <div className="flex flex-wrap gap-2 first:mt-0 mt-1">
-    {items.map((item) =>
-      isImage(item.mimeType) ? (
-        <a key={item.id} href={item.url} target="_blank" rel="noreferrer">
-          <img
-            src={item.url}
-            alt={item.fileName}
-            className="max-w-[200px] max-h-[200px] rounded-lg object-cover"
-          />
-        </a>
-      ) : (
-        <a
-          key={item.id}
-          href={item.url}
-          target="_blank"
-          rel="noreferrer"
-          className="underline text-sm"
-        >
-          {item.fileName}
-        </a>
-      )
-    )}
-  </div>
-);
-
-/** Thumbnail of a file picked but not sent yet */
-const PendingImage = ({
-  file,
-  onRemove,
-}: {
-  file: File;
-  onRemove: () => void;
-}) => {
-  const [url, setUrl] = useState('');
-  useEffect(() => {
-    const objectUrl = URL.createObjectURL(file);
-    setUrl(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [file]);
-
-  return (
-    <div className="relative">
-      {url && (
-        <img
-          src={url}
-          alt={file.name}
-          className="w-14 h-14 rounded-lg object-cover border border-border-100"
-        />
-      )}
-      <Button
-        variant="raw"
-        aria-label={`Remover ${file.name}`}
-        onClick={onRemove}
-        className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-text-700 text-white flex items-center justify-center"
-      >
-        <XIcon size={12} />
-      </Button>
-    </div>
-  );
-};
-
-/** Keep the valid images and say why the others were left out */
-const pickImages = (current: File[], picked: File[]) => {
-  const accepted = [...current];
-  let problem: string | null = null;
-  for (const file of picked) {
-    if (!SUPPORT_CHAT_IMAGE_TYPES.includes(file.type)) {
-      problem = 'Envie imagens JPG, PNG, GIF ou WEBP';
-    } else if (file.size > SUPPORT_CHAT_MAX_IMAGE_BYTES) {
-      problem = `${file.name} passa de 5 MB`;
-    } else if (accepted.length >= SUPPORT_CHAT_MAX_ATTACHMENTS) {
-      problem = 'Máximo de 5 imagens por mensagem';
-    } else {
-      accepted.push(file);
-    }
-  }
-  return { accepted, problem };
-};
-
 /** "Baseado na FAQ: <title>" under an AI answer, linked when possible */
 const FaqReference = ({
   faq,
   faqArticleUrl,
+  onOpenArticle,
 }: {
   faq: { id: string; title: string };
   faqArticleUrl?: (articleId: string) => string;
+  onOpenArticle?: (article: { id: string; title: string }) => void;
 }) => {
+  const linked = !!onOpenArticle || !!faqArticleUrl;
   const label = (
     <Text
       as="span"
       size="xs"
       color="text-primary-700"
-      className={cn(faqArticleUrl && 'underline')}
+      className={cn(linked && 'underline')}
     >
       Baseado na FAQ: {faq.title}
     </Text>
   );
+  let content = label;
+  if (onOpenArticle) {
+    // Opens inside the chat, like the Zendesk messenger (no new tab)
+    content = (
+      <a
+        href={faqArticleUrl?.(faq.id) ?? '#'}
+        onClick={(event) => {
+          event.preventDefault();
+          onOpenArticle(faq);
+        }}
+      >
+        {label}
+      </a>
+    );
+  } else if (faqArticleUrl) {
+    content = (
+      <a href={faqArticleUrl(faq.id)} target="_blank" rel="noreferrer">
+        {label}
+      </a>
+    );
+  }
   return (
     <div data-testid="support-chat-faq" className="mt-1 max-w-[80%]">
-      {faqArticleUrl ? (
-        <a href={faqArticleUrl(faq.id)} target="_blank" rel="noreferrer">
-          {label}
-        </a>
-      ) : (
-        label
-      )}
+      {content}
     </div>
   );
 };
@@ -190,9 +132,11 @@ const FaqReference = ({
 const MessageBubble = ({
   message,
   faqArticleUrl,
+  onOpenArticle,
 }: {
   message: SupportChatMessage;
   faqArticleUrl?: (articleId: string) => string;
+  onOpenArticle?: (article: { id: string; title?: string }) => void;
 }) => {
   const own = isOwnMessage(message);
   return (
@@ -224,16 +168,23 @@ const MessageBubble = ({
         )}
       >
         {message.content && (
-          <Text size="sm" color="">
-            {message.content}
-          </Text>
+          <MessageText
+            text={message.content}
+            onOpenArticle={
+              onOpenArticle ? (id) => onOpenArticle({ id }) : undefined
+            }
+          />
         )}
         {message.attachments.length > 0 && (
           <AttachmentList items={message.attachments} />
         )}
       </div>
       {message.faq && (
-        <FaqReference faq={message.faq} faqArticleUrl={faqArticleUrl} />
+        <FaqReference
+          faq={message.faq}
+          faqArticleUrl={faqArticleUrl}
+          onOpenArticle={onOpenArticle}
+        />
       )}
       <Text size="xs" className="text-text-400 mt-1">
         {message.pending ? 'Enviando…' : formatTime(message.createdAt)}
@@ -276,6 +227,11 @@ const SupportChatWidgetContent = ({
   const [files, setFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
   const [unread, setUnread] = useState(0);
+  // FAQ article open inside the chat (the conversation stays as it was)
+  const [article, setArticle] = useState<{ id: string; title?: string } | null>(
+    null
+  );
+  const [expanded, setExpanded] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const seenCount = useRef(0);
@@ -300,6 +256,28 @@ const SupportChatWidgetContent = ({
     !!contactRequest && !savedContactRequests.includes(contactRequest.id);
 
   const isOpen = windowState === 'open';
+
+  const canOpenArticle = !!adapter.getArticle && !!institutionId;
+  const loadArticle = useCallback(
+    (articleId: string) => {
+      if (!adapter.getArticle || !institutionId) {
+        return Promise.reject(new Error('Artigo indisponível'));
+      }
+      // Called on the adapter so a class-based adapter keeps its `this`
+      return adapter.getArticle(institutionId, articleId);
+    },
+    [adapter, institutionId]
+  );
+  const openArticle = canOpenArticle
+    ? (target: { id: string; title?: string }) => {
+        setArticle(target);
+        setExpanded(true);
+      }
+    : undefined;
+  const closeArticle = () => {
+    setArticle(null);
+    setExpanded(false);
+  };
   const title = theme?.title ?? 'Suporte';
   const left = theme?.position === 'bottom-left';
   const accentStyle = theme?.primaryColor
@@ -316,10 +294,10 @@ const SupportChatWidgetContent = ({
   }, [messages, isOpen]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || article) return;
     setUnread(0);
     listRef.current?.scrollTo?.({ top: listRef.current.scrollHeight });
-  }, [isOpen, messages]);
+  }, [isOpen, messages, article]);
 
   const open = () => {
     setWindowState('open');
@@ -359,7 +337,7 @@ const SupportChatWidgetContent = ({
   };
 
   const handleFiles = (event: ChangeEvent<HTMLInputElement>) => {
-    const { accepted, problem } = pickImages(
+    const { accepted, problem } = pickAttachments(
       files,
       Array.from(event.target.files ?? [])
     );
@@ -386,163 +364,184 @@ const SupportChatWidgetContent = ({
         <section
           role="dialog"
           aria-label={title}
-          className="w-[360px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[calc(100vh-6rem)] flex flex-col bg-background rounded-2xl shadow-lg border border-border-100 overflow-hidden"
-        >
-          <header
-            className="flex items-center justify-between px-4 py-3 bg-primary-500 text-white"
-            style={accentStyle}
-          >
-            <Text size="md" weight="semibold" color="">
-              {title}
-            </Text>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="raw"
-                aria-label="Minimizar"
-                onClick={() => setWindowState('minimized')}
-                className="p-1 rounded hover:bg-white/20"
-              >
-                <MinusIcon size={18} />
-              </Button>
-              <Button
-                variant="raw"
-                aria-label="Fechar"
-                onClick={close}
-                className="p-1 rounded hover:bg-white/20"
-              >
-                <XIcon size={18} />
-              </Button>
-            </div>
-          </header>
-
-          <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-3">
-            {messages.length === 0 ? (
-              <Text size="sm" className="text-text-500 text-center mt-8">
-                Olá! Como podemos te ajudar?
-              </Text>
-            ) : (
-              messages.map((message) => (
-                <div key={message.id}>
-                  <MessageBubble
-                    message={message}
-                    faqArticleUrl={faqArticleUrl}
-                  />
-                  {updateContact &&
-                    message.id === contactRequest?.id &&
-                    message.contactRequest && (
-                      <SupportChatContactForm
-                        fields={message.contactRequest}
-                        accentColor={theme?.primaryColor}
-                        onSubmit={async (contact) => {
-                          const ok = await updateContact(contact);
-                          if (ok) {
-                            setSavedContactRequests((ids) => [
-                              ...ids,
-                              message.id,
-                            ]);
-                          }
-                          return ok;
-                        }}
-                      />
-                    )}
-                </div>
-              ))
-            )}
-          </div>
-
-          {(fileError || error) && (
-            <Text
-              size="xs"
-              role="alert"
-              className="px-4 py-2 text-error-700 bg-error-50"
-            >
-              {fileError ?? error}
-            </Text>
+          className={cn(
+            'max-w-[calc(100vw-2rem)] max-h-[calc(100vh-6rem)] flex flex-col bg-background rounded-2xl shadow-lg border border-border-100 overflow-hidden transition-[width,height]',
+            expanded ? 'w-[720px] h-[615px]' : 'w-[360px] h-[520px]'
           )}
-
-          {closed ? (
-            <div className="flex flex-col items-center gap-2 px-4 py-3 border-t border-border-100">
-              <Text size="sm" color="text-text-500" className="text-center">
-                Este atendimento foi encerrado.
-              </Text>
-              <Button variant="link" size="small" onClick={startOver}>
-                Iniciar nova conversa
-              </Button>
-            </div>
+        >
+          {article ? (
+            <SupportChatArticleView
+              articleId={article.id}
+              initialTitle={article.title}
+              loadArticle={loadArticle}
+              expanded={expanded}
+              onToggleExpanded={() => setExpanded((value) => !value)}
+              onBack={closeArticle}
+              externalUrl={faqArticleUrl?.(article.id)}
+              accentStyle={accentStyle}
+            />
           ) : (
-            <form
-              className="flex flex-col gap-2 px-3 py-3 border-t border-border-100"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void submit();
-              }}
-            >
-              {files.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {files.map((file, index) => (
-                    <PendingImage
-                      key={`${file.name}-${index}`}
-                      file={file}
-                      onRemove={() =>
-                        setFiles((list) => list.filter((_, i) => i !== index))
-                      }
-                    />
-                  ))}
+            <>
+              <header
+                className="flex items-center justify-between px-4 py-3 bg-primary-500 text-white"
+                style={accentStyle}
+              >
+                <Text size="md" weight="semibold" color="">
+                  {title}
+                </Text>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="raw"
+                    aria-label="Minimizar"
+                    onClick={() => setWindowState('minimized')}
+                    className="p-1 rounded hover:bg-white/20"
+                  >
+                    <MinusIcon size={18} />
+                  </Button>
+                  <Button
+                    variant="raw"
+                    aria-label="Fechar"
+                    onClick={close}
+                    className="p-1 rounded hover:bg-white/20"
+                  >
+                    <XIcon size={18} />
+                  </Button>
                 </div>
-              )}
-              <div className="flex items-end gap-2">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept={SUPPORT_CHAT_IMAGE_TYPES.join(',')}
-                  multiple
-                  hidden
-                  data-testid="support-chat-file-input"
-                  onChange={handleFiles}
-                />
-                <Button
-                  variant="raw"
-                  aria-label="Anexar imagem"
-                  disabled={
-                    sending ||
-                    awaitingContact ||
-                    files.length >= SUPPORT_CHAT_MAX_ATTACHMENTS
-                  }
-                  onClick={() => fileInputRef.current?.click()}
-                  className="p-2 rounded-full text-text-600 hover:bg-background-100 disabled:opacity-50"
-                >
-                  <ImageIcon size={20} />
-                </Button>
-                <textarea
-                  aria-label="Mensagem"
-                  placeholder={
-                    awaitingContact
-                      ? 'Preencha seus dados acima'
-                      : 'Digite sua mensagem'
-                  }
-                  disabled={awaitingContact}
-                  rows={1}
-                  value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="flex-1 resize-none rounded-xl border border-border-300 px-3 py-2 text-sm text-text-900 focus:outline-none focus:border-primary-500 max-h-28"
-                />
-                <Button
-                  variant="raw"
-                  type="submit"
-                  aria-label="Enviar"
-                  disabled={
-                    sending ||
-                    awaitingContact ||
-                    (!draft.trim() && files.length === 0)
-                  }
-                  className="p-2 rounded-full bg-primary-500 text-white disabled:opacity-50"
-                  style={accentStyle}
-                >
-                  <PaperPlaneTiltIcon size={18} />
-                </Button>
+              </header>
+
+              <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-3">
+                {messages.length === 0 ? (
+                  <Text size="sm" className="text-text-500 text-center mt-8">
+                    Olá! Como podemos te ajudar?
+                  </Text>
+                ) : (
+                  messages.map((message) => (
+                    <div key={message.id}>
+                      <MessageBubble
+                        message={message}
+                        faqArticleUrl={faqArticleUrl}
+                        onOpenArticle={openArticle}
+                      />
+                      {updateContact &&
+                        message.id === contactRequest?.id &&
+                        message.contactRequest && (
+                          <SupportChatContactForm
+                            fields={message.contactRequest}
+                            accentColor={theme?.primaryColor}
+                            onSubmit={async (contact) => {
+                              const ok = await updateContact(contact);
+                              if (ok) {
+                                setSavedContactRequests((ids) => [
+                                  ...ids,
+                                  message.id,
+                                ]);
+                              }
+                              return ok;
+                            }}
+                          />
+                        )}
+                    </div>
+                  ))
+                )}
               </div>
-            </form>
+
+              {(fileError || error) && (
+                <Text
+                  size="xs"
+                  role="alert"
+                  className="px-4 py-2 text-error-700 bg-error-50"
+                >
+                  {fileError ?? error}
+                </Text>
+              )}
+
+              {closed ? (
+                <div className="flex flex-col items-center gap-2 px-4 py-3 border-t border-border-100">
+                  <Text size="sm" color="text-text-500" className="text-center">
+                    Este atendimento foi encerrado.
+                  </Text>
+                  <Button variant="link" size="small" onClick={startOver}>
+                    Iniciar nova conversa
+                  </Button>
+                </div>
+              ) : (
+                <form
+                  className="flex flex-col gap-2 px-3 py-3 border-t border-border-100"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void submit();
+                  }}
+                >
+                  {files.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {files.map((file, index) => (
+                        <PendingAttachment
+                          key={`${file.name}-${index}`}
+                          file={file}
+                          onRemove={() =>
+                            setFiles((list) =>
+                              list.filter((_, i) => i !== index)
+                            )
+                          }
+                        />
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex items-end gap-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept={SUPPORT_CHAT_ACCEPT}
+                      multiple
+                      hidden
+                      data-testid="support-chat-file-input"
+                      onChange={handleFiles}
+                    />
+                    <Button
+                      variant="raw"
+                      aria-label="Anexar arquivo"
+                      disabled={
+                        sending ||
+                        awaitingContact ||
+                        files.length >= SUPPORT_CHAT_MAX_ATTACHMENTS
+                      }
+                      onClick={() => fileInputRef.current?.click()}
+                      className="p-2 rounded-full text-text-600 hover:bg-background-100 disabled:opacity-50"
+                    >
+                      <PaperclipIcon size={20} />
+                    </Button>
+                    <textarea
+                      aria-label="Mensagem"
+                      placeholder={
+                        awaitingContact
+                          ? 'Preencha seus dados acima'
+                          : 'Digite sua mensagem'
+                      }
+                      disabled={awaitingContact}
+                      rows={1}
+                      value={draft}
+                      onChange={(event) => setDraft(event.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className="flex-1 resize-none rounded-xl border border-border-300 px-3 py-2 text-sm text-text-900 focus:outline-none focus:border-primary-500 max-h-28"
+                    />
+                    <Button
+                      variant="raw"
+                      type="submit"
+                      aria-label="Enviar"
+                      disabled={
+                        sending ||
+                        awaitingContact ||
+                        (!draft.trim() && files.length === 0)
+                      }
+                      className="p-2 rounded-full bg-primary-500 text-white disabled:opacity-50"
+                      style={accentStyle}
+                    >
+                      <PaperPlaneTiltIcon size={18} />
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </>
           )}
         </section>
       )}

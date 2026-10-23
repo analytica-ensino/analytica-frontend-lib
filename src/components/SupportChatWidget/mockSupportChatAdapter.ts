@@ -118,6 +118,23 @@ export const createMockSupportChatAdapter = ({
   };
 
   return {
+    async getArticle(_institutionId, articleId) {
+      await wait();
+      return {
+        id: articleId,
+        title: 'Como gerar e localizar simulados',
+        body:
+          '<p>Monte um simulado com as matérias que quiser e acompanhe o resultado. 📝</p>' +
+          '<h2>Passo a passo</h2>' +
+          '<ol><li><p>No menu, abra <strong>Simulados</strong>.</p></li>' +
+          '<li><p>Clique em <strong>Gerar simulado</strong> e escolha as áreas.</p></li>' +
+          '<li><p>Responda e veja o resultado em <strong>Histórico</strong>.</p></li></ol>' +
+          '<p><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Assista ao vídeo do passo a passo</a></p>' +
+          '<blockquote><p>💡 Dica: refaça as questões que errou.</p></blockquote>',
+        updatedAt: '2026-10-21T12:00:00.000Z',
+      };
+    },
+
     async startConversation({ message, requesterName, email, files }) {
       await wait();
       const ticket: SupportChatTicket = {

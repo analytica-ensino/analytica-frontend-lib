@@ -4,6 +4,7 @@ import {
   SUPPORT_CHAT_STATUS,
   type SupportChatAdapter,
   type SupportChatAnswerApi,
+  type SupportChatArticle,
   type SupportChatEvent,
   type SupportChatHttpClient,
   type SupportChatMessage,
@@ -181,6 +182,14 @@ export const createGuestSupportChatAdapter = ({
     },
 
     sendMessage,
+
+    async getArticle(institutionId, articleId) {
+      const { data } = await apiClient.get<{
+        data: { article: SupportChatArticle };
+      }>(`/help-center/${institutionId}/articles/${articleId}`);
+      const { id, title, body, updatedAt } = data.data.article;
+      return { id, title, body, updatedAt: updatedAt ?? null };
+    },
 
     async updateContact(ticketId, contact) {
       if (!apiClient.put) {

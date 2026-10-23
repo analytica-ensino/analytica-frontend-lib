@@ -148,6 +148,35 @@ export const SUPPORT_CHAT_MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 /** Most attachments in one message */
 export const SUPPORT_CHAT_MAX_ATTACHMENTS = 5;
 
+const MB = 1024 * 1024;
+
+/**
+ * Files the backend accepts in the support chat (mime type → largest size).
+ * Mirrors SUPPORT_ATTACHMENT_RULES of the API: images, PDF and short videos.
+ */
+export const SUPPORT_CHAT_ATTACHMENT_RULES: Record<string, number> = {
+  'image/jpeg': 5 * MB,
+  'image/png': 5 * MB,
+  'image/gif': 5 * MB,
+  'image/webp': 5 * MB,
+  'application/pdf': 10 * MB,
+  'video/mp4': 50 * MB,
+  'video/webm': 50 * MB,
+  'video/quicktime': 50 * MB,
+};
+
+/**
+ * FAQ article opened inside the chat (GET /help-center/:institutionId/articles/:id)
+ */
+export interface SupportChatArticle {
+  id: string;
+  title: string;
+  /** Article HTML as saved by the help-center editor */
+  body: string;
+  /** ISO date of the last update, when known */
+  updatedAt: string | null;
+}
+
 /**
  * Chat message (same shape as the platform chat, plus attachments)
  */
@@ -241,6 +270,14 @@ export interface SupportChatAdapter {
    * Without it the chat does not show the form (the AI request stays a text).
    */
   updateContact?(ticketId: string, contact: SupportChatContact): Promise<void>;
+  /**
+   * Load a FAQ article of the institution. With it, the article an AI answer
+   * is based on opens inside the chat instead of a new tab.
+   */
+  getArticle?(
+    institutionId: string,
+    articleId: string
+  ): Promise<SupportChatArticle>;
 }
 
 /** Contact field the AI asks for */

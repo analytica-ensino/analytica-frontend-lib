@@ -80,3 +80,49 @@ export const isAllowedVideoEmbedSrc = (src: string | null): boolean => {
     return false;
   }
 };
+
+/**
+ * Turns the YouTube/Vimeo links of an article into embedded players, in the
+ * same `data-video-embed` wrapper the RichEditor writes, so the reader shows
+ * the video instead of a link. A link that is alone in its paragraph is
+ * replaced by the player; a link inside text keeps its place and the player
+ * goes right after the paragraph.
+ * @param html - Article HTML
+ * @returns The HTML with the players (unchanged when there is no video link)
+ */
+export const embedVideoLinks = (html: string): string => {
+  if (typeof DOMParser === 'undefined') return html;
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  let changed = false;
+
+  doc.querySelectorAll('a[href]').forEach((link) => {
+    const src = toVideoEmbedUrl(link.getAttribute('href') ?? '');
+    if (!src) return;
+
+    const wrapper = doc.createElement('div');
+    wrapper.setAttribute('data-video-embed', '');
+    wrapper.className = 'video-embed';
+    const iframe = doc.createElement('iframe');
+    iframe.setAttribute('src', src);
+    iframe.setAttribute('frameborder', '0');
+    iframe.setAttribute('allowfullscreen', 'true');
+    iframe.setAttribute(
+      'allow',
+      'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+    );
+    iframe.setAttribute('title', link.textContent?.trim() || 'Vídeo');
+    wrapper.appendChild(iframe);
+
+    const block = link.closest('p, li');
+    if (block && block.textContent?.trim() === link.textContent?.trim()) {
+      block.replaceWith(wrapper);
+    } else if (block) {
+      block.after(wrapper);
+    } else {
+      link.replaceWith(wrapper);
+    }
+    changed = true;
+  });
+
+  return changed ? doc.body.innerHTML : html;
+};
