@@ -11,16 +11,17 @@ import { formatTicketTime } from '../utils/formatTicketTime';
  * cada cor, quem consome decide o que `danger` quer dizer (SLA, prioridade,
  * ticket reaberto). O hover sobrepõe qualquer tone.
  *
- * As cores são os literais do Figma do SAC, idênticas em qualquer tema — mesmo
- * critério do `activeTone="blue"` do `SidebarMenuItem`. Escritas por extenso
- * porque o Tailwind varre o código-fonte e não resolve classe interpolada.
+ * As cores vêm dos tokens do tema (`primary-50` é o azul claro do Figma no
+ * light e um azul escuro no dark), para a linha seguir o modo escuro. Só a
+ * barra e o avatar ficam no azul literal do Figma. Escritas por extenso porque
+ * o Tailwind varre o código-fonte e não resolve classe interpolada.
  */
 export type TicketListItemTone = 'default' | 'info' | 'danger';
 
 const TONE_CLASSES: Record<TicketListItemTone, string> = {
   default: 'bg-transparent',
-  info: 'bg-[#EEF5FC]',
-  danger: 'bg-[#FFF7F7]',
+  info: 'bg-primary-50',
+  danger: 'bg-error-background',
 };
 
 /** Tonalidade das badges. Mapeia para as rampas do tema, como o `Badge`. */
@@ -118,7 +119,7 @@ const SIZE_CLASSES: Record<
 };
 
 const BASE_CLASSES =
-  'group relative flex w-full items-start text-left cursor-pointer transition-colors hover:bg-[#EEF5FC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none';
+  'group relative flex w-full items-start text-left cursor-pointer transition-colors hover:bg-primary-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none';
 
 export type TicketListItemProps = {
   /** Nome de quem abriu o ticket. */

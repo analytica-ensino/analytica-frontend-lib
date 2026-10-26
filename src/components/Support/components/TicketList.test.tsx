@@ -73,7 +73,7 @@ describe('TicketList', () => {
 
     const selected = screen.getByRole('button', { name: /Bruno Faria/ });
 
-    expect(selected).toHaveClass('bg-[#EEF5FC]');
+    expect(selected).toHaveClass('bg-primary-50');
     expect(selected).toHaveAttribute('aria-current', 'true');
   });
 
@@ -85,13 +85,13 @@ describe('TicketList', () => {
       />
     );
 
-    expect(screen.getByRole('button')).toHaveClass('bg-[#EEF5FC]');
+    expect(screen.getByRole('button')).toHaveClass('bg-primary-50');
   });
 
   it('keeps the ticket tone when it is not selected', () => {
     render(<TicketList tickets={[{ ...TICKETS[0], tone: 'danger' }]} />);
 
-    expect(screen.getByRole('button')).toHaveClass('bg-[#FFF7F7]');
+    expect(screen.getByRole('button')).toHaveClass('bg-error-background');
   });
 
   describe('loading', () => {

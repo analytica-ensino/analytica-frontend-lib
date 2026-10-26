@@ -132,19 +132,19 @@ describe('TicketListItem', () => {
     it('paints the info background', () => {
       renderItem({ tone: 'info' });
 
-      expect(screen.getByRole('button')).toHaveClass('bg-[#EEF5FC]');
+      expect(screen.getByRole('button')).toHaveClass('bg-primary-50');
     });
 
     it('paints the danger background', () => {
       renderItem({ tone: 'danger' });
 
-      expect(screen.getByRole('button')).toHaveClass('bg-[#FFF7F7]');
+      expect(screen.getByRole('button')).toHaveClass('bg-error-background');
     });
 
     it('turns blue on hover regardless of the tone', () => {
       renderItem({ tone: 'danger' });
 
-      expect(screen.getByRole('button')).toHaveClass('hover:bg-[#EEF5FC]');
+      expect(screen.getByRole('button')).toHaveClass('hover:bg-primary-50');
     });
   });
 

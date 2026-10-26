@@ -214,7 +214,7 @@ export function RichEditor({
     editorProps: {
       attributes: {
         class:
-          'min-h-[120px] outline-none prose prose-sm max-w-none px-4 py-3 focus:outline-none',
+          'min-h-[120px] outline-none prose prose-sm max-w-none px-4 py-3 text-text-950 focus:outline-none',
       },
       handlePaste: (_view, event) => pasteHandlerRef.current(event),
     },
@@ -408,7 +408,7 @@ export function RichEditor({
   return (
     <div
       data-analytica-rich-editor
-      className="border border-border-200 rounded-xl overflow-hidden bg-background-0"
+      className="border border-border-200 rounded-xl overflow-hidden bg-background"
     >
       {/* Toolbar */}
       <div className="flex items-center gap-0.5 border-b border-border-200 bg-background-50 px-2 py-1.5 flex-wrap">
