@@ -20,8 +20,8 @@ const BASE_PROPS = {
 
 const TONES: { tone: TicketListItemTone; hint: string }[] = [
   { tone: 'default', hint: 'padrão — fundo transparente' },
-  { tone: 'info', hint: 'selecionado — #EEF5FC com barra #1C61B2' },
-  { tone: 'danger', hint: 'destaque — #FFF7F7, sem barra' },
+  { tone: 'info', hint: 'selecionado — primary-50 com barra #1C61B2' },
+  { tone: 'danger', hint: 'destaque — error-background, sem barra' },
 ];
 
 /**
