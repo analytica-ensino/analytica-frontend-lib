@@ -324,6 +324,7 @@ describe('SupportUserPanel', () => {
                 ...t,
                 priority: SUPPORT_TICKET_PRIORITY.HIGH,
                 channel: SUPPORT_CHANNEL.WEB,
+                origin: 'Professor',
               }
             : t
         ),
@@ -337,7 +338,7 @@ describe('SupportUserPanel', () => {
       ).toHaveAttribute('aria-expanded', 'true');
       const card = screen.getAllByRole('listitem')[2];
       expect(card).toHaveTextContent('PrioridadeAlta');
-      expect(card).toHaveTextContent('CanalWeb');
+      expect(card).toHaveTextContent('CanalWeb · Professor');
       expect(card).toHaveTextContent('Duração3 min');
 
       fireEvent.click(
@@ -491,6 +492,11 @@ describe('SupportUserPanel', () => {
       expect(screen.getByText('Resumo gerado')).toBeInTheDocument();
       expect(screen.getByText('Reaberto')).toBeInTheDocument();
       expect(priorityBox()).toHaveTextContent('Normal');
+    });
+
+    it('shows the app the ticket came from next to the channel', () => {
+      openTicket({ ticket: { ...ticket, origin: 'Login' } });
+      expect(screen.getByText('WhatsApp · Login')).toBeInTheDocument();
     });
 
     it('shows the placeholder summary and skeletons', () => {

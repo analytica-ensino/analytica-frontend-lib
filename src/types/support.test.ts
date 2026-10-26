@@ -7,6 +7,8 @@ import {
   mapApiStatusToInternal,
   mapInternalStatusToApi,
   SupportType,
+  SUPPORT_TICKET_ORIGIN,
+  isSupportTicketOrigin,
 } from './support';
 import type { SupportFeatureFlags, SupportApiClient } from './support';
 
@@ -181,5 +183,18 @@ describe('Support Types', () => {
       const result = await client.get<{ message: string }>('/test');
       expect(result.data).toEqual(mockData);
     });
+  });
+});
+
+describe('isSupportTicketOrigin', () => {
+  it('accepts every origin the API knows', () => {
+    Object.values(SUPPORT_TICKET_ORIGIN).forEach((origin) => {
+      expect(isSupportTicketOrigin(origin)).toBe(true);
+    });
+  });
+
+  it('rejects other channels and empty values', () => {
+    expect(isSupportTicketOrigin('backoffice')).toBe(false);
+    expect(isSupportTicketOrigin(undefined)).toBe(false);
   });
 });
