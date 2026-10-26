@@ -327,6 +327,101 @@ describe('useSupportFeatureFlag', () => {
     });
   });
 
+  describe('chatEnabled', () => {
+    const flagWith = (version: Record<string, unknown>) => ({
+      data: {
+        featureFlags: {
+          institutionId: 'institution-123',
+          page: 'SUPPORT',
+          version,
+        },
+      },
+    });
+
+    const chatEnabledFor = async (apiClient: SupportApiClient) => {
+      const { result } = renderHook(() => useSupportFeatureFlag({ apiClient }));
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+      return result.current.chatEnabled;
+    };
+
+    it('starts off while the flag loads', () => {
+      const apiClient = createMockApiClient();
+      const { result } = renderHook(() => useSupportFeatureFlag({ apiClient }));
+      expect(result.current.chatEnabled).toBe(false);
+    });
+
+    it('stays on when the flag has no switches', async () => {
+      expect(
+        await chatEnabledFor(
+          createMockApiClient(flagWith({ supportType: SupportType.NATIVE }))
+        )
+      ).toBe(true);
+    });
+
+    it('follows the chat switch of the backoffice', async () => {
+      expect(
+        await chatEnabledFor(
+          createMockApiClient(
+            flagWith({
+              supportType: SupportType.NATIVE,
+              enabled: true,
+              chat: false,
+            })
+          )
+        )
+      ).toBe(false);
+    });
+
+    it('turns off with the internal support switched off', async () => {
+      expect(
+        await chatEnabledFor(
+          createMockApiClient(
+            flagWith({
+              supportType: SupportType.NATIVE,
+              enabled: false,
+              chat: true,
+            })
+          )
+        )
+      ).toBe(false);
+    });
+
+    it('stays on with both switches on', async () => {
+      expect(
+        await chatEnabledFor(
+          createMockApiClient(
+            flagWith({
+              supportType: SupportType.NATIVE,
+              enabled: true,
+              chat: true,
+            })
+          )
+        )
+      ).toBe(true);
+    });
+
+    it('stays on for an institution without SUPPORT flag (404)', async () => {
+      expect(
+        await chatEnabledFor(createMockApiClient(undefined, true, 404))
+      ).toBe(true);
+    });
+
+    it('stays off when the flag cannot be read', async () => {
+      expect(
+        await chatEnabledFor(createMockApiClient(undefined, true, 500))
+      ).toBe(false);
+    });
+
+    it('stays on without an institution (native default)', async () => {
+      act(() => {
+        useAppStore.setState({ institutionId: null });
+      });
+      expect(await chatEnabledFor(createMockApiClient())).toBe(true);
+    });
+  });
+
   describe('zendeskKey', () => {
     const flagWith = (version: Record<string, unknown>) => ({
       data: {
