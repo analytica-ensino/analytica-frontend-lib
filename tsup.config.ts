@@ -179,6 +179,9 @@ export default defineConfig({
     'Support/TicketModal/index':
       'src/components/Support/components/TicketModal.tsx',
     'types/support/index': 'src/types/support.ts',
+    // Native support chat (floating widget + adapters), usable without the
+    // root entry, which would pull every optional peer dep (tiptap...)
+    'SupportChatWidget/index': 'src/components/SupportChatWidget/index.ts',
     'SupportConcludeModal/index':
       'src/components/SupportConcludeModal/SupportConcludeModal.tsx',
     'types/supportConclusion/index': 'src/types/supportConclusion.ts',

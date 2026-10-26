@@ -1390,12 +1390,14 @@ export type { ZendeskWidgetProps } from './components/ZendeskWidget';
 // Support Chat Widget (native support)
 export {
   SupportChatWidget,
+  NativeSupportChat,
   createMockSupportChatAdapter,
   createGuestSupportChatAdapter,
   fromSupportAnswer,
 } from './components/SupportChatWidget';
 export type {
   SupportChatWidgetProps,
+  NativeSupportChatProps,
   SupportChatWindowState,
   MockSupportChatAdapterOptions,
   GuestSupportChatAdapterOptions,

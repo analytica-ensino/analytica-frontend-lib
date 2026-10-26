@@ -217,5 +217,9 @@ export interface SupportFeatureFlags {
     supportType: SupportType;
     /** Address of the institution FAQ, e.g. https://ajuda.escola.com.br */
     faqUrl?: string;
+    /** "Suporte interno ativo" in the backoffice; absent means on */
+    enabled?: boolean;
+    /** Native chat widget switch in the backoffice; absent means on */
+    chat?: boolean;
   } & SupportZendeskKeys;
 }

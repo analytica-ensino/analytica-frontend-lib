@@ -1,4 +1,6 @@
 export { SupportChatWidget } from './SupportChatWidget';
+export { NativeSupportChat } from './NativeSupportChat';
+export type { NativeSupportChatProps } from './NativeSupportChat';
 export type {
   SupportChatWidgetProps,
   SupportChatWindowState,
