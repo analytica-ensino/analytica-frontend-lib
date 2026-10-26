@@ -41,6 +41,7 @@ import {
   mapApiStatusToInternal,
   mapInternalStatusToApi,
   SupportApiClient,
+  SupportTicketOrigin,
 } from '../../types/support';
 import { getCategoryIcon } from './utils/supportUtils';
 import SupportImage from '../../assets/img/suporthistory.png';
@@ -155,6 +156,8 @@ export interface SupportProps {
   onTicketCreated?: () => void;
   /** Callback when a ticket is successfully closed */
   onTicketClosed?: () => void;
+  /** App the page runs in, saved on the tickets it opens (e.g. "aluno") */
+  origin?: SupportTicketOrigin;
 }
 
 const Support = ({
@@ -164,6 +167,7 @@ const Support = ({
   title = 'Suporte',
   onTicketCreated,
   onTicketClosed,
+  origin,
 }: SupportProps) => {
   const [activeTab, setActiveTab] = useState<TabType>('criar-pedido');
   const [selectedProblem, setSelectedProblem] = useState<ProblemType>(null);
@@ -325,6 +329,7 @@ const Support = ({
         subject: data.title,
         description: data.description,
         type: data.problemType,
+        ...(origin ? { origin } : {}),
       };
 
       await apiClient.post<CreateSupportTicketResponse>(

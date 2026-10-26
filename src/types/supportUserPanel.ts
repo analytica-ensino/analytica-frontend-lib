@@ -124,6 +124,8 @@ export interface SupportTicketSummary {
   priority?: SupportTicketPriority | null;
   /** Shown when the card is expanded */
   channel?: SupportChannel | null;
+  /** App the ticket was opened from, already as a label (e.g. "Professor") */
+  origin?: string | null;
 }
 
 /** Aggregated numbers shown above the history list */
@@ -151,6 +153,11 @@ export interface SupportReasonOption {
 export interface SupportTicketDetails {
   id: SupportTicketId;
   channel: SupportChannel;
+  /**
+   * App the ticket was opened from, already as a label (e.g. "Professor").
+   * Shown next to the channel ("Web · Professor").
+   */
+  origin?: string | null;
   /** ISO date */
   openedAt: string;
   /** ISO date of the first human reply; absent while waiting for a human */

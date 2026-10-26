@@ -1362,8 +1362,11 @@ export {
   mapApiStatusToInternal,
   mapInternalStatusToApi,
   SupportType,
+  SUPPORT_TICKET_ORIGIN,
+  isSupportTicketOrigin,
 } from './types/support';
 export type {
+  SupportTicketOrigin,
   TicketStatus,
   ProblemType,
   TabType,

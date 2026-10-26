@@ -1,3 +1,4 @@
+import { isSupportTicketOrigin } from '../../types/support';
 import {
   SUPPORT_CHAT_AUTHOR,
   SUPPORT_CHAT_GUEST_SENDER_ID,
@@ -141,6 +142,7 @@ export const createGuestSupportChatAdapter = ({
   return {
     async startConversation({
       message,
+      channel,
       institutionId,
       requesterName,
       email,
@@ -155,6 +157,8 @@ export const createGuestSupportChatAdapter = ({
         ...(institutionId ? { institutionId } : {}),
         ...(requesterName ? { requesterName } : {}),
         ...(email ? { email } : {}),
+        // The app the chat runs in, when it is one the API knows
+        ...(isSupportTicketOrigin(channel) ? { origin: channel } : {}),
       });
       const ticketId = data.data.id;
       sessions.set(ticketId, {

@@ -120,7 +120,8 @@ const TicketCard = ({
   if (ticket.priority) {
     details.push(['Prioridade', PRIORITY_LABELS[ticket.priority]]);
   }
-  if (ticket.channel) details.push(['Canal', ticket.channel]);
+  const channel = [ticket.channel, ticket.origin].filter(Boolean).join(' · ');
+  if (channel) details.push(['Canal', channel]);
   if (current) details.push(['Duração', 'Ticket atual']);
   else if (ticket.durationMin != null) {
     details.push(['Duração', formatDuration(ticket.durationMin)]);
