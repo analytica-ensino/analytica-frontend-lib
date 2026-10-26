@@ -33,6 +33,13 @@ export interface UseSupportFeatureFlagReturn {
    * no FAQ address.
    */
   faqArticleUrl: ((articleId: string) => string) | undefined;
+  /**
+   * Whether the native support chat may be shown: the institution kept the
+   * internal support ("Suporte interno ativo") and its chat switched on in the
+   * backoffice. A flag without these fields keeps them on; `false` while the
+   * flag loads or when it could not be read. Only meaningful with `isNative`.
+   */
+  chatEnabled: boolean;
   openZendeskChat: () => void;
 }
 
@@ -51,12 +58,14 @@ export const useSupportFeatureFlag = (
   const [supportType, setSupportType] = useState<SupportType | null>(null);
   const [zendeskKey, setZendeskKey] = useState<string | undefined>(undefined);
   const [faqUrl, setFaqUrl] = useState<string | undefined>(undefined);
+  const [chatEnabled, setChatEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const { institutionId } = useAppStore();
 
   useEffect(() => {
     if (!institutionId) {
       setSupportType(SupportType.NATIVE);
+      setChatEnabled(true);
       setLoading(false);
       return;
     }
@@ -73,10 +82,13 @@ export const useSupportFeatureFlag = (
         setSupportType(version?.supportType ?? SupportType.NATIVE);
         setZendeskKey(version?.zendeskKey || undefined);
         setFaqUrl(version?.faqUrl?.trim().replace(/\/+$/, '') || undefined);
+        setChatEnabled(version?.enabled !== false && version?.chat !== false);
       } catch (error) {
-        setSupportType(isFlagNotFound(error) ? SupportType.NATIVE : null);
+        const notFound = isFlagNotFound(error);
+        setSupportType(notFound ? SupportType.NATIVE : null);
         setZendeskKey(undefined);
         setFaqUrl(undefined);
+        setChatEnabled(notFound);
       } finally {
         setLoading(false);
       }
@@ -107,6 +119,7 @@ export const useSupportFeatureFlag = (
     faqArticleUrl: faqUrl
       ? (articleId: string) => `${faqUrl}/artigo/${articleId}`
       : undefined,
+    chatEnabled,
     openZendeskChat,
   };
 };
