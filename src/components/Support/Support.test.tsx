@@ -248,6 +248,65 @@ describe('Support', () => {
       });
     });
 
+    it('should save the app the page runs in as the ticket origin', async () => {
+      const user = userEvent.setup();
+      const onTicketCreated = jest.fn();
+
+      (mockApiClient.post as jest.Mock).mockResolvedValue({
+        data: {
+          message: 'Success',
+          data: {
+            id: 'new-ticket-id',
+            subject: 'Teste',
+            description: 'Descrição teste',
+            type: 'tecnico',
+            status: 'ABERTO',
+          },
+        },
+      });
+
+      (mockApiClient.get as jest.Mock).mockResolvedValue({
+        data: {
+          data: {
+            support: [],
+            pagination: { page: 1, limit: 100, total: 0, totalPages: 0 },
+          },
+        },
+      });
+
+      render(
+        <Support
+          {...defaultProps}
+          onTicketCreated={onTicketCreated}
+          origin="professor"
+        />
+      );
+
+      fireEvent.click(screen.getByText('Técnico'));
+
+      const titleInput = screen.getByPlaceholderText('Digite o título');
+      const descriptionInput = screen.getByPlaceholderText(
+        'Descreva o problema aqui'
+      );
+
+      await user.type(titleInput, 'Problema com login');
+      await user.type(
+        descriptionInput,
+        'Não consigo fazer login na plataforma'
+      );
+
+      await user.click(screen.getByText('Enviar Pedido'));
+
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalledWith('/support', {
+          subject: 'Problema com login',
+          description: 'Não consigo fazer login na plataforma',
+          type: 'tecnico',
+          origin: 'professor',
+        });
+      });
+    });
+
     it('deve exibir toast de sucesso após enviar pedido', async () => {
       const user = userEvent.setup();
 

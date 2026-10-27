@@ -73,10 +73,37 @@ export const getCategoryText = (category: SupportCategory | null): string => {
 };
 
 // API Types
+/**
+ * App a ticket is opened from, saved on the ticket (`origin`). Same values the
+ * apps pass as the support chat `channel`.
+ */
+export const SUPPORT_TICKET_ORIGIN = {
+  LOGIN: 'login',
+  STUDENT: 'aluno',
+  TEACHER: 'professor',
+  MANAGER: 'gestor',
+  FAQ: 'faq',
+  APP: 'app',
+} as const;
+
+export type SupportTicketOrigin =
+  (typeof SUPPORT_TICKET_ORIGIN)[keyof typeof SUPPORT_TICKET_ORIGIN];
+
+/**
+ * Whether a value is a ticket origin the API accepts.
+ * @param value - e.g. the support chat `channel`
+ */
+export const isSupportTicketOrigin = (
+  value: unknown
+): value is SupportTicketOrigin =>
+  Object.values(SUPPORT_TICKET_ORIGIN).includes(value as SupportTicketOrigin);
+
 export interface CreateSupportTicketRequest {
   subject: string;
   description: string;
   type: string;
+  /** App the ticket is opened from */
+  origin?: SupportTicketOrigin;
 }
 
 export interface CreateSupportTicketResponse {

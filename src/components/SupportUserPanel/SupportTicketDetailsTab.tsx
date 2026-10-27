@@ -174,7 +174,14 @@ export default function SupportTicketDetailsTab({
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-2">
-        <StatTile label="Canal" value={ticket.channel} />
+        <StatTile
+          label="Canal"
+          value={
+            ticket.origin
+              ? `${ticket.channel} · ${ticket.origin}`
+              : ticket.channel
+          }
+        />
         <StatTile label="Aberto em" value={formatOpenedAt(ticket.openedAt)} />
         <StatTile label="Tempo de espera" value={formatDuration(waitingMin)} />
         <StatTile label="Tempo total" value={formatDuration(totalMin)} />

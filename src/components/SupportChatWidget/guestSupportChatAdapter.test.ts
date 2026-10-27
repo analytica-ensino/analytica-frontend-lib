@@ -177,10 +177,12 @@ describe('createGuestSupportChatAdapter', () => {
       institutionId: 'inst-1',
       requesterName: 'Ana',
     });
+    // The app the chat runs in goes as the ticket origin
     expect(apiClient.post).toHaveBeenCalledWith('/support/external', {
       description: 'oi',
       institutionId: 'inst-1',
       requesterName: 'Ana',
+      origin: 'login',
     });
     expect(started.ticket.id).toBe('t1');
     expect(started.messages[0]).toMatchObject({ id: 'a1', senderName: 'Ana' });
@@ -201,7 +203,8 @@ describe('createGuestSupportChatAdapter', () => {
     const { apiClient, adapter } = setup();
     await adapter.startConversation({
       message: 'oi',
-      channel: 'login',
+      // A channel the API does not know as an origin is not sent
+      channel: 'backoffice',
       email: 'ana@x.com',
     });
     expect(apiClient.post).toHaveBeenCalledWith('/support/external', {
@@ -377,6 +380,7 @@ describe('createGuestSupportChatAdapter uploads', () => {
 
     expect(apiClient.post).toHaveBeenNthCalledWith(1, '/support/external', {
       description: 'foto.png',
+      origin: 'login',
     });
     expect(apiClient.post).toHaveBeenNthCalledWith(
       2,
