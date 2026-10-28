@@ -332,3 +332,139 @@ describe('useSupportChat optimistic rendering', () => {
     });
   });
 });
+
+type Resumed = Awaited<
+  ReturnType<NonNullable<SupportChatAdapter['restoreConversation']>>
+>;
+
+describe('useSupportChat resuming a conversation', () => {
+  const resumedTicket = {
+    id: 'ticket-9',
+    status: SUPPORT_CHAT_STATUS.ABERTO,
+    handlerType: null,
+    problemType: null,
+  };
+
+  const restoreSetup = (
+    restoreConversation: SupportChatAdapter['restoreConversation'],
+    email?: string
+  ) => {
+    let listener: ((event: SupportChatEvent) => void) | null = null;
+    const adapter: jest.Mocked<SupportChatAdapter> = {
+      startConversation: jest.fn().mockResolvedValue({
+        ticket: { ...resumedTicket, id: 'ticket-new' },
+        messages: [message('n1', 'novo')],
+      }),
+      sendMessage: jest.fn(),
+      listMessages: jest.fn(),
+      subscribe: jest.fn((_id, callback) => {
+        listener = callback;
+        return jest.fn();
+      }),
+      restoreConversation: jest.fn(restoreConversation),
+      forgetConversation: jest.fn(),
+    };
+    const hook = renderHook(() =>
+      useSupportChat({
+        adapter,
+        channel: 'aluno',
+        user: email ? { name: 'Ana', email } : undefined,
+      })
+    );
+    const emit = (event: SupportChatEvent) => act(() => listener?.(event));
+    return { adapter, hook, emit };
+  };
+
+  it('resumes the kept conversation of the current user and listens to it', async () => {
+    const { adapter, hook } = restoreSetup(
+      () =>
+        Promise.resolve({
+          ticket: resumedTicket,
+          messages: [message('r1', 'antes do reload')],
+        }),
+      'ana@x.com'
+    );
+    await act(async () => {});
+
+    expect(adapter.restoreConversation).toHaveBeenCalledWith({
+      email: 'ana@x.com',
+    });
+    expect(hook.result.current.ticket).toEqual(resumedTicket);
+    expect(hook.result.current.messages.map((item) => item.id)).toEqual(['r1']);
+    expect(hook.result.current.restored).toBe(true);
+    expect(adapter.subscribe.mock.calls[0][0]).toBe('ticket-9');
+  });
+
+  it('starts empty when there is nothing to resume or the resume fails', async () => {
+    const empty = restoreSetup(() => Promise.resolve(null));
+    const failed = restoreSetup(() => Promise.reject(new Error('x')));
+    await act(async () => {});
+
+    for (const { hook } of [empty, failed]) {
+      expect(hook.result.current.ticket).toBeNull();
+      expect(hook.result.current.restored).toBe(false);
+    }
+  });
+
+  it('keeps a conversation started before the resume answers', async () => {
+    let answer: (value: Resumed) => void = () => {};
+    const { hook } = restoreSetup(
+      () =>
+        new Promise<Resumed>((resolve) => {
+          answer = resolve;
+        })
+    );
+    await act(async () => {
+      await hook.result.current.send('novo');
+    });
+
+    await act(async () => {
+      answer({ ticket: resumedTicket, messages: [message('r1', 'velho')] });
+    });
+
+    expect(hook.result.current.ticket?.id).toBe('ticket-new');
+    expect(hook.result.current.restored).toBe(false);
+  });
+
+  it('ignores a resume that answers after unmount', async () => {
+    let answer: (value: Resumed) => void = () => {};
+    const { hook } = restoreSetup(
+      () =>
+        new Promise<Resumed>((resolve) => {
+          answer = resolve;
+        })
+    );
+    hook.unmount();
+
+    await act(async () => {
+      answer({ ticket: resumedTicket, messages: [] });
+    });
+
+    expect(hook.result.current.ticket).toBeNull();
+  });
+
+  it('forgets the conversation once it is resolved and when it starts over', async () => {
+    const { adapter, hook, emit } = restoreSetup(() =>
+      Promise.resolve({ ticket: resumedTicket, messages: [] })
+    );
+    await act(async () => {});
+    expect(adapter.forgetConversation).not.toHaveBeenCalled();
+
+    emit({
+      type: 'ticket_updated',
+      payload: {
+        ticketId: 'ticket-9',
+        status: SUPPORT_CHAT_STATUS.FECHADO,
+        handlerType: null,
+        problemType: null,
+      },
+    });
+    expect(hook.result.current.closed).toBe(true);
+    expect(adapter.forgetConversation).toHaveBeenCalledTimes(1);
+
+    act(() => hook.result.current.reset());
+    expect(adapter.forgetConversation).toHaveBeenCalledTimes(2);
+    expect(hook.result.current.ticket).toBeNull();
+    expect(hook.result.current.restored).toBe(false);
+  });
+});

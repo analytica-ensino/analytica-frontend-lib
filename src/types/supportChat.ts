@@ -271,6 +271,18 @@ export interface SupportChatAdapter {
    */
   updateContact?(ticketId: string, contact: SupportChatContact): Promise<void>;
   /**
+   * Conversation kept from an earlier page load that is still unresolved, so
+   * a reload does not drop it. Null when there is none, when it was resolved
+   * or when it belongs to another user (`email` of the logged user; omit for
+   * a visitor).
+   */
+  restoreConversation?(input: { email?: string }): Promise<{
+    ticket: SupportChatTicket;
+    messages: SupportChatMessage[];
+  } | null>;
+  /** Stop keeping the conversation (resolved, or the chat started over) */
+  forgetConversation?(): void;
+  /**
    * Load a FAQ article of the institution. With it, the article an AI answer
    * is based on opens inside the chat instead of a new tab.
    */
