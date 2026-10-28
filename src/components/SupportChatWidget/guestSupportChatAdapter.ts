@@ -9,6 +9,7 @@ import {
   type SupportChatEvent,
   type SupportChatHttpClient,
   type SupportChatMessage,
+  type SupportChatTicket,
 } from '../../types/supportChat';
 
 export interface GuestSupportChatAdapterOptions {
@@ -22,7 +23,58 @@ export interface GuestSupportChatAdapterOptions {
   wsUrl?: string;
   /** Polling interval while the socket is not connected, in ms */
   pollIntervalMs?: number;
+  /**
+   * localStorage key of the open conversation, kept so a reload resumes it.
+   * Default: `analytica:support-chat`.
+   */
+  storageKey?: string;
 }
+
+/** Open conversation kept across page loads */
+interface StoredSupportChatSession {
+  ticketId: string;
+  token: string;
+  name: string;
+  /** E-mail of the logged user who opened it; null for a visitor */
+  userEmail: string | null;
+  /** Opening text the chat does not show (image-only start) */
+  hiddenId?: string;
+}
+
+const DEFAULT_STORAGE_KEY = 'analytica:support-chat';
+
+/** The browser may block storage (private mode, policies): never throw */
+const readStoredSession = (key: string): StoredSupportChatSession | null => {
+  try {
+    const raw = globalThis.localStorage?.getItem(key);
+    if (!raw) return null;
+    const session = JSON.parse(raw) as Partial<StoredSupportChatSession>;
+    return session.ticketId && session.token
+      ? (session as StoredSupportChatSession)
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+const writeStoredSession = (key: string, session: StoredSupportChatSession) => {
+  try {
+    globalThis.localStorage?.setItem(key, JSON.stringify(session));
+  } catch {
+    // Not kept: a reload starts a new conversation, as before
+  }
+};
+
+const clearStoredSession = (key: string) => {
+  try {
+    globalThis.localStorage?.removeItem(key);
+  } catch {
+    // Nothing kept to clear
+  }
+};
+
+const statusOf = (error: unknown) =>
+  (error as { response?: { status?: number } } | null)?.response?.status;
 
 const GUEST_TOKEN_HEADER = 'x-support-guest-token';
 
@@ -67,6 +119,7 @@ export const createGuestSupportChatAdapter = ({
   apiClient,
   wsUrl,
   pollIntervalMs = 3000,
+  storageKey = DEFAULT_STORAGE_KEY,
 }: GuestSupportChatAdapterOptions): SupportChatAdapter => {
   const sessions = new Map<string, { token: string; name: string }>();
   /**
@@ -161,18 +214,25 @@ export const createGuestSupportChatAdapter = ({
         ...(isSupportTicketOrigin(channel) ? { origin: channel } : {}),
       });
       const ticketId = data.data.id;
-      sessions.set(ticketId, {
-        token: data.data.guestToken,
-        name: requesterName || 'Visitante',
-      });
+      const name = requesterName || 'Visitante';
+      sessions.set(ticketId, { token: data.data.guestToken, name });
 
       // The first message is saved with the ticket; read it back for its id.
       // /support/external takes no files, so they go as the next message.
       let messages = await listMessages(ticketId);
+      let hiddenId: string | undefined;
       if (!message && messages[0]) {
-        hiddenIds.add(messages[0].id);
+        hiddenId = messages[0].id;
+        hiddenIds.add(hiddenId);
         messages = messages.slice(1);
       }
+      writeStoredSession(storageKey, {
+        ticketId,
+        token: data.data.guestToken,
+        name,
+        userEmail: email ?? null,
+        hiddenId,
+      });
       if (files.length) messages.push(await sendMessage(ticketId, '', files));
       return {
         ticket: {
@@ -205,7 +265,49 @@ export const createGuestSupportChatAdapter = ({
       const session = sessions.get(ticketId);
       if (session && contact.requesterName) {
         session.name = contact.requesterName;
+        const stored = readStoredSession(storageKey);
+        if (stored?.ticketId === ticketId) {
+          writeStoredSession(storageKey, {
+            ...stored,
+            name: contact.requesterName,
+          });
+        }
       }
+    },
+
+    async restoreConversation({ email }) {
+      const stored = readStoredSession(storageKey);
+      if (!stored) return null;
+      // Another account on this browser: that conversation is not theirs
+      if (stored.userEmail !== (email ?? null)) {
+        clearStoredSession(storageKey);
+        return null;
+      }
+
+      const { ticketId } = stored;
+      sessions.set(ticketId, { token: stored.token, name: stored.name });
+      if (stored.hiddenId) hiddenIds.add(stored.hiddenId);
+      try {
+        const { data } = await apiClient.get<{ data: SupportChatTicket }>(
+          `/support/guest/${ticketId}`,
+          { headers: headersFor(ticketId) }
+        );
+        if (data.data.status === SUPPORT_CHAT_STATUS.FECHADO) {
+          clearStoredSession(storageKey);
+          return null;
+        }
+        return { ticket: data.data, messages: await listMessages(ticketId) };
+      } catch (error) {
+        // Ticket gone or token expired: it cannot be resumed. Any other
+        // failure (offline) keeps it for the next load.
+        if (statusOf(error) === 404) clearStoredSession(storageKey);
+        sessions.delete(ticketId);
+        return null;
+      }
+    },
+
+    forgetConversation() {
+      clearStoredSession(storageKey);
     },
 
     listMessages,

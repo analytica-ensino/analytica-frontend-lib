@@ -25,6 +25,8 @@ export interface UseSupportChatReturn {
   error: string | null;
   /** Ticket resolved: no more messages can be sent */
   closed: boolean;
+  /** The conversation was resumed from an earlier page load */
+  restored: boolean;
   /** Send a message (text and/or files); the first one opens the ticket */
   send: (content: string, files?: File[]) => Promise<SupportChatMessage | null>;
   /**
@@ -101,9 +103,43 @@ export const useSupportChat = ({
   const [messages, setMessages] = useState<SupportChatMessage[]>([]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [restored, setRestored] = useState(false);
   const sendingRef = useRef(false);
 
   const ticketId = ticket?.id;
+  const userEmail = user?.email;
+  // Read by the restore, which must not replace a conversation started meanwhile
+  const ticketRef = useRef(ticket);
+  ticketRef.current = ticket;
+
+  // Resume the unresolved conversation of an earlier page load, unless the
+  // person already started a new one meanwhile
+  useEffect(() => {
+    if (!adapter.restoreConversation) return;
+    let active = true;
+    adapter
+      .restoreConversation({ email: userEmail })
+      .then((resumed) => {
+        if (!active || !resumed) return;
+        if (ticketRef.current || sendingRef.current) return;
+        setTicket(resumed.ticket);
+        setMessages(resumed.messages);
+        setRestored(true);
+      })
+      .catch(() => {
+        // Not resumed: the next message opens a new ticket
+      });
+    return () => {
+      active = false;
+    };
+  }, [adapter, userEmail]);
+
+  const closed = ticket?.status === SUPPORT_CHAT_STATUS.FECHADO;
+
+  // A resolved conversation is not resumed on the next load
+  useEffect(() => {
+    if (closed) adapter.forgetConversation?.();
+  }, [adapter, closed]);
 
   useEffect(() => {
     if (!ticketId) return;
@@ -210,17 +246,20 @@ export const useSupportChat = ({
   );
 
   const reset = useCallback(() => {
+    adapter.forgetConversation?.();
     setTicket(null);
     setMessages([]);
     setError(null);
-  }, []);
+    setRestored(false);
+  }, [adapter]);
 
   return {
     ticket,
     messages,
     sending,
     error,
-    closed: ticket?.status === SUPPORT_CHAT_STATUS.FECHADO,
+    closed,
+    restored,
     send,
     updateContact: adapter.updateContact ? updateContact : undefined,
     reset,

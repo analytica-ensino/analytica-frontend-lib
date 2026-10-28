@@ -236,13 +236,21 @@ const SupportChatWidgetContent = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const seenCount = useRef(0);
 
-  const { messages, sending, error, closed, send, updateContact, reset } =
-    useSupportChat({
-      adapter,
-      channel,
-      institutionId,
-      user,
-    });
+  const {
+    messages,
+    sending,
+    error,
+    closed,
+    restored,
+    send,
+    updateContact,
+    reset,
+  } = useSupportChat({
+    adapter,
+    channel,
+    institutionId,
+    user,
+  });
   const [savedContactRequests, setSavedContactRequests] = useState<string[]>(
     []
   );
@@ -288,10 +296,11 @@ const SupportChatWidgetContent = ({
   useEffect(() => {
     const fresh = messages.slice(seenCount.current);
     seenCount.current = messages.length;
-    if (isOpen) return;
+    // A resumed conversation was already read before the reload
+    if (isOpen || (restored && fresh.length === messages.length)) return;
     const replies = fresh.filter((message) => !isOwnMessage(message)).length;
     if (replies) setUnread((count) => count + replies);
-  }, [messages, isOpen]);
+  }, [messages, isOpen, restored]);
 
   useEffect(() => {
     if (!isOpen || article) return;
