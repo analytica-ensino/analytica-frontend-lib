@@ -172,8 +172,15 @@ const Modal = ({
   if (!isOpen) return null;
 
   const sizeClasses = SIZE_CLASSES[size];
+  /*
+   * `overflow-clip`, not `overflow-hidden`: both cut the content at the
+   * rounded border, but a `hidden` box can still be scrolled by the browser.
+   * Focusing something positioned outside it (an `sr-only` input) scrolled
+   * the panel itself and pushed title, body and footer out of view (AE-3237).
+   * Scrolling belongs to the body below, never to the panel.
+   */
   const baseClasses =
-    'bg-secondary-50 rounded-3xl shadow-hard-shadow-2 border border-border-100 w-full mx-4 max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden';
+    'bg-secondary-50 rounded-3xl shadow-hard-shadow-2 border border-border-100 w-full mx-4 max-h-[calc(100dvh-2rem)] flex flex-col overflow-clip';
   // Reset dialog default styles to prevent positioning issues.
   //
   // `relative` (antes era `static`) segue anulando o `position: absolute` que o

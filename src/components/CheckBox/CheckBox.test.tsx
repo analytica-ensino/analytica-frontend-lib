@@ -41,6 +41,15 @@ describe('CheckBox', () => {
       const checkbox = screen.getByRole('checkbox');
       expect(checkbox).toHaveAttribute('id', 'checkbox-test-id');
     });
+
+    it('anchors the sr-only input to its own row', () => {
+      // Unanchored, the input was positioned against the Modal's <dialog> and
+      // focusing it scrolled the dialog out of view (AE-3237)
+      render(<CheckBox label="Test" />);
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).toHaveClass('sr-only');
+      expect(checkbox.parentElement).toHaveClass('relative');
+    });
   });
 
   describe('Size variants', () => {

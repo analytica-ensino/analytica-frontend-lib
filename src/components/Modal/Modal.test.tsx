@@ -132,6 +132,16 @@ describe('Modal', () => {
     expect(modalContent).toHaveClass('custom-class');
   });
 
+  it('clips the panel instead of hiding overflow, so focus cannot scroll it', () => {
+    // A `hidden` panel could still be scrolled by the browser to reveal a
+    // focused sr-only input, pushing the whole modal out of view (AE-3237)
+    render(<Modal {...defaultProps} />);
+
+    const modalContent = document.querySelector('dialog');
+    expect(modalContent).toHaveClass('overflow-clip');
+    expect(modalContent).not.toHaveClass('overflow-hidden');
+  });
+
   describe('Custom CSS classes', () => {
     it('should apply viewport classes (max-w-[95vw])', () => {
       render(<Modal {...defaultProps} className="max-w-[95vw]" />);

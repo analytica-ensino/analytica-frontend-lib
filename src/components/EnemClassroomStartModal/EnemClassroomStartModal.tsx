@@ -127,7 +127,8 @@ const OptionCard = ({
   <label
     className={cn(
       CARD_CLASSES,
-      'flex flex-row items-center gap-3 px-4 py-3.5',
+      // `relative` keeps the `sr-only` radio inside the card; see CheckBox
+      'relative flex flex-row items-center gap-3 px-4 py-3.5',
       'cursor-pointer transition-colors hover:bg-background-100',
       'focus-within:ring-2 focus-within:ring-indicator-info',
       checked && 'border-primary-700 ring-1 ring-primary-700'

@@ -221,9 +221,17 @@ const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
 
     return (
       <div className="flex flex-col">
+        {/*
+         * `relative` anchors the `sr-only` input (absolutely positioned) to
+         * this row. Without it the input is positioned against the nearest
+         * positioned ancestor — inside a Modal, the <dialog> itself — and
+         * ignores how far a scrolled list moved. Focusing it on click then
+         * scrolled the dialog to "reveal" it and pushed the whole modal out of
+         * view, leaving a blank box (AE-3237).
+         */}
         <div
           className={cn(
-            'flex flex-row items-center',
+            'relative flex flex-row items-center',
             sizeClasses.spacing,
             disabled ? 'opacity-40' : ''
           )}
