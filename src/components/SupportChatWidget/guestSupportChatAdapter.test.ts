@@ -473,3 +473,214 @@ describe('createGuestSupportChatAdapter getArticle', () => {
     });
   });
 });
+
+describe('createGuestSupportChatAdapter session kept across reloads', () => {
+  const KEY = 'analytica:support-chat';
+  const stored = () => JSON.parse(localStorage.getItem(KEY) ?? 'null');
+  const ticket = {
+    id: 't1',
+    status: 'ABERTO',
+    handlerType: 'IA',
+    problemType: null,
+  };
+
+  /** API that answers the ticket read and the messages of t1 */
+  const restoreSetup = (ticketReply: () => Promise<unknown>) => {
+    const { apiClient, adapter } = setup();
+    apiClient.get.mockImplementation((url: string) =>
+      url === '/support/guest/t1'
+        ? ticketReply()
+        : Promise.resolve({ data: { data: [answer('a1')] } })
+    );
+    return { apiClient, adapter };
+  };
+
+  beforeEach(() => localStorage.clear());
+
+  it('keeps the ticket, token and name when the conversation starts', async () => {
+    const { adapter } = setup();
+    await adapter.startConversation({
+      message: 'oi',
+      channel: 'aluno',
+      requesterName: 'Ana',
+      email: 'ana@x.com',
+    });
+
+    expect(stored()).toEqual({
+      ticketId: 't1',
+      token: 'tok',
+      name: 'Ana',
+      userEmail: 'ana@x.com',
+    });
+  });
+
+  it('keeps the name the visitor gives in the contact form', async () => {
+    const { apiClient, adapter } = setup();
+    (apiClient as unknown as SupportChatHttpClient).put = jest
+      .fn()
+      .mockResolvedValue({ data: {} });
+    await adapter.startConversation({ message: 'oi', channel: 'login' });
+
+    await adapter.updateContact?.('t1', { requesterName: 'Bia' });
+
+    expect(stored()).toMatchObject({ name: 'Bia', userEmail: null });
+  });
+
+  it('resumes an unresolved conversation with the kept token and name', async () => {
+    const { apiClient, adapter } = restoreSetup(() =>
+      Promise.resolve({ data: { data: ticket } })
+    );
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({
+        ticketId: 't1',
+        token: 'tok',
+        name: 'Ana',
+        userEmail: null,
+      })
+    );
+
+    const resumed = await adapter.restoreConversation?.({});
+
+    expect(apiClient.get).toHaveBeenCalledWith('/support/guest/t1', {
+      headers: { 'x-support-guest-token': 'tok' },
+    });
+    expect(resumed?.ticket).toEqual(ticket);
+    expect(resumed?.messages[0]).toMatchObject({ id: 'a1', senderName: 'Ana' });
+  });
+
+  it('keeps hiding the opening text of an image-only start', async () => {
+    const { adapter } = restoreSetup(() =>
+      Promise.resolve({ data: { data: ticket } })
+    );
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({
+        ticketId: 't1',
+        token: 'tok',
+        name: 'Ana',
+        userEmail: null,
+        hiddenId: 'a1',
+      })
+    );
+
+    expect((await adapter.restoreConversation?.({}))?.messages).toEqual([]);
+  });
+
+  it('forgets a resolved conversation', async () => {
+    const { adapter } = restoreSetup(() =>
+      Promise.resolve({ data: { data: { ...ticket, status: 'FECHADO' } } })
+    );
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({
+        ticketId: 't1',
+        token: 'tok',
+        name: 'Ana',
+        userEmail: null,
+      })
+    );
+
+    expect(await adapter.restoreConversation?.({})).toBeNull();
+    expect(stored()).toBeNull();
+  });
+
+  it('forgets the conversation of another user without asking the API', async () => {
+    const { apiClient, adapter } = setup();
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({
+        ticketId: 't1',
+        token: 'tok',
+        name: 'Ana',
+        userEmail: 'ana@x.com',
+      })
+    );
+
+    expect(
+      await adapter.restoreConversation?.({ email: 'bia@x.com' })
+    ).toBeNull();
+    expect(apiClient.get).not.toHaveBeenCalled();
+    expect(stored()).toBeNull();
+  });
+
+  it('forgets a ticket the API no longer finds (expired token)', async () => {
+    const { adapter } = restoreSetup(() =>
+      Promise.reject({ response: { status: 404 } })
+    );
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({
+        ticketId: 't1',
+        token: 'tok',
+        name: 'Ana',
+        userEmail: null,
+      })
+    );
+
+    expect(await adapter.restoreConversation?.({})).toBeNull();
+    expect(stored()).toBeNull();
+    // The token is not used for the forgotten ticket
+    expect(await adapter.listMessages('t1')).toMatchObject([
+      { senderName: 'Visitante' },
+    ]);
+  });
+
+  it('keeps the conversation for the next load when the API is unreachable', async () => {
+    const { adapter } = restoreSetup(() =>
+      Promise.reject(new Error('offline'))
+    );
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({
+        ticketId: 't1',
+        token: 'tok',
+        name: 'Ana',
+        userEmail: null,
+      })
+    );
+
+    expect(await adapter.restoreConversation?.({})).toBeNull();
+    expect(stored()).toMatchObject({ ticketId: 't1' });
+  });
+
+  it('resumes nothing when nothing was kept or the kept value is broken', async () => {
+    const { apiClient, adapter } = setup();
+    expect(await adapter.restoreConversation?.({})).toBeNull();
+
+    localStorage.setItem(KEY, '{not json');
+    expect(await adapter.restoreConversation?.({})).toBeNull();
+    localStorage.setItem(KEY, JSON.stringify({ ticketId: 't1' }));
+    expect(await adapter.restoreConversation?.({})).toBeNull();
+    expect(apiClient.get).not.toHaveBeenCalled();
+  });
+
+  it('forgets the conversation on request', async () => {
+    const { adapter } = setup();
+    await adapter.startConversation({ message: 'oi', channel: 'login' });
+
+    adapter.forgetConversation?.();
+
+    expect(stored()).toBeNull();
+  });
+
+  it('never throws when the browser blocks the storage', async () => {
+    const { adapter } = setup();
+    const blocked = () => {
+      throw new Error('blocked');
+    };
+    const spies = [
+      jest.spyOn(Storage.prototype, 'getItem').mockImplementation(blocked),
+      jest.spyOn(Storage.prototype, 'setItem').mockImplementation(blocked),
+      jest.spyOn(Storage.prototype, 'removeItem').mockImplementation(blocked),
+    ];
+
+    await expect(
+      adapter.startConversation({ message: 'oi', channel: 'login' })
+    ).resolves.toMatchObject({ ticket: { id: 't1' } });
+    expect(await adapter.restoreConversation?.({})).toBeNull();
+    expect(() => adapter.forgetConversation?.()).not.toThrow();
+
+    spies.forEach((spy) => spy.mockRestore());
+  });
+});

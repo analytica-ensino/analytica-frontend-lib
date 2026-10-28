@@ -199,6 +199,38 @@ describe('SupportChatWidget', () => {
     expect(screen.getByLabelText('Mensagem')).toBeInTheDocument();
   });
 
+  it('resumes a kept conversation without counting it as unread', async () => {
+    const { adapter, emit } = createAdapter();
+    adapter.restoreConversation = jest.fn().mockResolvedValue({
+      ticket: {
+        id: 'ticket-1',
+        status: SUPPORT_CHAT_STATUS.ABERTO,
+        handlerType: null,
+        problemType: null,
+      },
+      messages: [
+        buildMessage('m1', 'oi'),
+        buildMessage('a1', 'Resposta antiga', SUPPORT_CHAT_AUTHOR.AGENT),
+      ],
+    });
+    render(<SupportChatWidget adapter={adapter} channel="app" />);
+    await act(async () => {});
+
+    expect(screen.queryByLabelText('1 nova mensagem')).not.toBeInTheDocument();
+
+    emit({
+      type: 'new_message',
+      payload: {
+        message: buildMessage('a2', 'Resposta nova', SUPPORT_CHAT_AUTHOR.AGENT),
+      },
+    });
+    expect(screen.getByLabelText('1 nova mensagem')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Abrir suporte'));
+    expect(screen.getByText('Resposta antiga')).toBeInTheDocument();
+    expect(screen.getByText('Resposta nova')).toBeInTheDocument();
+  });
+
   it('closing with X only hides: the conversation and unread count go on', async () => {
     const { adapter, emit } = createAdapter();
     const onClose = jest.fn();
