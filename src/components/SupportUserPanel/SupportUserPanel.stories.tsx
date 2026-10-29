@@ -189,7 +189,14 @@ export const SaveFails: Story = () => (
 export const ConcludedTicket: Story = () => (
   <Frame>
     <SupportUserPanel
-      profile={{ contact: { ...contact, linked: false, phone: null } }}
+      profile={{
+        contact: {
+          ...contact,
+          linked: false,
+          emailVerified: false,
+          phone: null,
+        },
+      }}
       history={{
         currentTicketId: 4710,
         tickets: [tickets[1]],
