@@ -232,6 +232,32 @@ describe('SupportUserPanel', () => {
       expect(screen.getByLabelText('Carregando perfil')).toBeInTheDocument();
     });
 
+    it('warns when the e-mail was typed by a visitor and not verified', () => {
+      openProfile({
+        profile: {
+          contact: { ...contact, linked: false, emailVerified: false },
+        },
+      });
+      expect(screen.getByText(/E-mail não verificado/)).toBeInTheDocument();
+    });
+
+    it('does not warn about a verified or missing e-mail', () => {
+      const { unmount } = openProfile({ profile: { contact } });
+      expect(
+        screen.queryByText(/E-mail não verificado/)
+      ).not.toBeInTheDocument();
+      unmount();
+
+      openProfile({
+        profile: {
+          contact: { ...contact, email: null, emailVerified: false },
+        },
+      });
+      expect(
+        screen.queryByText(/E-mail não verificado/)
+      ).not.toBeInTheDocument();
+    });
+
     it('copies the e-mail', async () => {
       const writeText = jest.fn().mockResolvedValue(undefined);
       Object.assign(navigator, { clipboard: { writeText } });

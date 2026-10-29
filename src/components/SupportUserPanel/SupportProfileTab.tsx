@@ -104,8 +104,9 @@ const ProfileSkeleton = () => (
 );
 
 /**
- * Profile tab: contact header, link badge, e-mail/phone, key/value facts
- * and the team notes about the user.
+ * Profile tab: contact header, link badge, e-mail/phone (with a warning when
+ * the e-mail was not verified), key/value facts and the team notes about the
+ * user.
  */
 export default function SupportProfileTab({
   contact,
@@ -222,6 +223,16 @@ export default function SupportProfileTab({
       )}
 
       <CopyField label="E-mail" value={contact.email ?? undefined} />
+      {contact.email && contact.emailVerified === false && (
+        <Text
+          size="xs"
+          color="text-warning-800"
+          className="-mt-2 rounded-lg bg-warning-background px-3 py-2"
+        >
+          E-mail não verificado: informado por um visitante, não confirme dados
+          da conta por ele
+        </Text>
+      )}
       <CopyField
         label="Telefone"
         value={contact.phone ? formatPhone(contact.phone) : undefined}

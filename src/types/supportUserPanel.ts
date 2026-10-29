@@ -81,6 +81,11 @@ export interface SupportContact {
   /** Whether the contact is linked to a platform user */
   linked: boolean;
   email?: string | null;
+  /**
+   * `false` when the e-mail was typed by a logged-out visitor and nobody
+   * proved it is theirs: show it, but do not trust it. Omitted means verified.
+   */
+  emailVerified?: boolean;
   /** Digits only or already formatted; rendered as `(DD) 9XXXX-XXXX` */
   phone?: string | null;
   /** e.g. "3º ano B — Ensino Médio" */
