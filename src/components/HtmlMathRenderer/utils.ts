@@ -2,6 +2,7 @@
  * Utilities for processing HTML content with LaTeX math expressions
  */
 
+import DOMPurify from 'dompurify';
 import {
   MATH_SPAN_TYPE,
   createLatexEnvPattern,
@@ -245,119 +246,193 @@ const recoverFromKatexErrorSpans = (htmlContent: string): string => {
 const decodeDollarEscapes = (text: string): string =>
   text.replaceAll(String.raw`\$`, '$');
 
+const ALLOWED_TAGS = [
+  // text and formatting
+  'p',
+  'br',
+  'span',
+  'div',
+  'b',
+  'strong',
+  'i',
+  'em',
+  'u',
+  's',
+  'sub',
+  'sup',
+  'blockquote',
+  'code',
+  'pre',
+  'hr',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  // lists
+  'ul',
+  'ol',
+  'li',
+  // tables
+  'table',
+  'thead',
+  'tbody',
+  'tfoot',
+  'tr',
+  'th',
+  'td',
+  'caption',
+  'colgroup',
+  'col',
+  // media and links
+  'img',
+  'a',
+  // legacy math wrapper read by `processHtmlWithMath`
+  'latex',
+];
+
+const ALLOWED_ATTR = [
+  'href',
+  'src',
+  'alt',
+  'title',
+  'width',
+  'height',
+  'colspan',
+  'rowspan',
+  'class',
+  'target',
+  'rel',
+  'style',
+  // math markup read by `processHtmlWithMath` after sanitizing
+  'data-latex',
+  'data-math',
+  'data-type',
+  'data-display-mode',
+];
+
+/** Attributes whose value is never a URL. */
+const URI_SAFE_ATTR = [
+  'width',
+  'height',
+  'colspan',
+  'rowspan',
+  'target',
+  'rel',
+  'data-latex',
+  'data-math',
+  'data-type',
+  'data-display-mode',
+];
+
 /**
- * Dangerous attributes that should be removed for XSS protection
+ * https, mailto, relative paths and anchors. Anything else (javascript:,
+ * vbscript:, data:, http:) is dropped; DOMPurify strips whitespace and
+ * control characters before matching, so `jav&#9;ascript:` is caught too.
  */
-const DANGEROUS_ATTRIBUTES = new Set([
-  'contenteditable',
-  'srcdoc',
-  'formaction',
-  'xlink:href',
+const ALLOWED_URI_REGEXP = /^(?:https:|mailto:|\/(?!\/)|\.{0,2}\/|#)/i;
+
+/** Legacy question images: raster base64 and plain http, only on `<img>`. Never SVG. */
+const SAFE_IMG_SRC =
+  /^(?:data:image\/(?:png|jpe?g|gif|webp);base64,[a-z0-9+/=\s]+$|http:\/\/)/i;
+
+/**
+ * Inline styles survive only with presentational properties: content pasted
+ * from Word relies on them, but `position`, `inset`, `url()` and friends would
+ * let a post cover the whole screen.
+ */
+const SAFE_STYLE_PROPERTIES = new Set([
+  'color',
+  'background-color',
+  'text-align',
+  'font-weight',
+  'font-style',
+  'text-decoration',
+  'vertical-align',
 ]);
 
-/**
- * Dangerous URI schemes that should be removed from href/src attributes
- */
-const DANGEROUS_URI_PATTERN = /^\s*(javascript|vbscript|data):/i;
+const sanitizeStyle = (style: string): string =>
+  style
+    .split(';')
+    .map((declaration) => {
+      const [property, ...rest] = declaration.split(':');
+      const name = property?.trim().toLowerCase() ?? '';
+      const value = rest.join(':').trim();
+      if (!SAFE_STYLE_PROPERTIES.has(name) || !value) return '';
+      if (/url\(|expression|[\\<>]/i.test(value)) return '';
+      return `${name}: ${value}`;
+    })
+    .filter(Boolean)
+    .join('; ');
+
+type Purifier = ReturnType<typeof DOMPurify>;
+
+let purifier: Purifier | null = null;
 
 /**
- * Sanitizes HTML content for safe display
- * Removes event handlers, dangerous attributes, script/style tags, and javascript: URIs
+ * Dedicated DOMPurify instance, so the hooks below never leak into the global
+ * one that LatexRenderer and other components share.
+ */
+const getPurifier = (): Purifier => {
+  if (purifier) return purifier;
+  purifier = DOMPurify(globalThis.window);
+
+  purifier.addHook('uponSanitizeAttribute', (node, data) => {
+    if (data.attrName === 'style') {
+      data.attrValue = sanitizeStyle(data.attrValue);
+      if (!data.attrValue) data.keepAttr = false;
+      return;
+    }
+    if (data.attrName !== 'src' || node.tagName !== 'IMG') return;
+    const src = data.attrValue.trim();
+    if (SAFE_IMG_SRC.test(src)) {
+      data.forceKeepAttr = true;
+    } else if (/^data:/i.test(src)) {
+      // DOMPurify accepts any `data:` on <img> by default, SVG included.
+      data.keepAttr = false;
+    }
+  });
+
+  // Links open in a new tab without handing over `window.opener`.
+  purifier.addHook('afterSanitizeAttributes', (node) => {
+    if (node.tagName !== 'A') return;
+    node.setAttribute('target', '_blank');
+    node.setAttribute('rel', 'noopener noreferrer nofollow');
+  });
+
+  return purifier;
+};
+
+const escapeHtml = (text: string): string =>
+  text
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+
+/**
+ * Sanitizes user/LLM HTML for display with a DOMPurify allowlist. Runs on the
+ * raw content, before KaTeX renders the math spans, since KaTeX output itself
+ * needs `style` and MathML that this config rejects.
  */
 export const sanitizeHtmlForDisplay = (htmlContent: string): string => {
   if (!htmlContent) return htmlContent;
 
-  // Create a temporary div to parse HTML
-  if (typeof document === 'undefined') {
-    // Server-side: use regex-based sanitization as fallback
-    let sanitized = htmlContent;
-    // Remove script tags
-    sanitized = sanitized.replaceAll(
-      /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-      ''
-    );
-    // Remove style tags
-    sanitized = sanitized.replaceAll(
-      /<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi,
-      ''
-    );
-    // Remove on* event handlers (split into separate patterns to avoid ReDoS)
-    sanitized = sanitized.replaceAll(/ on[a-z]+="[^"]*"/gi, '');
-    sanitized = sanitized.replaceAll(/ on[a-z]+='[^']*'/gi, '');
-    sanitized = sanitized.replaceAll(/ on[a-z]+=[^\s>"']+/gi, '');
-    // Remove dangerous URI schemes (javascript, vbscript, data) - matching client-side DANGEROUS_URI_PATTERN
-    sanitized = sanitized.replaceAll(
-      / href="(?:javascript|vbscript|data):[^"]*"/gi,
-      ''
-    );
-    sanitized = sanitized.replaceAll(
-      / href='(?:javascript|vbscript|data):[^']*'/gi,
-      ''
-    );
-    sanitized = sanitized.replaceAll(
-      / src="(?:javascript|vbscript|data):[^"]*"/gi,
-      ''
-    );
-    sanitized = sanitized.replaceAll(
-      / src='(?:javascript|vbscript|data):[^']*'/gi,
-      ''
-    );
-    sanitized = sanitized.replaceAll(
-      / action="(?:javascript|vbscript|data):[^"]*"/gi,
-      ''
-    );
-    sanitized = sanitized.replaceAll(
-      / action='(?:javascript|vbscript|data):[^']*'/gi,
-      ''
-    );
-    return sanitized;
-  }
+  const instance = getPurifier();
+  // Without a DOM (SSR) DOMPurify would return the input untouched: render as
+  // text instead.
+  if (!instance.isSupported) return escapeHtml(htmlContent);
 
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = htmlContent;
-
-  // Remove script and style tags entirely
-  const dangerousTags = tempDiv.querySelectorAll(
-    'script, style, iframe, object, embed'
-  );
-  dangerousTags.forEach((element) => element.remove());
-
-  // Process all elements
-  const allElements = tempDiv.querySelectorAll('*');
-  allElements.forEach((element) => {
-    // Get all attribute names
-    const attributeNames = element.getAttributeNames();
-
-    attributeNames.forEach((attrName) => {
-      const lowerAttrName = attrName.toLowerCase();
-
-      // Remove all on* event handler attributes (onclick, onerror, onload, etc.)
-      if (lowerAttrName.startsWith('on')) {
-        element.removeAttribute(attrName);
-        return;
-      }
-
-      // Remove dangerous attributes
-      if (DANGEROUS_ATTRIBUTES.has(lowerAttrName)) {
-        element.removeAttribute(attrName);
-        return;
-      }
-
-      // Check href, src, and action for dangerous URIs
-      if (
-        lowerAttrName === 'href' ||
-        lowerAttrName === 'src' ||
-        lowerAttrName === 'action'
-      ) {
-        const value = element.getAttribute(attrName);
-        if (value && DANGEROUS_URI_PATTERN.test(value)) {
-          element.removeAttribute(attrName);
-        }
-      }
-    });
+  return instance.sanitize(htmlContent, {
+    ALLOWED_TAGS,
+    ALLOWED_ATTR,
+    ALLOW_DATA_ATTR: false,
+    ALLOWED_URI_REGEXP,
+    // Plain values: without this the URI regexp above is applied to them too.
+    ADD_URI_SAFE_ATTR: URI_SAFE_ATTR,
   });
-
-  return tempDiv.innerHTML;
 };
 
 /**
