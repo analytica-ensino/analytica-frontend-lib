@@ -7,6 +7,7 @@ import { useMemo } from 'react';
  */
 type ApiClient<T = unknown> = {
   get: (endpoint: string, config?: T) => Promise<unknown>;
+  post?: (endpoint: string, data?: unknown, config?: T) => Promise<unknown>;
 };
 
 /**
@@ -18,7 +19,7 @@ type ApiClient<T = unknown> = {
  *
  * @template T - Generic type for API client configuration
  * @param {ApiClient<T>} api - Axios instance or any API client with a get method
- * @returns {object} Memoized API configuration object with get method
+ * @returns {object} Memoized API configuration object with get (and post, when the client has it) method
  *
  * @example
  * ```typescript
@@ -44,6 +45,11 @@ export function useApiConfig<T = unknown>(api: ApiClient<T>) {
     () => ({
       get: (endpoint: string, config: unknown) =>
         api.get(endpoint, config as T),
+      // useUrlAuthentication trades the login hand-off code with it
+      post: api.post
+        ? (endpoint: string, data?: unknown, config?: unknown) =>
+            api.post!(endpoint, data, config as T)
+        : undefined,
     }),
     [api]
   );

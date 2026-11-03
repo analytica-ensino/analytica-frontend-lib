@@ -104,4 +104,33 @@ describe('useApiConfig', () => {
 
     expect(mockApi.get).toHaveBeenCalledWith('/test', config);
   });
+  it('should forward post when the API client has it (AE-3246)', async () => {
+    const mockApi = {
+      get: jest.fn(),
+      post: jest.fn().mockResolvedValue({ data: 'posted' }),
+    };
+
+    const { result } = renderHook(() => useApiConfig(mockApi));
+
+    const response = await result.current.post?.(
+      '/auth/exchange',
+      { code: 'abc' },
+      { timeout: 1000 }
+    );
+
+    expect(mockApi.post).toHaveBeenCalledWith(
+      '/auth/exchange',
+      { code: 'abc' },
+      { timeout: 1000 }
+    );
+    expect(response).toEqual({ data: 'posted' });
+  });
+
+  it('should not expose post when the API client has none', () => {
+    const mockApi = { get: jest.fn() };
+
+    const { result } = renderHook(() => useApiConfig(mockApi));
+
+    expect(result.current.post).toBeUndefined();
+  });
 });

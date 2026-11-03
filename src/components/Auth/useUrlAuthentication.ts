@@ -14,10 +14,17 @@ import { useLocation } from 'react-router-dom';
  * @property {(session: Session) => void} setSessionInfo - Function to set session information
  * @property {(profile: Profile) => void} [setSelectedProfile] - Optional function to set selected profile
  * @property {(user: User) => void} [setUser] - Optional function to set user data
- * @property {object} api - API instance with get method
+ * @property {object} api - API instance with get (and post, for the hand-off code) methods
  * @property {(endpoint: string, config: unknown) => Promise<unknown>} api.get - API get method
+ * @property {(endpoint: string, data?: unknown, config?: unknown) => Promise<unknown>} [api.post] - API post method,
+ *   needed to trade the ?authCode= hand-off code and to revoke a declined session
  * @property {string} endpoint - API endpoint to fetch session data
+ * @property {string} [exchangeEndpoint] - Endpoint that trades the ?authCode= for tokens (default: '/auth/exchange')
+ * @property {string} [logoutEndpoint] - Endpoint that revokes a session (default: '/auth/logout')
  * @property {(searchParams: URLSearchParams) => object} [extractParams] - Custom parameter extraction function
+ * @property {(incomingSession: Session) => boolean | Promise<boolean>} [confirmSessionReplace] - Called with the
+ *   session the URL opens, before anything is stored. Return false to keep the current session: the URL's session
+ *   is revoked and dropped. Used to ask before replacing another user's session.
  * @property {() => void} [clearParamsFromURL] - Function to clear URL parameters after processing
  * @property {number} [maxRetries] - Maximum number of retry attempts (default: 3)
  * @property {number} [retryDelay] - Base delay between retries in milliseconds (default: 1000)
@@ -36,13 +43,21 @@ export interface UseUrlAuthOptions<
   setSessionInfo: (session: Session) => void;
   setSelectedProfile?: (profile: Profile) => void;
   setUser?: (user: User) => void;
-  api: { get: (endpoint: string, config: unknown) => Promise<unknown> };
-  endpoint: string;
-  extractParams?: (searchParams: URLSearchParams) => {
-    sessionId: string;
-    token: string;
-    refreshToken: string;
+  api: {
+    get: (endpoint: string, config: unknown) => Promise<unknown>;
+    post?: (
+      endpoint: string,
+      data?: unknown,
+      config?: unknown
+    ) => Promise<unknown>;
   };
+  endpoint: string;
+  exchangeEndpoint?: string;
+  logoutEndpoint?: string;
+  extractParams?: (searchParams: URLSearchParams) => UrlAuthParams;
+  confirmSessionReplace?: (
+    incomingSession: Session
+  ) => boolean | Promise<boolean>;
   clearParamsFromURL?: () => void;
   maxRetries?: number;
   retryDelay?: number;
@@ -51,27 +66,44 @@ export interface UseUrlAuthOptions<
 }
 
 /**
+ * Authentication parameters a URL can carry: the single-use hand-off code
+ * (current), or the tokens themselves (apps that were not migrated yet)
+ */
+export interface UrlAuthParams {
+  code?: string | null;
+  sessionId?: string | null;
+  token?: string | null;
+  refreshToken?: string | null;
+}
+
+/**
+ * Tokens of the session a URL opens
+ */
+interface UrlSessionTokens {
+  sessionId: string;
+  token: string;
+  refreshToken: string;
+}
+
+/**
  * Helper function to extract authentication parameters from URL
  *
  * @param {object} location - Location object with search property
  * @param {string} location.search - URL search string
  * @param {function} [extractParams] - Custom parameter extraction function
- * @returns {object} Object with sessionId, token, and refreshToken
+ * @returns {object} Object with code, sessionId, token, and refreshToken
  *
  * @private
  */
 const getAuthParams = (
   location: { search: string },
-  extractParams?: (searchParams: URLSearchParams) => {
-    sessionId: string;
-    token: string;
-    refreshToken: string;
-  }
-) => {
+  extractParams?: (searchParams: URLSearchParams) => UrlAuthParams
+): UrlAuthParams => {
   const searchParams = new URLSearchParams(location.search);
   return extractParams
     ? extractParams(searchParams)
     : {
+        code: searchParams.get('authCode'),
         sessionId: searchParams.get('sessionId'),
         token: searchParams.get('token'),
         refreshToken: searchParams.get('refreshToken'),
@@ -81,24 +113,75 @@ const getAuthParams = (
 /**
  * Helper function to validate authentication parameters
  *
- * @param {object} authParams - Authentication parameters object
- * @param {string | null} authParams.sessionId - Session ID from URL
- * @param {string | null} authParams.token - Authentication token from URL
- * @param {string | null} authParams.refreshToken - Refresh token from URL
- * @returns {boolean} True if all required parameters are present
+ * @param {UrlAuthParams} authParams - Authentication parameters object
+ * @returns {boolean} True when there is a code, or all three tokens
  *
  * @private
  */
-const hasValidAuthParams = (authParams: {
-  sessionId: string | null;
-  token: string | null;
-  refreshToken: string | null;
-}) => {
+const hasValidAuthParams = (authParams: UrlAuthParams) => {
   return !!(
-    authParams?.sessionId &&
-    authParams?.token &&
-    authParams?.refreshToken
+    authParams?.code ||
+    (authParams?.sessionId && authParams?.token && authParams?.refreshToken)
   );
+};
+
+/**
+ * Get the tokens of the session the URL opens
+ *
+ * The login app and the backoffice send a single-use code, traded here for the
+ * tokens: tokens in the URL stayed in the history and in server logs. Tokens
+ * are still read straight from the URL for senders not migrated yet.
+ *
+ * @param {UrlAuthParams} authParams - Parameters read from the URL
+ * @param {object} api - API instance
+ * @param {string} exchangeEndpoint - Endpoint that trades the code
+ * @returns {Promise<UrlSessionTokens>} The session tokens
+ *
+ * @private
+ */
+const resolveSessionTokens = async (
+  authParams: UrlAuthParams,
+  api: UseUrlAuthOptions['api'],
+  exchangeEndpoint: string
+): Promise<UrlSessionTokens> => {
+  if (!authParams.code) {
+    return {
+      sessionId: authParams.sessionId!,
+      token: authParams.token!,
+      refreshToken: authParams.refreshToken!,
+    };
+  }
+
+  if (!api.post) {
+    throw new Error('api.post é necessário para trocar o código de acesso');
+  }
+  const response = (await api.post(exchangeEndpoint, {
+    code: authParams.code,
+  })) as { data: { data: UrlSessionTokens } };
+  return response.data.data;
+};
+
+/**
+ * Revoke a session the user chose not to open. Best effort: a failure leaves
+ * a session nobody holds the tokens of.
+ *
+ * @param {object} api - API instance
+ * @param {string} logoutEndpoint - Endpoint that revokes a session
+ * @param {UrlSessionTokens} tokens - Tokens of the declined session
+ *
+ * @private
+ */
+const revokeDeclinedSession = (
+  api: UseUrlAuthOptions['api'],
+  logoutEndpoint: string,
+  tokens: UrlSessionTokens
+) => {
+  api
+    .post?.(logoutEndpoint, {
+      sessionId: tokens.sessionId,
+      refreshToken: tokens.refreshToken,
+    })
+    .catch(() => undefined);
 };
 
 /**
@@ -239,12 +322,15 @@ export function useUrlAuthentication<
       processedRef.current = true;
 
       try {
-        // Set tokens first
-        options.setTokens({
-          token: authParams.token,
-          refreshToken: authParams.refreshToken,
-        } as Tokens);
+        const sessionTokens = await resolveSessionTokens(
+          authParams,
+          options.api,
+          options.exchangeEndpoint ?? '/auth/exchange'
+        );
 
+        // Session-info runs with the URL's token before anything is stored,
+        // so a session the user declines (or one that fails) never replaces
+        // the current one
         // Call session-info with proper error handling and retry
         const maxRetries = options.maxRetries || 3;
         const retryDelay = options.retryDelay || 1000;
@@ -255,7 +341,7 @@ export function useUrlAuthentication<
           try {
             const response = (await options.api.get(options.endpoint, {
               headers: {
-                Authorization: `Bearer ${authParams.token}`,
+                Authorization: `Bearer ${sessionTokens.token}`,
               },
             })) as { data: { data: unknown; [key: string]: unknown } };
 
@@ -278,6 +364,27 @@ export function useUrlAuthentication<
             }
           }
         }
+
+        // A link that opens another user's session must not swap the account
+        // in use without asking (login CSRF: what the victim types would land
+        // in the attacker's account)
+        if (
+          options.confirmSessionReplace &&
+          !(await options.confirmSessionReplace(sessionData as Session))
+        ) {
+          revokeDeclinedSession(
+            options.api,
+            options.logoutEndpoint ?? '/auth/logout',
+            sessionTokens
+          );
+          options.clearParamsFromURL?.();
+          return;
+        }
+
+        options.setTokens({
+          token: sessionTokens.token,
+          refreshToken: sessionTokens.refreshToken,
+        } as Tokens);
 
         // Always call setSessionInfo with the received data (even if null)
         options.setSessionInfo(sessionData as Session);
@@ -305,7 +412,10 @@ export function useUrlAuthentication<
     options.setTokens,
     options.api,
     options.endpoint,
+    options.exchangeEndpoint,
+    options.logoutEndpoint,
     options.extractParams,
+    options.confirmSessionReplace,
     options.clearParamsFromURL,
     options.maxRetries,
     options.retryDelay,
