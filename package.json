@@ -2161,7 +2161,7 @@
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "tailwind-merge": "^3.6.0",
-    "xlsx": "^0.18.5",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
@@ -2205,7 +2205,7 @@
     "@typescript-eslint/eslint-plugin": "^8.60.0",
     "@typescript-eslint/parser": "^8.60.0",
     "autoprefixer": "^10.5.0",
-    "axios": "1.15.0",
+    "axios": "1.21.0",
     "dayjs": "^1.11.21",
     "eslint": "^10.4.1",
     "eslint-config-prettier": "^10.1.8",
