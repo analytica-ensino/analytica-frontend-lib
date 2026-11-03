@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { AxiosInstance } from 'axios';
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore, type SessionInfo } from '../store/authStore';
 import { useModulesStore } from '../store/modulesStore';
 import { useApiConfig, useUrlAuthentication, useTheme, useAuth } from '..';
 
@@ -9,9 +9,14 @@ import { useApiConfig, useUrlAuthentication, useTheme, useAuth } from '..';
  * Interface para as configurações do hook useAppContent
  */
 interface UseAppContentConfig {
-  /** API instance para configuração */
+  /** API instance para configuração (post troca o código de acesso da URL) */
   api: {
     get: (endpoint: string, config: unknown) => Promise<unknown>;
+    post?: (
+      endpoint: string,
+      data?: unknown,
+      config?: unknown
+    ) => Promise<unknown>;
   };
   /** ID da instituição obtido externamente */
   getInstitutionId: string | null | undefined;
@@ -31,7 +36,44 @@ interface UseAppContentConfig {
   onError?: (error: unknown) => void;
   /** Callback para navegação quando página não encontrada */
   onNotFoundNavigation?: () => void;
+  /**
+   * Pergunta antes de trocar a sessão de outro usuário pela do link. Recebe o
+   * nome de quem está logado e de quem o link abre; padrão: window.confirm.
+   */
+  confirmAccountSwitch?: (accounts: {
+    current: string;
+    incoming: string;
+  }) => boolean | Promise<boolean>;
 }
+
+/**
+ * Pergunta padrão antes de trocar de conta
+ *
+ * @param {object} accounts - Quem está logado e quem o link abre
+ * @returns {boolean} Se a pessoa aceitou trocar
+ */
+const defaultConfirmAccountSwitch = ({
+  current,
+  incoming,
+}: {
+  current: string;
+  incoming: string;
+}): boolean =>
+  globalThis.confirm(
+    `Você está conectado como ${current}. Este link entra na conta de ${incoming}. Deseja sair da sua conta e continuar?`
+  );
+
+/**
+ * Nome de uma conta para a pergunta de troca
+ *
+ * @param {Partial<SessionInfo>} session - Sessão
+ * @returns {string} Nome e e-mail, o que houver
+ */
+const describeAccount = (session: Partial<SessionInfo>): string => {
+  const email = typeof session.email === 'string' ? session.email : undefined;
+  if (session.userName && email) return `${session.userName} (${email})`;
+  return session.userName || email || 'outro usuário';
+};
 
 /**
  * Hook que encapsula toda a lógica do componente AppContent
@@ -55,6 +97,7 @@ export function useAppContent(config: UseAppContentConfig) {
     onClearParamsFromURL,
     onError,
     onNotFoundNavigation,
+    confirmAccountSwitch = defaultConfirmAccountSwitch,
   } = config;
 
   const apiConfig = useApiConfig(api);
@@ -89,6 +132,7 @@ export function useAppContent(config: UseAppContentConfig) {
     // other query the deep link carried (e.g. ?id=... on an edit page). Dropping
     // the whole query here used to lose those params after hydration.
     const params = new URLSearchParams(globalThis.location.search);
+    params.delete('authCode');
     params.delete('token');
     params.delete('refreshToken');
     params.delete('sessionId');
@@ -110,6 +154,22 @@ export function useAppContent(config: UseAppContentConfig) {
     [navigate, onError]
   );
 
+  // A link that opens another user's session asks before swapping the account
+  // in use: anyone could send a link to their own account and have the victim
+  // type into it (AE-3246). Same user, or nobody logged in: no question.
+  const handleConfirmSessionReplace = useCallback(
+    async (incoming: SessionInfo) => {
+      const { tokens, sessionInfo: current } = useAuthStore.getState();
+      if (!tokens?.token || !current?.userId) return true;
+      if (current.userId === incoming?.userId) return true;
+      return confirmAccountSwitch({
+        current: describeAccount(current),
+        incoming: describeAccount(incoming ?? {}),
+      });
+    },
+    [confirmAccountSwitch]
+  );
+
   // Re-runs the AuthProvider check after tokens are written into the store,
   // so guards re-evaluate before URL params are cleared (fixes first-login race).
   const handleAuthHydrated = useCallback(async () => {
@@ -129,6 +189,7 @@ export function useAppContent(config: UseAppContentConfig) {
       retryDelay,
       onError: handleError,
       onAuthHydrated: handleAuthHydrated,
+      confirmSessionReplace: handleConfirmSessionReplace,
     }),
     [
       setTokens,
@@ -141,6 +202,7 @@ export function useAppContent(config: UseAppContentConfig) {
       retryDelay,
       handleError,
       handleAuthHydrated,
+      handleConfirmSessionReplace,
     ]
   );
 

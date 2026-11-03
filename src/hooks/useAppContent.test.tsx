@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { useAppContent } from './useAppContent';
+import { useAuthStore } from '../store/authStore';
 
 // Mock do react-router-dom
 const mockNavigate = jest.fn();
@@ -344,6 +345,18 @@ describe('useAppContent', () => {
     });
   });
 
+  it('strips the authCode hand-off param too (AE-3246)', () => {
+    window.history.pushState({}, '', '/painel?authCode=abc&tab=2');
+    renderHook(() => useAppContent(defaultConfig));
+
+    const urlAuthConfig = mockUseUrlAuthentication.mock.calls[0][0];
+    urlAuthConfig.clearParamsFromURL();
+
+    expect(mockNavigate).toHaveBeenCalledWith('/painel?tab=2', {
+      replace: true,
+    });
+  });
+
   it('should handle handleClearParamsFromURL with custom callback', () => {
     const customOnClearParamsFromURL = jest.fn();
     const configWithCustomCallback = {
@@ -684,6 +697,109 @@ describe('useAppContent', () => {
         mockApiConfig,
         undefined
       );
+    });
+  });
+  describe('confirmSessionReplace (AE-3246)', () => {
+    const mockGetState = useAuthStore.getState as jest.Mock;
+    const incoming = {
+      ...mockSessionInfo,
+      userId: 'user-b',
+      userName: 'Bia',
+      email: 'bia@escola.com',
+    };
+
+    const getConfirm = () =>
+      mockUseUrlAuthentication.mock.calls[0][0].confirmSessionReplace as (
+        session: unknown
+      ) => Promise<boolean>;
+
+    afterEach(() => {
+      mockGetState.mockImplementation(() => ({
+        sessionInfo: { institutionId: 'test-institution-id' },
+      }));
+    });
+
+    it('accepts without asking when nobody is logged in', async () => {
+      const confirmAccountSwitch = jest.fn();
+      mockGetState.mockReturnValue({ tokens: null, sessionInfo: null });
+      renderHook(() =>
+        useAppContent({ ...defaultConfig, confirmAccountSwitch })
+      );
+
+      await expect(getConfirm()(incoming)).resolves.toBe(true);
+      expect(confirmAccountSwitch).not.toHaveBeenCalled();
+    });
+
+    it('accepts without asking when the link opens the same user', async () => {
+      const confirmAccountSwitch = jest.fn();
+      mockGetState.mockReturnValue({
+        tokens: { token: 't', refreshToken: 'r' },
+        sessionInfo: { ...mockSessionInfo, userId: 'user-b' },
+      });
+      renderHook(() =>
+        useAppContent({ ...defaultConfig, confirmAccountSwitch })
+      );
+
+      await expect(getConfirm()(incoming)).resolves.toBe(true);
+      expect(confirmAccountSwitch).not.toHaveBeenCalled();
+    });
+
+    it('asks before replacing another user and follows the answer', async () => {
+      const confirmAccountSwitch = jest.fn().mockResolvedValue(false);
+      mockGetState.mockReturnValue({
+        tokens: { token: 't', refreshToken: 'r' },
+        sessionInfo: {
+          ...mockSessionInfo,
+          userId: 'user-a',
+          userName: 'Ana',
+          email: 'ana@escola.com',
+        },
+      });
+      renderHook(() =>
+        useAppContent({ ...defaultConfig, confirmAccountSwitch })
+      );
+
+      await expect(getConfirm()(incoming)).resolves.toBe(false);
+      expect(confirmAccountSwitch).toHaveBeenCalledWith({
+        current: 'Ana (ana@escola.com)',
+        incoming: 'Bia (bia@escola.com)',
+      });
+    });
+
+    it('falls back to a generic name when the session has none', async () => {
+      const confirmAccountSwitch = jest.fn().mockReturnValue(true);
+      mockGetState.mockReturnValue({
+        tokens: { token: 't', refreshToken: 'r' },
+        sessionInfo: { ...mockSessionInfo, userId: 'user-a' },
+      });
+      renderHook(() =>
+        useAppContent({ ...defaultConfig, confirmAccountSwitch })
+      );
+
+      await expect(
+        getConfirm()({ ...mockSessionInfo, userId: 'user-b', email: 'b@x.com' })
+      ).resolves.toBe(true);
+      expect(confirmAccountSwitch).toHaveBeenCalledWith({
+        current: 'outro usuário',
+        incoming: 'b@x.com',
+      });
+    });
+
+    it('uses window.confirm by default', async () => {
+      const confirmSpy = jest
+        .spyOn(globalThis, 'confirm')
+        .mockReturnValue(true);
+      mockGetState.mockReturnValue({
+        tokens: { token: 't', refreshToken: 'r' },
+        sessionInfo: { ...mockSessionInfo, userId: 'user-a', userName: 'Ana' },
+      });
+      renderHook(() => useAppContent(defaultConfig));
+
+      await expect(getConfirm()(incoming)).resolves.toBe(true);
+      expect(confirmSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Você está conectado como Ana')
+      );
+      confirmSpy.mockRestore();
     });
   });
 });
