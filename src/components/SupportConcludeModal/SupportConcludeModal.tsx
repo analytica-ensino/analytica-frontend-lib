@@ -18,11 +18,13 @@ import {
   type SupportConclusionFormData,
   type SupportConclusionOutcome,
   type SupportConclusionReason,
+  type SupportProblemType,
 } from '../../types/supportConclusion';
 import { SUPPORT_CONCLUSION_REASONS } from './supportConclusionReasons';
 import {
   buildConcludeTicketRequest,
   findConclusionReason,
+  findConclusionReasonByProblemType,
   getConcludeTicketErrorMessage,
   isConclusionFormValid,
 } from './supportConclusionUtils';
@@ -41,6 +43,8 @@ export interface SupportConcludeModalProps {
   apiClient: Pick<SupportApiClient, 'patch'>;
   /** Reasons catalog; defaults to the mocked reasons */
   reasons?: SupportConclusionReason[];
+  /** Reason already set on the ticket; preselects the category when the modal opens */
+  initialProblemType?: SupportProblemType | null;
   /**
    * Called after the backend concludes the ticket, with every collected value
    * (including the ones the backend does not store yet) and the updated ticket
@@ -94,6 +98,7 @@ export default function SupportConcludeModal({
   ticketLabel,
   apiClient,
   reasons = SUPPORT_CONCLUSION_REASONS,
+  initialProblemType,
   onConcluded,
 }: Readonly<SupportConcludeModalProps>) {
   const [form, setForm] = useState<SupportConclusionFormData>(INITIAL_FORM);
@@ -102,7 +107,12 @@ export default function SupportConcludeModal({
 
   useEffect(() => {
     if (isOpen) {
-      setForm(INITIAL_FORM);
+      setForm({
+        ...INITIAL_FORM,
+        reason:
+          findConclusionReasonByProblemType(reasons, initialProblemType)
+            ?.value ?? '',
+      });
       setError(null);
     }
   }, [isOpen]);

@@ -3,6 +3,7 @@ import {
   type ConcludeSupportTicketRequest,
   type SupportConclusionFormData,
   type SupportConclusionReason,
+  type SupportProblemType,
 } from '../../types/supportConclusion';
 
 /** Fallback shown when the API error has no message */
@@ -35,6 +36,20 @@ export function findConclusionReason(
   value: string
 ): SupportConclusionReason | undefined {
   return reasons.find((reason) => reason.value === value);
+}
+
+/**
+ * Finds the reason that maps to a backend problem type.
+ *
+ * @param reasons - Reasons catalog
+ * @param problemType - Problem type stored on the ticket, if any
+ * @returns The reason, or undefined when the ticket has no known problem type
+ */
+export function findConclusionReasonByProblemType(
+  reasons: SupportConclusionReason[],
+  problemType?: SupportProblemType | null
+): SupportConclusionReason | undefined {
+  return reasons.find((reason) => reason.problemType === problemType);
 }
 
 /**

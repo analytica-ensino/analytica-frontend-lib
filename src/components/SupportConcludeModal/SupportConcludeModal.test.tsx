@@ -36,6 +36,18 @@ const chooseOption = (combobox: HTMLElement, label: string) => {
 };
 
 describe('SupportConcludeModal', () => {
+  it('preselects the category from the problem type of the ticket', () => {
+    renderModal({ initialProblemType: SUPPORT_PROBLEM_TYPE.OTHER });
+
+    expect(getCategorySelect()).toHaveTextContent('Outros');
+  });
+
+  it('keeps the category empty when the ticket has no problem type', () => {
+    renderModal({ initialProblemType: null });
+
+    expect(getCategorySelect()).toHaveTextContent('Selecione a categoria');
+  });
+
   it('renders the title, subtitle and default outcome', () => {
     renderModal();
 
