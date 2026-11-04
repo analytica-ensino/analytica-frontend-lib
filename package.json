@@ -2015,6 +2015,13 @@
       "import": "./dist/hooks/useScreen/index.mjs",
       "require": "./dist/hooks/useScreen/index.js",
       "default": "./dist/hooks/useScreen/index.mjs"
+    },
+    "./hooks/useresizablecolumns": {
+      "types": "./dist/hooks/useResizableColumns/index.d.ts",
+      "module": "./dist/hooks/useResizableColumns/index.mjs",
+      "import": "./dist/hooks/useResizableColumns/index.mjs",
+      "require": "./dist/hooks/useResizableColumns/index.js",
+      "default": "./dist/hooks/useResizableColumns/index.mjs"
     }
   },
   "scripts": {
