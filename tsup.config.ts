@@ -376,6 +376,7 @@ export default defineConfig({
       'src/components/ActivityCreate/ActivityCreate.utils.ts', // convertQuestionToPreview
     'store/questionFiltersStore/index': 'src/store/questionFiltersStore.ts', // useQuestionFiltersStore
     'hooks/useScreen/index': 'src/hooks/useScreen.ts', // useTabletScreen
+    'hooks/useResizableColumns/index': 'src/hooks/useResizableColumns.ts', // useResizableColumns, BANK_MIN_WIDTH
     'types/enemClassroom/index': 'src/types/enemClassroom.ts', // ENEM_CLASSROOM_LANGUAGE, EnemClassroomExam
     'AlertManager/types/index': 'src/components/AlertManager/types.ts', // AlertData, AlertsConfig
     'AlertManager/useAlertForm/index':
