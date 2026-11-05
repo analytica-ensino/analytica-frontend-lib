@@ -23,7 +23,6 @@ const EXTENSION_BY_MIME: Record<string, string> = {
   'image/gif': 'gif',
   'image/webp': 'webp',
   'image/bmp': 'bmp',
-  'image/svg+xml': 'svg',
 };
 
 /** Extension used when the clipboard reports an image type we do not map. */
@@ -32,7 +31,7 @@ const FALLBACK_EXTENSION = 'png';
 /**
  * Reads the image files carried by a paste event.
  * Anything that is not an image is left alone so the default paste behaviour
- * still handles it.
+ * still handles it, and so is SVG, which the upload would refuse.
  * @param clipboardData - The `clipboardData` of the paste event
  * @returns The image files found, in clipboard order
  */
@@ -41,8 +40,9 @@ export const extractPastedImageFiles = (
 ): File[] => {
   if (!clipboardData?.files) return [];
 
-  return Array.from(clipboardData.files).filter((file) =>
-    file.type.startsWith('image/')
+  // The storage backend refuses SVG, which can carry scripts.
+  return Array.from(clipboardData.files).filter(
+    (file) => file.type.startsWith('image/') && file.type !== 'image/svg+xml'
   );
 };
 

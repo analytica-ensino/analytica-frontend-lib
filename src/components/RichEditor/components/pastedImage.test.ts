@@ -22,6 +22,12 @@ describe('extractPastedImageFiles', () => {
     expect(extractPastedImageFiles(clipboardWith([planilha]))).toEqual([]);
   });
 
+  it('deve ignorar SVG, que o upload recusaria', () => {
+    const vetor = fakeFile('logo.svg', 'image/svg+xml');
+
+    expect(extractPastedImageFiles(clipboardWith([vetor]))).toEqual([]);
+  });
+
   it('deve devolver vazio quando o clipboard não tem arquivos', () => {
     expect(extractPastedImageFiles(null)).toEqual([]);
     expect(extractPastedImageFiles(clipboardWith([]))).toEqual([]);
