@@ -5,6 +5,7 @@ import type {
   WSServerMessage,
   WSClientMessage,
 } from '../types/chat';
+import { startWebSocketKeepAlive } from '../utils/webSocketKeepAlive';
 
 /**
  * WebSocket connection states
@@ -267,8 +268,10 @@ export function useChat({
     isConnectingRef.current = true;
     const ws = new WebSocket(url.toString());
     wsRef.current = ws;
+    let stopKeepAlive: (() => void) | undefined;
 
     ws.onopen = () => {
+      stopKeepAlive = startWebSocketKeepAlive(ws);
       isConnectingRef.current = false;
       setIsConnected(true);
       setError(null);
@@ -288,6 +291,7 @@ export function useChat({
     };
 
     ws.onclose = (event) => {
+      stopKeepAlive?.();
       isConnectingRef.current = false;
       setIsConnected(false);
       onDisconnect?.();

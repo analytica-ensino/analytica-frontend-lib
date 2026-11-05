@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { useChat, createUseChat, WS_STATES } from './useChat';
+import { WEBSOCKET_KEEPALIVE_INTERVAL_MS } from '../utils/webSocketKeepAlive';
 import type { UseChatOptions } from './useChat';
 import type { WSServerMessage } from '../types/chat';
 
@@ -144,6 +145,57 @@ describe('useChat', () => {
       expect(MockWebSocket.lastInstance?.send).toHaveBeenCalledWith(
         JSON.stringify({ type: 'getInitialData' })
       );
+    });
+
+    it('should ping while connected and stop when the connection closes', () => {
+      const ping = JSON.stringify({ type: 'ping' });
+      renderHook(() => useChat({ ...defaultOptions, autoReconnect: false }));
+      triggerConnect();
+      const socket = MockWebSocket.lastInstance;
+
+      act(() => {
+        jest.advanceTimersByTime(WEBSOCKET_KEEPALIVE_INTERVAL_MS);
+      });
+      expect(socket?.send).not.toHaveBeenCalledWith(ping);
+
+      act(() => {
+        socket?.simulateOpen();
+        jest.advanceTimersByTime(WEBSOCKET_KEEPALIVE_INTERVAL_MS);
+      });
+      expect(socket?.send).toHaveBeenCalledWith(ping);
+
+      socket?.send.mockClear();
+      act(() => {
+        socket?.close();
+        jest.advanceTimersByTime(WEBSOCKET_KEEPALIVE_INTERVAL_MS);
+      });
+      expect(socket?.send).not.toHaveBeenCalled();
+    });
+
+    it('should stop the old ping when a new connection replaces the socket', () => {
+      const ping = JSON.stringify({ type: 'ping' });
+      const { result } = renderHook(() =>
+        useChat({ ...defaultOptions, autoReconnect: false })
+      );
+      triggerConnect();
+      const first = MockWebSocket.lastInstance;
+      act(() => {
+        first?.simulateOpen();
+      });
+
+      act(() => {
+        result.current.reconnect();
+      });
+      const second = MockWebSocket.lastInstance;
+      first?.send.mockClear();
+      act(() => {
+        second?.simulateOpen();
+        jest.advanceTimersByTime(WEBSOCKET_KEEPALIVE_INTERVAL_MS);
+      });
+
+      expect(second).not.toBe(first);
+      expect(first?.send).not.toHaveBeenCalled();
+      expect(second?.send).toHaveBeenCalledWith(ping);
     });
 
     it('should set isConnected to false when connection closes', () => {

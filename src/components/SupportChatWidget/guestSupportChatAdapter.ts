@@ -11,6 +11,7 @@ import {
   type SupportChatMessage,
   type SupportChatTicket,
 } from '../../types/supportChat';
+import { startWebSocketKeepAlive } from '../../utils/webSocketKeepAlive';
 
 export interface GuestSupportChatAdapterOptions {
   /** Client of the backend API (e.g. the app axios instance) */
@@ -323,6 +324,7 @@ export const createGuestSupportChatAdapter = ({
       let socket: WebSocket | null = null;
       let pollTimer: ReturnType<typeof setInterval> | null = null;
       let active = true;
+      let stopKeepAlive: (() => void) | undefined;
 
       const deliver = (message: SupportChatMessage) => {
         if (!isVisible(message)) return;
@@ -388,16 +390,22 @@ export const createGuestSupportChatAdapter = ({
         url.searchParams.set('roomId', ticketId);
         url.searchParams.set('token', token);
         socket = new WebSocket(url.toString());
+        const openSocket = socket;
+        const handleConnectionLost = () => {
+          stopKeepAlive?.();
+          startPolling();
+        };
         socket.onopen = () => {
           stopPolling();
+          stopKeepAlive = startWebSocketKeepAlive(openSocket);
           socket?.send(JSON.stringify({ type: 'getInitialData' }));
           // The REST API is the source of truth: a WebSocket deployed apart
           // from it may send a history without contactRequest/faq
           void poll();
         };
         socket.onmessage = (event) => handleFrame(String(event.data));
-        socket.onclose = startPolling;
-        socket.onerror = startPolling;
+        socket.onclose = handleConnectionLost;
+        socket.onerror = handleConnectionLost;
       } else {
         startPolling();
       }
@@ -405,6 +413,7 @@ export const createGuestSupportChatAdapter = ({
       return () => {
         active = false;
         stopPolling();
+        stopKeepAlive?.();
         if (socket) {
           socket.onclose = null;
           socket.close();

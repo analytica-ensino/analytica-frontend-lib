@@ -1,3 +1,4 @@
+import { WEBSOCKET_KEEPALIVE_INTERVAL_MS } from '../../utils/webSocketKeepAlive';
 import {
   createGuestSupportChatAdapter,
   fromSupportAnswer,
@@ -12,6 +13,7 @@ import {
 class FakeSocket {
   static last: FakeSocket;
   url: string;
+  readyState = 1;
   sent: string[] = [];
   onopen: (() => void) | null = null;
   onmessage: ((event: { data: string }) => void) | null = null;
@@ -299,6 +301,36 @@ describe('createGuestSupportChatAdapter', () => {
     unsubscribe();
     expect(socket.close).toHaveBeenCalled();
     expect(socket.onclose).toBeNull();
+  });
+
+  it('pings only while the socket is connected', async () => {
+    jest.useFakeTimers();
+    const ping = JSON.stringify({ type: 'ping' });
+    const { adapter } = setup('ws://localhost:3005?channel=support');
+    await adapter.startConversation({ message: 'oi', channel: 'login' });
+    const countPings = (socket: FakeSocket) =>
+      socket.sent.filter((frame) => frame === ping).length;
+
+    const unsubscribe = adapter.subscribe('t1', () => undefined);
+    const first = FakeSocket.last;
+    await jest.advanceTimersByTimeAsync(WEBSOCKET_KEEPALIVE_INTERVAL_MS);
+    expect(countPings(first)).toBe(0);
+
+    first.onopen?.();
+    await jest.advanceTimersByTimeAsync(WEBSOCKET_KEEPALIVE_INTERVAL_MS);
+    expect(countPings(first)).toBe(1);
+
+    first.onclose?.();
+    await jest.advanceTimersByTimeAsync(WEBSOCKET_KEEPALIVE_INTERVAL_MS);
+    expect(countPings(first)).toBe(1);
+    unsubscribe();
+
+    const unsubscribeSecond = adapter.subscribe('t1', () => undefined);
+    const second = FakeSocket.last;
+    second.onopen?.();
+    unsubscribeSecond();
+    await jest.advanceTimersByTimeAsync(WEBSOCKET_KEEPALIVE_INTERVAL_MS);
+    expect(countPings(second)).toBe(0);
   });
 
   it('delivers a seen message again when it comes back with the contact request', async () => {
