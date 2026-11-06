@@ -6,6 +6,7 @@ import type {
   WSClientMessage,
 } from '../types/chat';
 import { startWebSocketKeepAlive } from '../utils/webSocketKeepAlive';
+import { getWebSocketAuthProtocols } from '../utils/webSocketAuth';
 
 /**
  * WebSocket connection states
@@ -257,7 +258,6 @@ export function useChat({
     // Build WebSocket URL with query params
     const url = new URL(wsUrl);
     url.searchParams.set('roomId', roomId);
-    url.searchParams.set('token', token);
 
     // Close existing connection
     if (wsRef.current) {
@@ -266,7 +266,7 @@ export function useChat({
 
     // Create new WebSocket connection
     isConnectingRef.current = true;
-    const ws = new WebSocket(url.toString());
+    const ws = new WebSocket(url.toString(), getWebSocketAuthProtocols(token));
     wsRef.current = ws;
     let stopKeepAlive: (() => void) | undefined;
 
