@@ -101,13 +101,14 @@ describe('SupportConcludeModal', () => {
     expect(getConcludeButton()).toBeDisabled();
   });
 
-  it('asks for a description when the reason is "Outros"', () => {
+  it('offers an optional description when the reason is "Outros"', () => {
     renderModal();
 
     chooseOption(getCategorySelect(), 'Outros');
 
     expect(getSubReasonSelect()).toBeDisabled();
-    expect(getConcludeButton()).toBeDisabled();
+    expect(screen.getByLabelText(/Descreva o motivo/)).toBeInTheDocument();
+    expect(getConcludeButton()).toBeEnabled();
 
     fireEvent.change(screen.getByLabelText(/Descreva o motivo/), {
       target: { value: 'Pedido de certificado' },
