@@ -12,6 +12,7 @@ import {
   type SupportChatTicket,
 } from '../../types/supportChat';
 import { startWebSocketKeepAlive } from '../../utils/webSocketKeepAlive';
+import { getWebSocketAuthProtocols } from '../../utils/webSocketAuth';
 
 export interface GuestSupportChatAdapterOptions {
   /** Client of the backend API (e.g. the app axios instance) */
@@ -113,8 +114,8 @@ export const fromSupportAnswer = (
  * Support chat adapter for visitors (no login), on top of the support API:
  * - POST /support/external opens the ticket and returns the guest token;
  * - GET/POST /support/guest/:id/answer read and send, with the token header;
- * - the chat WebSocket (?channel=support&roomId=&token=) pushes the events,
- *   and REST polling covers the time the socket is down.
+ * - the chat WebSocket (?channel=support&roomId=, token in the subprotocol)
+ *   pushes the events, and REST polling covers the time the socket is down.
  */
 export const createGuestSupportChatAdapter = ({
   apiClient,
@@ -388,8 +389,10 @@ export const createGuestSupportChatAdapter = ({
         const url = new URL(wsUrl);
         url.searchParams.set('channel', 'support');
         url.searchParams.set('roomId', ticketId);
-        url.searchParams.set('token', token);
-        socket = new WebSocket(url.toString());
+        socket = new WebSocket(
+          url.toString(),
+          getWebSocketAuthProtocols(token)
+        );
         const openSocket = socket;
         const handleConnectionLost = () => {
           stopKeepAlive?.();

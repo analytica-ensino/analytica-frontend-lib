@@ -10,14 +10,16 @@ class MockWebSocket {
   static lastInstance: MockWebSocket | null = null;
 
   url: string;
+  protocols?: string | string[];
   readyState: number = WS_STATES.CONNECTING;
   onopen: ((event: Event) => void) | null = null;
   onclose: ((event: CloseEvent) => void) | null = null;
   onmessage: ((event: MessageEvent) => void) | null = null;
   onerror: ((event: Event) => void) | null = null;
 
-  constructor(url: string) {
+  constructor(url: string, protocols?: string | string[]) {
     this.url = url;
+    this.protocols = protocols;
     MockWebSocket.instances.push(this);
     MockWebSocket.lastInstance = this;
   }
@@ -106,7 +108,11 @@ describe('useChat', () => {
         'wss://example.com/chat/ws'
       );
       expect(MockWebSocket.lastInstance?.url).toContain('roomId=room-123');
-      expect(MockWebSocket.lastInstance?.url).toContain('token=test-token');
+      expect(MockWebSocket.lastInstance?.url).not.toContain('token=');
+      expect(MockWebSocket.lastInstance?.protocols).toEqual([
+        'analytica.bearer',
+        'test-token',
+      ]);
     });
 
     it('should set isConnected to true when connection opens', async () => {
@@ -868,7 +874,10 @@ describe('useChat', () => {
         'wss://custom.example.com/ws'
       );
       expect(MockWebSocket.lastInstance?.url).toContain('roomId=custom-room');
-      expect(MockWebSocket.lastInstance?.url).toContain('token=custom-token');
+      expect(MockWebSocket.lastInstance?.protocols).toEqual([
+        'analytica.bearer',
+        'custom-token',
+      ]);
       expect(result.current.currentUserId).toBe('custom-user');
     });
   });
