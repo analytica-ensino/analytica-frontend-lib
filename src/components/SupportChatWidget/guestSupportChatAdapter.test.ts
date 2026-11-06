@@ -13,6 +13,7 @@ import {
 class FakeSocket {
   static last: FakeSocket;
   url: string;
+  protocols?: string | string[];
   readyState = 1;
   sent: string[] = [];
   onopen: (() => void) | null = null;
@@ -20,8 +21,9 @@ class FakeSocket {
   onclose: (() => void) | null = null;
   onerror: (() => void) | null = null;
   close = jest.fn();
-  constructor(url: string) {
+  constructor(url: string, protocols?: string | string[]) {
     this.url = url;
+    this.protocols = protocols;
     FakeSocket.last = this;
   }
   send(data: string) {
@@ -256,9 +258,8 @@ describe('createGuestSupportChatAdapter', () => {
     const unsubscribe = adapter.subscribe('t1', (event) => events.push(event));
     const socket = FakeSocket.last;
 
-    expect(socket.url).toBe(
-      'ws://localhost:3005/?channel=support&roomId=t1&token=tok'
-    );
+    expect(socket.url).toBe('ws://localhost:3005/?channel=support&roomId=t1');
+    expect(socket.protocols).toEqual(['analytica.bearer', 'tok']);
     socket.onopen?.();
     expect(socket.sent).toEqual([JSON.stringify({ type: 'getInitialData' })]);
 
