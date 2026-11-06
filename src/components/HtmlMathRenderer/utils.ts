@@ -10,6 +10,7 @@ import {
   readMathSpanAttributes,
   replaceDollarMath,
 } from '../../utils/latexMath';
+import { parseHtmlInert } from '../../utils/parseHtmlInert';
 
 /**
  * Re-exported under its historical name: this is a public entry point of the
@@ -166,8 +167,7 @@ const recoverFromKatexErrorSpans = (htmlContent: string): string => {
     return htmlContent;
   }
 
-  const tempContainer = document.createElement('div');
-  tempContainer.innerHTML = htmlContent;
+  const tempContainer = parseHtmlInert(htmlContent);
 
   const sanitizeRecoveredLatex = (raw: string): string =>
     raw
@@ -661,7 +661,5 @@ export const stripHtml = (htmlContent: string): string => {
     return content.replaceAll(/<[^<>]*>/g, '').trim();
   }
 
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = content;
-  return (tempDiv.textContent || tempDiv.innerText || '').trim();
+  return (parseHtmlInert(content).textContent ?? '').trim();
 };

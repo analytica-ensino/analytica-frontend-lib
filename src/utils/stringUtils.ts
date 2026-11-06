@@ -1,3 +1,5 @@
+import { parseHtmlInert } from './parseHtmlInert';
+
 /** Highlight color applied to matched search terms */
 const HIGHLIGHT_COLOR = '#2883D7';
 
@@ -213,8 +215,7 @@ export function highlightSearchTerm(html: string, term: string): string {
 
   const tokens = phrase.split(' ').filter(Boolean);
 
-  const container = document.createElement('div');
-  container.innerHTML = html;
+  const container = parseHtmlInert(html);
 
   const highlightTextNode = (textNode: Text): void => {
     const text = textNode.data;
