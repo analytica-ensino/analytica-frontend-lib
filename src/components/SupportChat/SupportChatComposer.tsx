@@ -2,6 +2,8 @@ import { useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import { ImageIcon } from '@phosphor-icons/react/dist/csr/Image';
 import { ChatTeardropTextIcon } from '@phosphor-icons/react/dist/csr/ChatTeardropText';
 import { LinkIcon } from '@phosphor-icons/react/dist/csr/Link';
+import { CaretUpIcon } from '@phosphor-icons/react/dist/csr/CaretUp';
+import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 import Chips from '../Chips/Chips';
 import TextArea from '../TextArea/TextArea';
 import Button from '../Button/Button';
@@ -14,12 +16,39 @@ import {
 import type { SupportQuickReply } from '../../types/supportConversation';
 import { cn } from '../../utils/utils';
 
+/** Ticket status offered by the "Enviar como" split button */
+export interface SupportComposerStatusOption {
+  value: string;
+  label: string;
+  /** Color class of the status dot, e.g. `bg-error-500` */
+  dotClassName?: string;
+}
+
+/**
+ * Turns the send button into "Enviar como {status}" with a menu of statuses,
+ * like a help desk "Submit as": the main button sends the text keeping the
+ * current status; picking a status in the menu sends the text (if any) and
+ * moves the ticket to that status right away.
+ */
+export interface SupportComposerSubmitStatus {
+  /** Current status of the ticket */
+  value: string;
+  options: SupportComposerStatusOption[];
+}
+
 /**
  * Props of the SupportChatComposer component
  */
 export interface SupportChatComposerProps {
   /** Called with the text and the chosen mode; the field is cleared afterwards */
-  onSend: (data: { text: string; mode: SupportChatReplyMode }) => void;
+  onSend: (data: {
+    text: string;
+    mode: SupportChatReplyMode;
+    /** Status picked in the "Enviar como" menu (only with `submitStatus`) */
+    status?: string;
+  }) => void;
+  /** Shows the "Enviar como {status}" split button instead of "Enviar" */
+  submitStatus?: SupportComposerSubmitStatus;
   /** Mode selected when the composer mounts (default: reply to the user) */
   defaultMode?: SupportChatReplyMode;
   /** Called when the agent switches between reply and internal note */
@@ -93,7 +122,9 @@ const SupportChatComposer = ({
   disabled = false,
   placeholder,
   className,
+  submitStatus,
 }: SupportChatComposerProps) => {
+  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
   const [mode, setMode] = useState<SupportChatReplyMode>(defaultMode);
   const [text, setText] = useState('');
   const [quickMenuOpen, setQuickMenuOpen] = useState(false);
@@ -132,6 +163,18 @@ const SupportChatComposer = ({
     onSend({ text: text.trim(), mode });
     setText('');
   };
+
+  // Picking a status submits right away; the text is optional here
+  const submitWithStatus = (status: string) => {
+    setStatusMenuOpen(false);
+    if (disabled) return;
+    onSend({ text: text.trim(), mode, status });
+    setText('');
+  };
+
+  const currentStatus = submitStatus?.options.find(
+    (option) => option.value === submitStatus.value
+  );
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Escape' && menuOpen) {
@@ -287,15 +330,79 @@ const SupportChatComposer = ({
           <Text size="xs" color="text-text-500">
             Enter envia · Shift+Enter quebra linha
           </Text>
-          <Button
-            variant="solid"
-            action="primary"
-            size="medium"
-            onClick={send}
-            disabled={!canSend}
-          >
-            Enviar
-          </Button>
+          {submitStatus ? (
+            <div className="relative flex items-stretch">
+              <Button
+                variant="solid"
+                action="primary"
+                size="medium"
+                onClick={send}
+                disabled={!canSend}
+                className="rounded-r-none"
+              >
+                Enviar como&nbsp;<strong>{currentStatus?.label}</strong>
+              </Button>
+              <Button
+                variant="solid"
+                action="primary"
+                size="medium"
+                aria-label="Escolher status ao enviar"
+                aria-haspopup="menu"
+                aria-expanded={statusMenuOpen}
+                disabled={disabled}
+                onClick={() => setStatusMenuOpen((open) => !open)}
+                className="rounded-l-none border-l border-l-primary-700 px-3"
+              >
+                {statusMenuOpen ? (
+                  <CaretDownIcon size={16} />
+                ) : (
+                  <CaretUpIcon size={16} />
+                )}
+              </Button>
+              {statusMenuOpen && (
+                <div
+                  role="menu"
+                  aria-label="Enviar como"
+                  data-testid="support-chat-composer-status-menu"
+                  className="absolute bottom-full right-0 z-10 mb-2 flex min-w-52 flex-col rounded-lg border border-border-100 bg-background p-1 shadow-lg"
+                >
+                  {submitStatus.options.map((option) => (
+                    <Button
+                      key={option.value}
+                      variant="raw"
+                      role="menuitem"
+                      aria-current={
+                        option.value === submitStatus.value ? 'true' : undefined
+                      }
+                      onClick={() => submitWithStatus(option.value)}
+                      className="flex items-center gap-3 rounded-md px-3 py-2 text-left hover:bg-background-50"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={cn(
+                          'size-3 shrink-0 rounded-sm',
+                          option.dotClassName ?? 'bg-text-400'
+                        )}
+                      />
+                      <Text size="sm" weight="medium" color="text-text-900">
+                        {option.label}
+                      </Text>
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <Button
+              variant="solid"
+              action="primary"
+              size="medium"
+              onClick={send}
+              disabled={!canSend}
+            >
+              Enviar
+            </Button>
+          )}
         </div>
       </div>
     </div>

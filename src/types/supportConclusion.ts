@@ -51,7 +51,7 @@ export interface SupportConclusionReason {
   /** Problem type sent to the backend */
   problemType: SupportProblemType;
   subReasons: SupportConclusionSubReason[];
-  /** Requires a free-text description (e.g. "Outros") */
+  /** Shows an optional free-text description field (e.g. "Outros") */
   requiresDescription?: boolean;
   /** Offers the "Abrir ticket técnico" option (platform errors) */
   suggestsTechTicket?: boolean;
