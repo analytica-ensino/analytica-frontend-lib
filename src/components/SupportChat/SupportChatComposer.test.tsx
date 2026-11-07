@@ -285,4 +285,134 @@ describe('SupportChatComposer', () => {
 
     expect(field().style.height).toBe('48px');
   });
+
+  describe('submit as status', () => {
+    const submitStatus = {
+      value: 'EM_ANDAMENTO',
+      options: [
+        { value: 'ABERTO', label: 'Aberto', dotClassName: 'bg-error-500' },
+        { value: 'EM_ANDAMENTO', label: 'Em andamento' },
+        { value: 'FECHADO', label: 'Resolvido' },
+      ],
+    };
+    const toggle = () =>
+      screen.getByRole('button', { name: 'Escolher status ao enviar' });
+
+    it('shows the current status and sends without changing it', () => {
+      const onSend = jest.fn();
+      render(
+        <SupportChatComposer onSend={onSend} submitStatus={submitStatus} />
+      );
+
+      const main = screen.getByRole('button', {
+        name: /Enviar como Em andamento/,
+      });
+      expect(main).toBeDisabled();
+
+      type('Olá');
+      fireEvent.click(main);
+
+      expect(onSend).toHaveBeenCalledWith({
+        text: 'Olá',
+        mode: SUPPORT_CHAT_REPLY_MODE.USER,
+      });
+      expect(field()).toHaveValue('');
+    });
+
+    it('opens the status menu and submits with the picked status', () => {
+      const onSend = jest.fn();
+      render(
+        <SupportChatComposer onSend={onSend} submitStatus={submitStatus} />
+      );
+
+      expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+      fireEvent.click(toggle());
+      expect(toggle()).toHaveAttribute('aria-expanded', 'true');
+
+      const menu = screen.getByTestId('support-chat-composer-status-menu');
+      expect(menu).toBeInTheDocument();
+      expect(
+        screen.getByRole('menuitem', { name: 'Em andamento' })
+      ).toHaveAttribute('aria-current', 'true');
+      expect(
+        screen.getByRole('menuitem', { name: 'Aberto' })
+      ).not.toHaveAttribute('aria-current');
+      // Options without a color get the neutral dot
+      expect(menu.querySelectorAll('.bg-text-400')).toHaveLength(2);
+      expect(menu.querySelectorAll('.bg-error-500')).toHaveLength(1);
+
+      type('Resolvido, obrigado');
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Resolvido' }));
+
+      expect(onSend).toHaveBeenCalledWith({
+        text: 'Resolvido, obrigado',
+        mode: SUPPORT_CHAT_REPLY_MODE.USER,
+        status: 'FECHADO',
+      });
+      expect(field()).toHaveValue('');
+      expect(
+        screen.queryByTestId('support-chat-composer-status-menu')
+      ).not.toBeInTheDocument();
+    });
+
+    it('submits a status change with no text', () => {
+      const onSend = jest.fn();
+      render(
+        <SupportChatComposer onSend={onSend} submitStatus={submitStatus} />
+      );
+
+      fireEvent.click(toggle());
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Aberto' }));
+
+      expect(onSend).toHaveBeenCalledWith({
+        text: '',
+        mode: SUPPORT_CHAT_REPLY_MODE.USER,
+        status: 'ABERTO',
+      });
+    });
+
+    it('closes the menu on a second click of the arrow', () => {
+      render(
+        <SupportChatComposer onSend={jest.fn()} submitStatus={submitStatus} />
+      );
+
+      fireEvent.click(toggle());
+      fireEvent.click(toggle());
+
+      expect(
+        screen.queryByTestId('support-chat-composer-status-menu')
+      ).not.toBeInTheDocument();
+    });
+
+    it('ignores a picked status once the composer is disabled', () => {
+      const onSend = jest.fn();
+      const { rerender } = render(
+        <SupportChatComposer onSend={onSend} submitStatus={submitStatus} />
+      );
+
+      fireEvent.click(toggle());
+      rerender(
+        <SupportChatComposer
+          onSend={onSend}
+          submitStatus={submitStatus}
+          disabled
+        />
+      );
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Aberto' }));
+
+      expect(onSend).not.toHaveBeenCalled();
+      expect(toggle()).toBeDisabled();
+    });
+
+    it('keeps the plain send button without submitStatus', () => {
+      render(<SupportChatComposer onSend={jest.fn()} />);
+
+      expect(
+        screen.queryByRole('button', { name: 'Escolher status ao enviar' })
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Enviar' })
+      ).toBeInTheDocument();
+    });
+  });
 });

@@ -1289,7 +1289,11 @@ export type { SupportChatEventProps } from './components/SupportChat/SupportChat
 export { default as SupportChatTypingIndicator } from './components/SupportChat/SupportChatTypingIndicator';
 export type { SupportChatTypingIndicatorProps } from './components/SupportChat/SupportChatTypingIndicator';
 export { default as SupportChatComposer } from './components/SupportChat/SupportChatComposer';
-export type { SupportChatComposerProps } from './components/SupportChat/SupportChatComposer';
+export type {
+  SupportChatComposerProps,
+  SupportComposerSubmitStatus,
+  SupportComposerStatusOption,
+} from './components/SupportChat/SupportChatComposer';
 export {
   SUPPORT_CHAT_MESSAGE_TYPE,
   SUPPORT_CHAT_SEND_STATUS,

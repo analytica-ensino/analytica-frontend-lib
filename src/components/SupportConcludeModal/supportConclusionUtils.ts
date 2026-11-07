@@ -54,8 +54,8 @@ export function findConclusionReasonByProblemType(
 
 /**
  * Checks whether every required field of the conclusion form is filled:
- * a reason, its sub-reason (when it has any) and the description
- * (when the reason requires one).
+ * a reason and its sub-reason (when it has any). The description of a
+ * reason like "Outros" is optional.
  *
  * @param form - Current form values
  * @param reasons - Reasons catalog
@@ -68,7 +68,6 @@ export function isConclusionFormValid(
   const reason = findConclusionReason(reasons, form.reason);
   if (!reason) return false;
   if (reason.subReasons.length > 0 && !form.subReason) return false;
-  if (reason.requiresDescription && !form.description.trim()) return false;
   return true;
 }
 

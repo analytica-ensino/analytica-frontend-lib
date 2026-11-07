@@ -235,7 +235,7 @@ export default function SupportConcludeModal({
           </div>
           {reason?.requiresDescription && (
             <TextArea
-              label="Descreva o motivo *"
+              label="Descreva o motivo (opcional)"
               rows={3}
               maxLength={2000}
               placeholder="Explique o motivo do atendimento"

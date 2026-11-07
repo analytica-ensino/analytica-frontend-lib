@@ -68,13 +68,13 @@ describe('supportConclusionUtils', () => {
       ).toBe(true);
     });
 
-    it('requires a non-blank description when the reason asks for one', () => {
+    it('accepts "Outros" with or without a description', () => {
       expect(
         isConclusionFormValid(
           makeForm({ reason: 'other', description: '   ' }),
           SUPPORT_CONCLUSION_REASONS
         )
-      ).toBe(false);
+      ).toBe(true);
       expect(
         isConclusionFormValid(
           makeForm({ reason: 'other', description: 'Pedido de certificado' }),
