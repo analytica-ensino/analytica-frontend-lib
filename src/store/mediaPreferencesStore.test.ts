@@ -70,6 +70,9 @@ describe('mediaPreferencesStore', () => {
     expect(JSON.parse(raw as string).state).toEqual({
       volume: 0.6,
       isMuted: true,
+      queueShuffle: false,
+      queueRepeatList: false,
+      videoEndBehavior: 'none',
     });
   });
 

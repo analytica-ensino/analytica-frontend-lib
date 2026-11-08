@@ -46,7 +46,52 @@ import {
   LessonBoardImagesSection,
 } from '../shared/LessonMediaSections';
 import type { WhiteboardImage } from '../Whiteboard/Whiteboard';
+import type { VideoEndControls } from '../VideoPlayer/VideoPlayer';
+import {
+  useMediaPreferencesStore,
+  type VideoEndBehavior,
+} from '../../store/mediaPreferencesStore';
 import { NextLessonCountdown } from './NextLessonCountdown';
+import { LessonQueueControls } from './LessonQueueControls';
+
+type VideoEndAction = 'replay' | 'rewind' | 'advance' | 'restart-queue';
+
+/** Único ponto que decide o fim do vídeo, na ordem de prioridade da AE-3308. */
+const resolveVideoEndAction = ({
+  endBehavior,
+  isInQueue,
+  hasNext,
+  repeatList,
+}: {
+  endBehavior: VideoEndBehavior;
+  isInQueue: boolean;
+  hasNext: boolean;
+  repeatList: boolean;
+}): VideoEndAction => {
+  if (endBehavior === 'repeat-video') return 'replay';
+  if (endBehavior === 'back-to-start' || !isInQueue) return 'rewind';
+  if (hasNext) return 'advance';
+  return repeatList ? 'restart-queue' : 'rewind';
+};
+
+/** Embaralha a fila com `firstId` na frente (Fisher-Yates no restante). */
+const buildShuffledIds = (
+  queue: LessonDetails[],
+  firstId: string
+): string[] => {
+  const rest = queue.map(({ id }) => id).filter((id) => id !== firstId);
+  for (let i = rest.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rest[i], rest[j]] = [rest[j], rest[i]];
+  }
+  return [firstId, ...rest];
+};
+
+/** Item agendado pela contagem; `order` só existe ao reembaralhar a fila. */
+interface PendingLesson {
+  lesson: LessonDetails;
+  order?: string[];
+}
 
 /**
  * Leva a página ao topo. No desktop quem rola é o `<main>` do layout; no
@@ -202,8 +247,19 @@ export function LessonViewPage({
   const hasMarkedVideo = useRef(false);
   // Gravação do vídeo em andamento: o avanço automático espera por ela.
   const videoCompletionRef = useRef<Promise<void> | null>(null);
-  const [isCountingDown, setIsCountingDown] = useState(false);
+  const [pendingLesson, setPendingLesson] = useState<PendingLesson | null>(
+    null
+  );
   const [autoPlayLessonId, setAutoPlayLessonId] = useState<string | null>(null);
+  // Aulas já gravadas nesta visita: rever na fila não conta nova conclusão.
+  const completedVideosRef = useRef(new Set<string>());
+  const [shuffledIds, setShuffledIds] = useState<string[] | null>(null);
+  const shuffleOrderKeyRef = useRef<string | null>(null);
+  // Aula que a fila embaralhada espera; qualquer outra refaz o sorteio.
+  const expectedShuffledLessonRef = useRef<string | null>(null);
+  const queueShuffle = useMediaPreferencesStore((s) => s.queueShuffle);
+  const queueRepeatList = useMediaPreferencesStore((s) => s.queueRepeatList);
+  const videoEndBehavior = useMediaPreferencesStore((s) => s.videoEndBehavior);
   const hasMarkedPodcast = useRef(false);
   const hasMarkedQuiz = useRef(false);
   const hasMarkedInitialFrame = useRef(false);
@@ -246,7 +302,7 @@ export function LessonViewPage({
   useEffect(() => {
     hasMarkedVideo.current = false;
     videoCompletionRef.current = null;
-    setIsCountingDown(false);
+    setPendingLesson(null);
     hasMarkedPodcast.current = false;
     hasMarkedQuiz.current = false;
     hasMarkedInitialFrame.current = false;
@@ -355,6 +411,7 @@ export function LessonViewPage({
     // of them. `markVideoComplete` already mirrored the consolidated result
     // into the store; flagging the lesson complete here would overwrite it and
     // show a lesson as done while criteria are still pending.
+    completedVideosRef.current.add(activeLessonId);
     if (currentLesson) {
       updateTimestamp(currentLesson.id, currentLesson.videoDuration);
     }
@@ -362,7 +419,9 @@ export function LessonViewPage({
 
   /** Dispara a gravação uma vez e devolve a que estiver em andamento. */
   const handleVideoCompleteCallback = useCallback((): Promise<void> => {
-    if (!activeLessonId) return Promise.resolve();
+    if (!activeLessonId || completedVideosRef.current.has(activeLessonId)) {
+      return Promise.resolve();
+    }
     if (hasMarkedVideo.current && videoCompletionRef.current) {
       return videoCompletionRef.current;
     }
@@ -519,33 +578,104 @@ export function LessonViewPage({
   );
 
   // Só o aluno tem fila: a pré-visualização não avança sozinha.
-  const nextLesson = isPreview
-    ? null
-    : getNextQueuedLesson(lessons, activeLessonId);
+  const playableLessons = useMemo(
+    () => (isPreview ? [] : lessons.filter(({ videoUrl }) => videoUrl)),
+    [isPreview, lessons]
+  );
+  // `updateLessonDuration` recria os objetos; só os ids definem a fila.
+  const playableKey = playableLessons.map(({ id }) => id).join(',');
+
+  /**
+   * Ao ligar, a aula atual fica na frente e o restante é sorteado. Abrir outra
+   * aula manualmente começa um novo ciclo a partir dela, para nenhuma aula
+   * repetir antes de percorrer todas. Ao desligar, vale a ordem original.
+   */
+  useEffect(() => {
+    if (!queueShuffle || !activeLessonId) {
+      shuffleOrderKeyRef.current = null;
+      setShuffledIds(null);
+      return;
+    }
+    if (
+      shuffleOrderKeyRef.current === playableKey &&
+      expectedShuffledLessonRef.current === activeLessonId
+    ) {
+      return;
+    }
+    shuffleOrderKeyRef.current = playableKey;
+    expectedShuffledLessonRef.current = activeLessonId;
+    setShuffledIds(buildShuffledIds(playableLessons, activeLessonId));
+    // playableLessons é representado por playableKey.
+  }, [queueShuffle, playableKey, activeLessonId]);
+
+  const queue = useMemo(() => {
+    if (!shuffledIds) return playableLessons;
+    const byId = new Map(playableLessons.map((l) => [l.id, l]));
+    return shuffledIds.flatMap((id) => byId.get(id) ?? []);
+  }, [shuffledIds, playableLessons]);
+
+  const nextLesson = getNextQueuedLesson(queue, activeLessonId);
+
+  /** Primeira aula do novo ciclo; embaralhada, nunca repete a que acabou. */
+  const buildRestartedQueue = useCallback((): PendingLesson | null => {
+    if (!queueShuffle) return queue[0] ? { lesson: queue[0] } : null;
+
+    const others = queue.filter(({ id }) => id !== activeLessonId);
+    const lesson = others[Math.floor(Math.random() * others.length)];
+    return lesson
+      ? { lesson, order: buildShuffledIds(queue, lesson.id) }
+      : null;
+  }, [queueShuffle, queue, activeLessonId]);
 
   /**
    * O fim real do vídeo. Repete a gravação caso a dos 95% tenha falhado ou o
    * aluno tenha chegado aqui sem passar por ela.
    */
-  const handleVideoEnded = useCallback(() => {
-    if (isPreview) return;
-    handleVideoCompleteCallback();
-    if (nextLesson) setIsCountingDown(true);
-  }, [isPreview, handleVideoCompleteCallback, nextLesson]);
+  const handleVideoEnded = useCallback(
+    ({ replay, rewind }: VideoEndControls) => {
+      if (!isPreview) handleVideoCompleteCallback();
+
+      const action = resolveVideoEndAction({
+        endBehavior: isPreview ? 'none' : videoEndBehavior,
+        isInQueue: queue.length > 1,
+        hasNext: Boolean(nextLesson),
+        repeatList: queueRepeatList,
+      });
+
+      if (action === 'replay') replay();
+      if (action === 'rewind') rewind();
+      if (action === 'advance' && nextLesson) {
+        setPendingLesson({ lesson: nextLesson });
+      }
+      if (action === 'restart-queue') setPendingLesson(buildRestartedQueue());
+    },
+    [
+      isPreview,
+      handleVideoCompleteCallback,
+      videoEndBehavior,
+      queue.length,
+      nextLesson,
+      queueRepeatList,
+      buildRestartedQueue,
+    ]
+  );
 
   const handleCountdownComplete = useCallback(async () => {
-    if (!nextLesson) return;
+    if (!pendingLesson) return;
 
     // Fecha a contagem antes de esperar: não há mais como cancelar a partir daqui.
-    setIsCountingDown(false);
+    setPendingLesson(null);
     await videoCompletionRef.current;
 
     // O aluno pode ter escolhido outra aula enquanto a gravação terminava.
     if (useLessonsStore.getState().currentLesson?.id !== activeLessonId) return;
 
-    openLesson(nextLesson);
-    setAutoPlayLessonId(nextLesson.id);
-  }, [nextLesson, activeLessonId, openLesson]);
+    const { lesson, order } = pendingLesson;
+    expectedShuffledLessonRef.current = lesson.id;
+    if (order) setShuffledIds(order);
+    openLesson(lesson);
+    setAutoPlayLessonId(lesson.id);
+  }, [pendingLesson, activeLessonId, openLesson]);
 
   /**
    * Handle download complete - register lesson download
@@ -809,11 +939,14 @@ export function LessonViewPage({
             onEnded={handleVideoEnded}
             autoPlay={autoPlayLessonId === activeLessonId}
             overlay={
-              isCountingDown && nextLesson ? (
+              pendingLesson ? (
                 <NextLessonCountdown
-                  title={nextLesson.description || nextLesson.title}
+                  title={
+                    pendingLesson.lesson.description ||
+                    pendingLesson.lesson.title
+                  }
                   onComplete={handleCountdownComplete}
-                  onCancel={() => setIsCountingDown(false)}
+                  onCancel={() => setPendingLesson(null)}
                 />
               ) : undefined
             }
@@ -887,10 +1020,11 @@ export function LessonViewPage({
       {renderMainContent()}
 
       <section className="flex flex-col bg-background rounded-xl p-6 gap-2">
-        <div className="mb-2">
+        <div className="mb-2 flex items-center justify-between gap-2">
           <Text size="lg" weight="bold" className="text-text-950">
             Aulas
           </Text>
+          {!isPreview && <LessonQueueControls />}
         </div>
         <div className="space-y-2">{memoizedLessonCards}</div>
       </section>

@@ -35,6 +35,14 @@ const CONTROLS_HIDE_TIMEOUT = 3000; // 3 seconds for normal control hiding
 const LEAVE_HIDE_TIMEOUT = 1000; // 1 second when mouse leaves the video area
 const INIT_DELAY = 100; // ms delay to initialize controls on mount
 
+/** Ações disponíveis para quem decide o que fazer ao fim do vídeo. */
+export interface VideoEndControls {
+  /** Toca o mesmo vídeo de novo, do começo. */
+  replay: () => void;
+  /** Volta para 0:00 e aguarda o play. */
+  rewind: () => void;
+}
+
 /**
  * VideoPlayer component props interface
  */
@@ -68,7 +76,7 @@ interface VideoPlayerProps {
   /** Callback fired when video completes (>95% watched) */
   onVideoComplete?: () => void;
   /** Callback fired when playback actually reaches the end of the video */
-  onEnded?: () => void;
+  onEnded?: (controls: VideoEndControls) => void;
   /**
    * Tries to start playback once the media is ready. If the browser blocks it,
    * the player stays paused with its center play button visible.
@@ -1105,6 +1113,30 @@ const VideoPlayer = ({
   }, [applyResumeTime, autoPlay, togglePlayPause]);
 
   /**
+   * Entrega ao consumidor as ações de fim de vídeo. `hasCompleted` não é
+   * rearmado: repetir não dispara `onVideoComplete` de novo.
+   */
+  const handleEnded = useCallback(() => {
+    const rewind = () => {
+      const video = videoRef.current;
+      if (!video) return;
+      video.pause();
+      video.currentTime = 0;
+      setCurrentTime(0);
+    };
+    const replay = async () => {
+      rewind();
+      try {
+        await videoRef.current?.play();
+      } catch {
+        // Bloqueado pelo navegador: o botão central de play continua visível.
+      }
+    };
+
+    onEnded?.({ replay, rewind });
+  }, [onEnded]);
+
+  /**
    * Validate subtitles URL before showing the button
    */
   useEffect(() => {
@@ -1460,7 +1492,7 @@ const VideoPlayer = ({
           playsInline
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
-          onEnded={onEnded}
+          onEnded={handleEnded}
           onClick={togglePlayPause}
           onKeyDown={handleVideoKeyDown}
           tabIndex={0}

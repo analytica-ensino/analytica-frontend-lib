@@ -1,6 +1,7 @@
 import { type ReactNode, type RefObject } from 'react';
 import { Text, VideoPlayer, CardAudio, Whiteboard } from '../../../index';
 import type { WhiteboardImage } from '../../Whiteboard/Whiteboard';
+import type { VideoEndControls } from '../../VideoPlayer/VideoPlayer';
 
 /**
  * Playable video of a lesson, already resolved from whatever shape the caller's
@@ -26,7 +27,7 @@ export interface LessonVideoSectionProps {
   onTimeUpdate?: (seconds: number, duration?: number) => void;
   onVideoComplete?: () => void;
   /** Fired when playback actually reaches the end of the video. */
-  onEnded?: () => void;
+  onEnded?: (controls: VideoEndControls) => void;
   /** Tries to start playback as soon as the video is ready. */
   autoPlay?: boolean;
   /** Rendered over the video, inside the player. */
