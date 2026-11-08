@@ -6,6 +6,7 @@ import {
   MouseEvent,
   KeyboardEvent,
   FocusEvent,
+  ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { PlayIcon } from '@phosphor-icons/react/dist/csr/Play';
@@ -66,6 +67,15 @@ interface VideoPlayerProps {
   onProgress?: (progress: number) => void;
   /** Callback fired when video completes (>95% watched) */
   onVideoComplete?: () => void;
+  /** Callback fired when playback actually reaches the end of the video */
+  onEnded?: () => void;
+  /**
+   * Tries to start playback once the media is ready. If the browser blocks it,
+   * the player stays paused with its center play button visible.
+   */
+  autoPlay?: boolean;
+  /** Rendered over the video, inside the container that goes fullscreen */
+  overlay?: ReactNode;
   /** Additional CSS classes */
   className?: string;
   /** Auto-save progress to localStorage */
@@ -417,6 +427,9 @@ const VideoPlayer = ({
   onTimeUpdate,
   onProgress,
   onVideoComplete,
+  onEnded,
+  autoPlay = false,
+  overlay,
   className,
   autoSave = true,
   storageKey = 'video-progress',
@@ -456,6 +469,8 @@ const VideoPlayer = ({
   const resumeStateRef = useRef<'pending' | 'done'>('pending');
   /** Espelho de `hasStarted` legível de dentro dos callbacks de mídia. */
   const hasStartedRef = useRef(false);
+  /** Garante uma única tentativa de início automático por mídia. */
+  const autoPlayAttemptedRef = useRef(false);
 
   // Reset completion flag when changing videos.
   //
@@ -468,6 +483,7 @@ const VideoPlayer = ({
     setHasCompleted(false);
     setHasStarted(false);
     hasStartedRef.current = false;
+    autoPlayAttemptedRef.current = false;
     // Mídia nova, retomada nova: é a troca de mídia — e só ela — que libera
     // um novo restore de posição.
     resumeStateRef.current = 'pending';
@@ -1078,7 +1094,15 @@ const VideoPlayer = ({
     // Agora existe linha de tempo: é aqui que o seek de retomada realmente
     // pega, e é a última vez que ele acontece nesta mídia.
     applyResumeTime();
-  }, [applyResumeTime]);
+
+    // Depois da retomada, para não começar do zero e saltar em seguida. Se o
+    // navegador bloquear, `togglePlayPause` absorve a rejeição e o botão
+    // central de play continua visível.
+    if (autoPlay && !autoPlayAttemptedRef.current) {
+      autoPlayAttemptedRef.current = true;
+      togglePlayPause();
+    }
+  }, [applyResumeTime, autoPlay, togglePlayPause]);
 
   /**
    * Validate subtitles URL before showing the button
@@ -1436,6 +1460,7 @@ const VideoPlayer = ({
           playsInline
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
+          onEnded={onEnded}
           onClick={togglePlayPause}
           onKeyDown={handleVideoKeyDown}
           tabIndex={0}
@@ -1601,6 +1626,8 @@ const VideoPlayer = ({
             </div>
           </div>
         </div>
+
+        {overlay}
       </section>
     </div>
   );

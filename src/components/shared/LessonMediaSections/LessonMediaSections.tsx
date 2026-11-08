@@ -25,6 +25,12 @@ export interface LessonVideoSectionProps {
   /** Receives the current second and the media duration once it is known. */
   onTimeUpdate?: (seconds: number, duration?: number) => void;
   onVideoComplete?: () => void;
+  /** Fired when playback actually reaches the end of the video. */
+  onEnded?: () => void;
+  /** Tries to start playback as soon as the video is ready. */
+  autoPlay?: boolean;
+  /** Rendered over the video, inside the player. */
+  overlay?: ReactNode;
   /**
    * Saves and restores the playback position in localStorage, scoped by
    * `storageKey` and `userId`. Set to `false` for viewers whose position must
@@ -52,6 +58,9 @@ export const LessonVideoSection = ({
   initialTime,
   onTimeUpdate,
   onVideoComplete,
+  onEnded,
+  autoPlay,
+  overlay,
   persistProgress = true,
   storageKey,
   userId,
@@ -77,6 +86,9 @@ export const LessonVideoSection = ({
         subtitles={video.subtitles}
         onTimeUpdate={onTimeUpdate}
         onVideoComplete={onVideoComplete}
+        onEnded={onEnded}
+        autoPlay={autoPlay}
+        overlay={overlay}
         initialTime={persistProgress ? initialTime : 0}
         className={className}
         autoSave={persistProgress}

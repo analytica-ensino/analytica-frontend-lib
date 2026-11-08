@@ -46,6 +46,29 @@ import {
   LessonBoardImagesSection,
 } from '../shared/LessonMediaSections';
 import type { WhiteboardImage } from '../Whiteboard/Whiteboard';
+import { NextLessonCountdown } from './NextLessonCountdown';
+
+/**
+ * Leva a página ao topo. No desktop quem rola é o `<main>` do layout; no
+ * mobile ele não tem altura fixa e quem rola é a janela.
+ */
+const scrollPageToTop = () => {
+  document.querySelector('main')?.scrollTo?.({ top: 0, behavior: 'smooth' });
+  globalThis.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+/**
+ * Próximo item reproduzível da fila, ou null no fim dela. Recebe a fila pronta
+ * para servir a qualquer origem: hoje o subtópico, depois as playlists.
+ */
+const getNextQueuedLesson = (
+  queue: LessonDetails[],
+  currentLessonId: string | undefined
+): LessonDetails | null => {
+  const currentIndex = queue.findIndex(({ id }) => id === currentLessonId);
+  if (currentIndex === -1) return null;
+  return queue.slice(currentIndex + 1).find(({ videoUrl }) => videoUrl) ?? null;
+};
 
 export interface LessonViewPageProps {
   /** API client used to load the subtopic's lessons and record progress. */
@@ -177,6 +200,10 @@ export function LessonViewPage({
 
   // Refs to track if progress has been marked for each step
   const hasMarkedVideo = useRef(false);
+  // Gravação do vídeo em andamento: o avanço automático espera por ela.
+  const videoCompletionRef = useRef<Promise<void> | null>(null);
+  const [isCountingDown, setIsCountingDown] = useState(false);
+  const [autoPlayLessonId, setAutoPlayLessonId] = useState<string | null>(null);
   const hasMarkedPodcast = useRef(false);
   const hasMarkedQuiz = useRef(false);
   const hasMarkedInitialFrame = useRef(false);
@@ -218,6 +245,8 @@ export function LessonViewPage({
   // Reset all progress tracking refs when lesson changes
   useEffect(() => {
     hasMarkedVideo.current = false;
+    videoCompletionRef.current = null;
+    setIsCountingDown(false);
     hasMarkedPodcast.current = false;
     hasMarkedQuiz.current = false;
     hasMarkedInitialFrame.current = false;
@@ -307,10 +336,8 @@ export function LessonViewPage({
     [activeLessonId, progressTracker, currentLesson]
   );
 
-  const handleVideoCompleteCallback = useCallback(async () => {
-    if (!activeLessonId || hasMarkedVideo.current) return;
-
-    hasMarkedVideo.current = true;
+  const recordVideoComplete = useCallback(async () => {
+    if (!activeLessonId) return;
 
     const progress = await progressTracker.markVideoComplete(activeLessonId);
 
@@ -332,6 +359,18 @@ export function LessonViewPage({
       updateTimestamp(currentLesson.id, currentLesson.videoDuration);
     }
   }, [activeLessonId, progressTracker, currentLesson, updateTimestamp]);
+
+  /** Dispara a gravação uma vez e devolve a que estiver em andamento. */
+  const handleVideoCompleteCallback = useCallback((): Promise<void> => {
+    if (!activeLessonId) return Promise.resolve();
+    if (hasMarkedVideo.current && videoCompletionRef.current) {
+      return videoCompletionRef.current;
+    }
+
+    hasMarkedVideo.current = true;
+    videoCompletionRef.current = recordVideoComplete();
+    return videoCompletionRef.current;
+  }, [activeLessonId, recordVideoComplete]);
 
   /**
    * Extract navigation data from API response when not available from
@@ -405,7 +444,7 @@ export function LessonViewPage({
 
     if (targetLesson) {
       selectLesson(targetLesson);
-      globalThis.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollPageToTop();
     }
   }, [aulaParam, selectedLessonId, selectedContentId, lessons, selectLesson]);
 
@@ -452,7 +491,7 @@ export function LessonViewPage({
     navigate(routes.root);
   };
 
-  const handleLessonClick = useCallback(
+  const openLesson = useCallback(
     (lesson: LessonDetails) => {
       selectLesson(lesson);
       // Reflect the chosen lesson in the URL so it can be reloaded/shared and
@@ -466,10 +505,47 @@ export function LessonViewPage({
         },
         { replace: false }
       );
-      globalThis.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollPageToTop();
     },
     [selectLesson, setSearchParams]
   );
+
+  const handleLessonClick = useCallback(
+    (lesson: LessonDetails) => {
+      setAutoPlayLessonId(null);
+      openLesson(lesson);
+    },
+    [openLesson]
+  );
+
+  // Só o aluno tem fila: a pré-visualização não avança sozinha.
+  const nextLesson = isPreview
+    ? null
+    : getNextQueuedLesson(lessons, activeLessonId);
+
+  /**
+   * O fim real do vídeo. Repete a gravação caso a dos 95% tenha falhado ou o
+   * aluno tenha chegado aqui sem passar por ela.
+   */
+  const handleVideoEnded = useCallback(() => {
+    if (isPreview) return;
+    handleVideoCompleteCallback();
+    if (nextLesson) setIsCountingDown(true);
+  }, [isPreview, handleVideoCompleteCallback, nextLesson]);
+
+  const handleCountdownComplete = useCallback(async () => {
+    if (!nextLesson) return;
+
+    // Fecha a contagem antes de esperar: não há mais como cancelar a partir daqui.
+    setIsCountingDown(false);
+    await videoCompletionRef.current;
+
+    // O aluno pode ter escolhido outra aula enquanto a gravação terminava.
+    if (useLessonsStore.getState().currentLesson?.id !== activeLessonId) return;
+
+    openLesson(nextLesson);
+    setAutoPlayLessonId(nextLesson.id);
+  }, [nextLesson, activeLessonId, openLesson]);
 
   /**
    * Handle download complete - register lesson download
@@ -730,6 +806,17 @@ export function LessonViewPage({
             video={lessonData.video}
             onTimeUpdate={handleVideoTimeUpdate}
             onVideoComplete={handleVideoCompleteCallback}
+            onEnded={handleVideoEnded}
+            autoPlay={autoPlayLessonId === activeLessonId}
+            overlay={
+              isCountingDown && nextLesson ? (
+                <NextLessonCountdown
+                  title={nextLesson.description || nextLesson.title}
+                  onComplete={handleCountdownComplete}
+                  onCancel={() => setIsCountingDown(false)}
+                />
+              ) : undefined
+            }
             initialTime={getInitialTimestamp(currentLesson.id)}
             persistProgress={!isPreview}
             storageKey={`lesson-${currentLesson.id}`}
