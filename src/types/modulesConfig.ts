@@ -217,6 +217,20 @@ export interface ModulesConfig {
    */
   vestibaGuide: boolean;
 
+  /**
+   * Lesson playlists and favorites (opt-in per institution, off by default,
+   * student only). Consumed via `useModules().hasLessonFavorites`.
+   */
+  lessonFavorites: boolean;
+
+  /**
+   * Picture-in-picture on the lesson player (opt-in per institution, off by
+   * default). When `true`, the player shows the PiP button and stops pausing
+   * the video when the tab loses focus. Consumed via
+   * `useModules().hasLessonPictureInPicture`.
+   */
+  lessonPictureInPicture: boolean;
+
   // Nested configurations
   exams: boolean;
   simulations: SimulationsConfig;
@@ -271,6 +285,11 @@ export const DEFAULT_MODULES: ModulesConfig = {
 
   // "Guia do Vestiba" playlist off by default (opt-in per institution)
   vestibaGuide: false,
+
+  // Lesson playlists/favorites and picture-in-picture off by default
+  // (opt-in per institution)
+  lessonFavorites: false,
+  lessonPictureInPicture: false,
 
   // Nested configurations
   exams: DEFAULT_EXAMS,
