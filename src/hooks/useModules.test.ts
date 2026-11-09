@@ -970,4 +970,54 @@ describe('useModules', () => {
       expect(result.current.hasVestibaGuide).toBe(false);
     });
   });
+
+  describe('lesson favorites and picture-in-picture', () => {
+    it('both are false by default (opt-in per institution)', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: defaultModules,
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasLessonFavorites).toBe(false);
+      expect(result.current.hasLessonPictureInPicture).toBe(false);
+    });
+
+    it('hasLessonFavorites is true when enabled', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: { ...defaultModules, lessonFavorites: true },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasLessonFavorites).toBe(true);
+      expect(result.current.hasLessonPictureInPicture).toBe(false);
+    });
+
+    it('hasLessonPictureInPicture is true when enabled', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: { ...defaultModules, lessonPictureInPicture: true },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasLessonPictureInPicture).toBe(true);
+      expect(result.current.hasLessonFavorites).toBe(false);
+    });
+
+    it('both default to false when the fields are missing', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: legacyModules, // old persisted state, without either key
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasLessonFavorites).toBe(false);
+      expect(result.current.hasLessonPictureInPicture).toBe(false);
+    });
+  });
 });
