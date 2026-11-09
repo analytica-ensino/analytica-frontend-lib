@@ -17,6 +17,7 @@ import { ArrowsOutSimpleIcon } from '@phosphor-icons/react/dist/csr/ArrowsOutSim
 import { ArrowsInSimpleIcon } from '@phosphor-icons/react/dist/csr/ArrowsInSimple';
 import { ClosedCaptioningIcon } from '@phosphor-icons/react/dist/csr/ClosedCaptioning';
 import { DotsThreeVerticalIcon } from '@phosphor-icons/react/dist/csr/DotsThreeVertical';
+import { MonitorPlayIcon } from '@phosphor-icons/react/dist/csr/MonitorPlay';
 import { cn } from '../../utils/utils';
 import IconButton from '../IconButton/IconButton';
 import Text from '../Text/Text';
@@ -84,6 +85,10 @@ interface VideoPlayerProps {
   autoPlay?: boolean;
   /** Rendered over the video, inside the container that goes fullscreen */
   overlay?: ReactNode;
+  /** Whether the page is showing the player in cinema mode */
+  isCinemaMode?: boolean;
+  /** Offers the cinema mode button and the T shortcut when provided */
+  onToggleCinemaMode?: () => void;
   /** Additional CSS classes */
   className?: string;
   /** Auto-save progress to localStorage */
@@ -103,6 +108,53 @@ interface VideoPlayerProps {
   /** Callback fired when download fails */
   onDownloadError?: (contentType: string, error: Error) => void;
 }
+
+const SPACE_ACTIVATED_SELECTOR = [
+  'button',
+  'a[href]',
+  'summary',
+  'label',
+  ...[
+    'button',
+    'link',
+    'radio',
+    'checkbox',
+    'switch',
+    'tab',
+    'option',
+    'menuitem',
+    'menuitemradio',
+  ].map((role) => `[role="${role}"]`),
+].join(',');
+
+/**
+ * Atalhos valem na página inteira, exceto durante a digitação, em combinações
+ * do navegador ou de acessibilidade, e atrás de um modal sem o player.
+ * Sliders contam como fora de digitação: só as setas pertencem a eles.
+ */
+const shouldIgnoreShortcut = (
+  event: globalThis.KeyboardEvent,
+  video: HTMLVideoElement
+): boolean => {
+  if (
+    event.defaultPrevented ||
+    event.ctrlKey ||
+    event.metaKey ||
+    event.altKey
+  ) {
+    return true;
+  }
+
+  const target = event.target as Element;
+  const isEditing = target.closest?.(
+    'input:not([type="range"]),textarea,select,[contenteditable=""],[contenteditable="true"]'
+  );
+  if (isEditing) return true;
+
+  return Array.from(document.querySelectorAll('[aria-modal="true"]')).some(
+    (modal) => !modal.contains(video)
+  );
+};
 
 /**
  * Format seconds to MM:SS display format
@@ -190,6 +242,7 @@ const VolumeControls = ({
       // saber se está mudo sem acionar o botão e ouvir o rótulo mudar.
       aria-label={isMuted ? 'Ativar áudio' : 'Desativar áudio'}
       aria-pressed={isMuted}
+      title={isMuted ? 'Ativar áudio (M)' : 'Desativar áudio (M)'}
       className="!bg-transparent !text-white hover:!bg-white/20"
     />
 
@@ -438,6 +491,8 @@ const VideoPlayer = ({
   onEnded,
   autoPlay = false,
   overlay,
+  isCinemaMode = false,
+  onToggleCinemaMode,
   className,
   autoSave = true,
   storageKey = 'video-progress',
@@ -1367,47 +1422,62 @@ const VideoPlayer = ({
   }, [handleVolumeChange, volume]);
 
   /**
-   * Handle video element keyboard events
+   * Único listener dos atalhos, no `document`, para funcionar com o foco em
+   * qualquer ponto da página e também em tela cheia.
    */
-  const handleVideoKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (!e.key) return;
+  const hasOverlay = Boolean(overlay);
+  useEffect(() => {
+    const handleKeyDown = (e: globalThis.KeyboardEvent) => {
+      const video = videoRef.current;
+      if (!video || shouldIgnoreShortcut(e, video)) return;
 
-      // Prevent bubbling to parent handlers to avoid double toggles
-      e.stopPropagation();
-      showControlsWithTimer();
+      const target = e.target as Element;
+      const isOnVideo = target === video;
+      // A contagem cobre o player: tocar agora reiniciaria o vídeo por trás.
+      const playback = hasOverlay ? () => undefined : togglePlayPause;
+      const spaceBelongsToTarget = target.closest?.(SPACE_ACTIVATED_SELECTOR);
 
-      // Map of key handlers for better maintainability and reduced complexity
-      const keyHandlers: Record<string, () => void | Promise<void>> = {
-        ' ': togglePlayPause,
-        Enter: togglePlayPause,
+      const videoFocusKeys: Record<string, () => void | Promise<void>> = {
+        Enter: playback,
         ArrowLeft: seekBackward,
         ArrowRight: seekForward,
         ArrowUp: increaseVolume,
         ArrowDown: decreaseVolume,
+      };
+      const pageKeys: Record<string, () => void | Promise<void>> = {
         m: toggleMute,
-        M: toggleMute,
         f: toggleFullscreen,
-        F: toggleFullscreen,
+        ...(onToggleCinemaMode && { t: onToggleCinemaMode }),
+        ...(!spaceBelongsToTarget && { ' ': playback }),
       };
 
-      const handler = keyHandlers[e.key];
-      if (handler) {
-        e.preventDefault();
-        handler();
-      }
-    },
-    [
-      showControlsWithTimer,
-      togglePlayPause,
-      seekBackward,
-      seekForward,
-      increaseVolume,
-      decreaseVolume,
-      toggleMute,
-      toggleFullscreen,
-    ]
-  );
+      const handler =
+        (isOnVideo ? videoFocusKeys[e.key] : undefined) ??
+        pageKeys[e.key.toLowerCase()];
+      if (!handler) return;
+
+      e.preventDefault();
+      // Segurar a tecla só repete as setas, nunca alterna play ou tela cheia.
+      if (e.repeat && !e.key.startsWith('Arrow')) return;
+
+      showControlsWithTimer();
+      handler();
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [
+    hasOverlay,
+    onToggleCinemaMode,
+    showControlsWithTimer,
+    togglePlayPause,
+    seekBackward,
+    seekForward,
+    increaseVolume,
+    decreaseVolume,
+    toggleMute,
+    toggleFullscreen,
+  ]);
 
   const groupedSubTitleValid = subtitles && subtitlesValidation === 'valid';
   const showPoster = Boolean(poster) && !hasStarted;
@@ -1467,7 +1537,7 @@ const VideoPlayer = ({
       {/* Video Container */}
       <section
         className={cn(
-          'relative w-full bg-background overflow-hidden group',
+          'relative w-full flex-1 min-h-0 bg-background overflow-hidden group',
           'rounded-b-xl',
           // Hide cursor when controls are hidden and video is playing
           isPlaying && !showControls
@@ -1494,7 +1564,6 @@ const VideoPlayer = ({
           onLoadedMetadata={handleLoadedMetadata}
           onEnded={handleEnded}
           onClick={togglePlayPause}
-          onKeyDown={handleVideoKeyDown}
           tabIndex={0}
           aria-label={title ? `Vídeo: ${title}` : 'Vídeo'}
         >
@@ -1563,6 +1632,11 @@ const VideoPlayer = ({
               aria-label={
                 isFullscreen ? 'Desativar tela cheia' : 'Ativar tela cheia'
               }
+              title={
+                isFullscreen
+                  ? 'Desativar tela cheia (F)'
+                  : 'Ativar tela cheia (F)'
+              }
               className="!bg-transparent !text-white hover:!bg-white/20"
             />
           </div>
@@ -1605,6 +1679,7 @@ const VideoPlayer = ({
                 }
                 onClick={togglePlayPause}
                 aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
+                title={isPlaying ? 'Pausar (espaço)' : 'Reproduzir (espaço)'}
                 className="!bg-transparent !text-white hover:!bg-white/20"
               />
 
@@ -1645,6 +1720,21 @@ const VideoPlayer = ({
 
             {/* Right Controls */}
             <div className="flex items-center gap-4">
+              {onToggleCinemaMode && (
+                <IconButton
+                  icon={<MonitorPlayIcon size={getIconSize()} />}
+                  onClick={onToggleCinemaMode}
+                  aria-label={
+                    isCinemaMode ? 'Sair do modo cinema' : 'Modo cinema'
+                  }
+                  title={
+                    isCinemaMode ? 'Sair do modo cinema (T)' : 'Modo cinema (T)'
+                  }
+                  aria-pressed={isCinemaMode}
+                  className="not-lg:!hidden !bg-transparent !text-white hover:!bg-white/20"
+                />
+              )}
+
               {/* Speed Control */}
               <SpeedMenu
                 showSpeedMenu={showSpeedMenu}

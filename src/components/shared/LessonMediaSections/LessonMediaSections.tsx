@@ -32,6 +32,10 @@ export interface LessonVideoSectionProps {
   autoPlay?: boolean;
   /** Rendered over the video, inside the player. */
   overlay?: ReactNode;
+  /** Whether the page is showing the player in cinema mode. */
+  isCinemaMode?: boolean;
+  /** Offers the cinema mode control when the page supports it. */
+  onToggleCinemaMode?: () => void;
   /**
    * Saves and restores the playback position in localStorage, scoped by
    * `storageKey` and `userId`. Set to `false` for viewers whose position must
@@ -62,6 +66,8 @@ export const LessonVideoSection = ({
   onEnded,
   autoPlay,
   overlay,
+  isCinemaMode,
+  onToggleCinemaMode,
   persistProgress = true,
   storageKey,
   userId,
@@ -90,6 +96,8 @@ export const LessonVideoSection = ({
         onEnded={onEnded}
         autoPlay={autoPlay}
         overlay={overlay}
+        isCinemaMode={isCinemaMode}
+        onToggleCinemaMode={onToggleCinemaMode}
         initialTime={persistProgress ? initialTime : 0}
         className={className}
         autoSave={persistProgress}

@@ -3,6 +3,7 @@ export {
   LessonPodcastSection,
   LessonBoardImagesSection,
 } from './LessonMediaSections';
+export { useLessonCinemaLayout } from './useLessonCinemaLayout';
 export type {
   LessonVideoData,
   LessonPodcastData,

@@ -44,6 +44,16 @@ describe('mediaPreferencesStore: controles de lista', () => {
     expect(state.videoEndBehavior).toBe(value);
   });
 
+  it('salva e restaura o modo cinema', async () => {
+    useMediaPreferencesStore.getState().setCinemaMode(true);
+    expect(
+      JSON.parse(localStorage.getItem(STORAGE_KEY) as string).state.cinemaMode
+    ).toBe(true);
+
+    const state = await rehydrateWith({ cinemaMode: true });
+    expect(state.cinemaMode).toBe(true);
+  });
+
   it('descarta valores inválidos do storage', async () => {
     const state = await rehydrateWith({
       queueShuffle: 'sim',

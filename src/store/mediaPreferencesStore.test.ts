@@ -73,6 +73,7 @@ describe('mediaPreferencesStore', () => {
       queueShuffle: false,
       queueRepeatList: false,
       videoEndBehavior: 'none',
+      cinemaMode: false,
     });
   });
 

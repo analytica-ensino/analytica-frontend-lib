@@ -51,6 +51,7 @@ import {
   useMediaPreferencesStore,
   type VideoEndBehavior,
 } from '../../store/mediaPreferencesStore';
+import { useLessonCinemaLayout } from '../shared/LessonMediaSections/useLessonCinemaLayout';
 import { NextLessonCountdown } from './NextLessonCountdown';
 import { LessonQueueControls } from './LessonQueueControls';
 
@@ -229,6 +230,8 @@ export function LessonViewPage({
   );
 
   const { isDark } = useTheme();
+  const { isCinemaMode, toggleCinemaMode, gridClassName, playerFrameStyle } =
+    useLessonCinemaLayout();
   const [isOpeningQuiz, setIsOpeningQuiz] = useState(false);
   const [quizErrorMessage, setQuizErrorMessage] = useState<string | null>(null);
 
@@ -926,6 +929,7 @@ export function LessonViewPage({
             'max-sm:bg-transparent max-sm:h-auto',
             'sm:bg-gray-100 sm:aspect-video'
           )}
+          style={playerFrameStyle}
         >
           {/* Keyed by lesson: the player only rearms its completion flag when
               `src` changes, so switching between two lessons that share the
@@ -937,6 +941,8 @@ export function LessonViewPage({
             onTimeUpdate={handleVideoTimeUpdate}
             onVideoComplete={handleVideoCompleteCallback}
             onEnded={handleVideoEnded}
+            isCinemaMode={isCinemaMode}
+            onToggleCinemaMode={toggleCinemaMode}
             autoPlay={autoPlayLessonId === activeLessonId}
             overlay={
               pendingLesson ? (
@@ -1003,7 +1009,7 @@ export function LessonViewPage({
   );
 
   return (
-    <div className="w-full h-full grid grid-cols-[1fr_430px] not-lg:grid-cols-1 gap-3">
+    <div className={gridClassName}>
       <div className="col-span-full">
         <Menu
           value="current-page"

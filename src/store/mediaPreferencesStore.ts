@@ -28,6 +28,9 @@ export interface MediaPreferencesState {
   /** Recomeça a fila ao terminar a última aula */
   queueRepeatList: boolean;
   videoEndBehavior: VideoEndBehavior;
+  /** Player na largura total da página de aula */
+  cinemaMode: boolean;
+  setCinemaMode: (cinemaMode: boolean) => void;
   setQueueShuffle: (queueShuffle: boolean) => void;
   setQueueRepeatList: (queueRepeatList: boolean) => void;
   setVideoEndBehavior: (videoEndBehavior: VideoEndBehavior) => void;
@@ -68,6 +71,11 @@ export const useMediaPreferencesStore = create<MediaPreferencesState>()(
       queueShuffle: false,
       queueRepeatList: false,
       videoEndBehavior: 'none',
+      cinemaMode: false,
+
+      setCinemaMode: (cinemaMode: boolean): void => {
+        set({ cinemaMode });
+      },
 
       setQueueShuffle: (queueShuffle: boolean): void => {
         set({ queueShuffle });
@@ -108,6 +116,7 @@ export const useMediaPreferencesStore = create<MediaPreferencesState>()(
         queueShuffle: state.queueShuffle,
         queueRepeatList: state.queueRepeatList,
         videoEndBehavior: state.videoEndBehavior,
+        cinemaMode: state.cinemaMode,
       }),
       merge: (persisted, current) => {
         const saved = (persisted ?? {}) as Partial<MediaPreferencesState>;
@@ -118,6 +127,7 @@ export const useMediaPreferencesStore = create<MediaPreferencesState>()(
               ? current.volume
               : clampVolume(Number(saved.volume)),
           isMuted: saved.isMuted === true,
+          cinemaMode: saved.cinemaMode === true,
           queueShuffle: saved.queueShuffle === true,
           queueRepeatList: saved.queueRepeatList === true,
           videoEndBehavior:

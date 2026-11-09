@@ -1526,6 +1526,7 @@ export type {
   LessonPodcastSectionProps,
   LessonBoardImagesSectionProps,
 } from './components/shared/LessonMediaSections';
+export { useLessonCinemaLayout } from './components/shared/LessonMediaSections';
 export { createUseClassesCatalog } from './hooks/useClassesCatalog';
 export {
   createUseClassTopics,
