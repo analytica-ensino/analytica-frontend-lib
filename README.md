@@ -60,7 +60,7 @@ import 'analytica-frontend-lib/styles.css';
 
 ## Testes de navegador (Playwright)
 
-Os testes em `e2e/` abrem as stories do Ladle em navegadores de verdade. Hoje cobrem o `VideoPlayer` com HLS: reprodução, seletor de qualidade, fallback para o MP4, retomada e conclusão. Eles não rodam no CI.
+Os testes em `e2e/` abrem as stories do Ladle em navegadores de verdade. Hoje cobrem o `VideoPlayer` com HLS (reprodução, seletor de qualidade, fallback para o MP4, retomada e conclusão) e o player de aula (`LessonVideoSection`): HLS quando a aula tem `urlVideoHls`, MP4 quando não tem e MP4 com `MODULES.lessonVideoMp4Only` ligado. Eles não rodam no CI.
 
 ```bash
 yarn playwright install webkit   # uma vez; o projeto "chromium" usa o Google Chrome instalado

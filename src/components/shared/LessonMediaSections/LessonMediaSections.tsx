@@ -1,13 +1,22 @@
 import { type ReactNode, type RefObject } from 'react';
 import { Text, VideoPlayer, CardAudio, Whiteboard } from '../../../index';
 import type { WhiteboardImage } from '../../Whiteboard/Whiteboard';
+import { useLessonVideoHlsSrc } from '../../../hooks/useLessonVideoHlsSrc';
 
 /**
  * Playable video of a lesson, already resolved from whatever shape the caller's
  * lesson model has.
  */
 export interface LessonVideoData {
+  /** The MP4 (`urlVideo`). Always the player's source and its fallback. */
   src: string;
+  /**
+   * The HLS master (`urlVideoHls`), or null/omitted while the lesson has not
+   * been converted. When present, the player plays it with a quality menu and
+   * falls back to `src`; the institution's `lessonVideoMp4Only` switch drops
+   * it, and the player then plays `src` exactly as before HLS.
+   */
+  hlsSrc?: string | null;
   poster?: string;
   subtitles?: string;
 }
@@ -59,6 +68,8 @@ export const LessonVideoSection = ({
   emptyMessage = 'Vídeo não disponível para esta aula.',
   children,
 }: LessonVideoSectionProps) => {
+  const hlsSrc = useLessonVideoHlsSrc(video.hlsSrc);
+
   if (!video.src) {
     return (
       <div className="px-6 py-6 flex flex-col gap-4">
@@ -73,6 +84,7 @@ export const LessonVideoSection = ({
     <>
       <VideoPlayer
         src={video.src}
+        hlsSrc={hlsSrc}
         poster={video.poster}
         subtitles={video.subtitles}
         onTimeUpdate={onTimeUpdate}
