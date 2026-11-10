@@ -6,8 +6,9 @@ import { expect as baseExpect, test, type Page } from '@playwright/test';
  * (`urlVideo`) and HLS master (`urlVideoHls`), and the institution's
  * `MODULES.lessonVideoMp4Only` switch can take it back to the MP4.
  *
- * Same fixture as the VideoPlayer suite (`public/fixtures/video`), so nothing
- * here depends on the network.
+ * Same fixture as the VideoPlayer suite (`public/fixtures/video`, served by
+ * Ladle), and every request that would leave the machine is aborted, so
+ * nothing here depends on the network.
  */
 
 /** Polls wait up to 30 s: media start-up is slow on a loaded machine. */
@@ -40,6 +41,27 @@ const openStory = async (page: Page, story: string) => {
 const play = (page: Page) =>
   page.getByRole('button', { name: 'Reproduzir vídeo' }).click();
 
+/**
+ * Aborts every request that would leave the machine; Ladle and the fixture
+ * are served from 127.0.0.1.
+ *
+ * @returns The URLs it aborted
+ */
+const blockExternalNetwork = async (page: Page) => {
+  const blocked: string[] = [];
+  await page.route(
+    (url) =>
+      !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname) &&
+      url.protocol !== 'data:' &&
+      url.protocol !== 'blob:',
+    (route) => {
+      blocked.push(route.request().url());
+      return route.abort('blockedbyclient');
+    }
+  );
+  return blocked;
+};
+
 const videoState = (page: Page) =>
   page.locator('video').evaluate((video: HTMLVideoElement) => ({
     src: video.currentSrc,
@@ -48,6 +70,23 @@ const videoState = (page: Page) =>
 
 test.describe('LessonVideoSection HLS @e2e', () => {
   test.describe.configure({ timeout: 120_000 });
+
+  let blocked: string[] = [];
+
+  test.beforeEach(async ({ page }) => {
+    blocked = await blockExternalNetwork(page);
+  });
+
+  test.afterEach(() => {
+    test.info().annotations.push({
+      type: 'blocked requests',
+      description: blocked.join('\n') || 'none',
+    });
+    // The video never left the machine.
+    expect(
+      blocked.filter((url) => /\.(mp4|m3u8|m4s|vtt)(\?|$)/.test(url))
+    ).toEqual([]);
+  });
 
   test('a converted lesson plays its HLS with the quality menu', async ({
     page,
