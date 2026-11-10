@@ -120,6 +120,31 @@ describe('parseMasterPlaylist', () => {
     ]);
   });
 
+  it('reads attributes after a quoted value with commas (CODECS first)', () => {
+    // Other packagers write CODECS before RESOLUTION; the comma inside the
+    // quotes must not end the value.
+    const text = [
+      '#EXTM3U',
+      '#EXT-X-STREAM-INF:BANDWIDTH=595017,CODECS="avc1.64001F,mp4a.40.2",RESOLUTION=1280x720,FRAME-RATE=29.970',
+      '720p/index.m3u8',
+      '#EXT-X-STREAM-INF:CODECS="avc1.64001E,mp4a.40.2", RESOLUTION=640x360, BANDWIDTH=242463',
+      '360p/index.m3u8',
+    ].join('\n');
+
+    expect(parseMasterPlaylist(text, BASE)).toEqual([
+      {
+        height: 720,
+        bandwidth: 595017,
+        url: 'https://cdn.example.com/hls/lesson/720p/index.m3u8',
+      },
+      {
+        height: 360,
+        bandwidth: 242463,
+        url: 'https://cdn.example.com/hls/lesson/360p/index.m3u8',
+      },
+    ]);
+  });
+
   it('returns nothing for a media playlist or an empty text', () => {
     const media = '#EXTM3U\n#EXTINF:6.0,\nseg_00000.m4s\n#EXT-X-ENDLIST';
     expect(parseMasterPlaylist(media, BASE)).toEqual([]);

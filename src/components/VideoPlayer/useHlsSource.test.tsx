@@ -332,6 +332,18 @@ describe('useHlsSource', () => {
       expect(result().selectedQuality).toBe('auto');
     });
 
+    it('caps ABR to the player size, keeps a short buffer and leaves captions to the <track>', () => {
+      expect(HLS_CONFIG).toEqual({
+        autoStartLoad: false,
+        capLevelToPlayerSize: true,
+        maxBufferLength: 30,
+        maxMaxBufferLength: 60,
+        enableWebVTT: false,
+        enableIMSC1: false,
+        enableCEA708Captions: false,
+      });
+    });
+
     it('starts loading at the position the player already set', async () => {
       const { hls, media } = await renderHlsJs();
       media.currentTime = 42;
@@ -673,6 +685,77 @@ describe('useHlsSource', () => {
         await Promise.resolve();
       });
       expect(result().qualities).toEqual([]);
+    });
+
+    /** Lets the master playlist request of a new lesson settle. */
+    const flushMasterFetch = () =>
+      act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+    it('stops the stall watchdog when the player unmounts', async () => {
+      jest.useFakeTimers();
+      const { media, unmount } = await renderNative();
+      Object.assign(media, { currentTime: 3.8, paused: false });
+      expect(jest.getTimerCount()).toBe(1);
+
+      unmount();
+
+      expect(jest.getTimerCount()).toBe(0);
+    });
+
+    it('keeps a single stall watchdog across lesson changes', async () => {
+      jest.useFakeTimers();
+      const { rerenderWith } = await renderNative();
+
+      rerenderWith(
+        'https://cdn.example.com/hls/b/master.m3u8',
+        'https://cdn.example.com/b.mp4'
+      );
+      rerenderWith(
+        'https://cdn.example.com/hls/c/master.m3u8',
+        'https://cdn.example.com/c.mp4'
+      );
+
+      // Counted before flushing: `act` itself leaves a timer per call.
+      expect(jest.getTimerCount()).toBe(1);
+      await flushMasterFetch();
+    });
+
+    it('leaves no listener behind across lesson changes and unmount', async () => {
+      const added = jest.spyOn(HTMLMediaElement.prototype, 'addEventListener');
+      const removed = jest.spyOn(
+        HTMLMediaElement.prototype,
+        'removeEventListener'
+      );
+      const { rerenderWith, unmount } = await renderNative();
+      rerenderWith(
+        'https://cdn.example.com/hls/b/master.m3u8',
+        'https://cdn.example.com/b.mp4'
+      );
+      await flushMasterFetch();
+      rerenderWith(undefined, 'https://cdn.example.com/c.mp4');
+      rerenderWith(HLS, MP4);
+      await flushMasterFetch();
+      unmount();
+
+      // React attaches its own media listeners to every <video> and never
+      // removes them; only the hook's listeners are checked.
+      const isReactListener = (listener: unknown) =>
+        typeof listener === 'function' &&
+        listener.name.startsWith('bound dispatch');
+      const hookCalls = (spy: jest.SpyInstance) =>
+        spy.mock.calls
+          .filter(([, listener]) => !isReactListener(listener))
+          .map(([type, listener]) => ({ type, listener }));
+      const hookAdded = hookCalls(added);
+      const hookRemoved = hookCalls(removed);
+
+      expect(hookAdded.length).toBeGreaterThan(0);
+      hookAdded.forEach(({ type, listener }) => {
+        expect(hookRemoved).toContainEqual({ type, listener });
+      });
     });
 
     it('drops the variant list of a lesson that is gone', async () => {
