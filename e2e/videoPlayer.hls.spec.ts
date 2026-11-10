@@ -209,19 +209,20 @@ test.describe('VideoPlayer HLS @e2e', () => {
 
     // Back near the start so the video does not end on a slow run.
     await page.locator('video').evaluate((video: HTMLVideoElement) => {
-      video.currentTime = 1;
+      video.currentTime = 0.5;
     });
     await chooseQuality(page, 'Automático');
     if (browserName === 'webkit') {
       await expect.poll(() => videoSrc(page)).toMatch(/\/hls\/master\.m3u8$/);
     }
-    await expect
-      .poll(() => readVideo(page))
-      .toMatchObject({ paused: false, rate: 1.25, captions: 'showing' });
     await page.getByRole('button', { name: 'Qualidade' }).click();
     await expect(
       page.getByRole('menuitemradio', { name: 'Automático' })
     ).toHaveAttribute('aria-checked', 'true');
+    await page.keyboard.press('Escape');
+    await expect
+      .poll(() => readVideo(page))
+      .toMatchObject({ paused: false, rate: 1.25, captions: 'showing' });
   });
 
   test('a rendition picked in the menu wins over the player-size cap', async ({
@@ -264,20 +265,19 @@ test.describe('VideoPlayer HLS @e2e', () => {
     page,
     browserName,
   }) => {
-    test.skip(
-      browserName !== 'chromium',
-      'Safari stalls on a missing segment without raising an error'
-    );
     // hls.js retries and switches renditions for about 30 s before the
-    // error becomes fatal.
+    // error becomes fatal; Safari never errors and the stall watchdog gives
+    // up after 15 s.
     test.setTimeout(180_000);
 
     let releaseSegment = () => {};
     const segmentReleased = new Promise<void>((resolve) => {
       releaseSegment = resolve;
     });
-    // The third segment of every rendition goes missing once playback runs.
-    await page.route('**/hls/*/seg_00002.m4s', async (route) => {
+    // One segment of every rendition goes missing once playback runs. Safari
+    // only starts with three segments buffered, so its gap comes one later.
+    const missing = browserName === 'webkit' ? 'seg_00003' : 'seg_00002';
+    await page.route(`**/hls/*/${missing}.m4s`, async (route) => {
       await segmentReleased;
       await route.fulfill({ status: 404, body: 'not found' });
     });
@@ -287,7 +287,7 @@ test.describe('VideoPlayer HLS @e2e', () => {
       await openStory(page);
       await play(page);
       await showCaptions(page);
-      await setSpeed(page, '1.5x', 1.5);
+      await setSpeed(page, '1.25x', 1.25);
       await expect.poll(() => videoTime(page)).toBeGreaterThan(1);
       await recordReportedSeconds(page);
       before = await readVideo(page);
@@ -303,7 +303,7 @@ test.describe('VideoPlayer HLS @e2e', () => {
     await expect.poll(() => videoTime(page)).toBeGreaterThan(before.time + 0.5);
     const after = await readVideo(page);
     expect(after.paused).toBe(false);
-    expect(after.rate).toBe(1.5);
+    expect(after.rate).toBe(1.25);
     expect(after.captions).toBe('showing');
     expect(after.cues).toBeGreaterThan(0);
     expect(await reportedSeconds(page)).not.toContain(0);

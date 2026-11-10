@@ -42,6 +42,61 @@ export const HLS_CONFIG: Partial<HlsConfig> = {
   enableCEA708Captions: false,
 };
 
+/**
+ * How long native playback may sit without data before it falls back to the
+ * MP4. Safari does not raise an error on a missing segment: it waits for it
+ * forever (AE-3290).
+ */
+export const NATIVE_STALL_TIMEOUT_MS = 15_000;
+
+/** How often the stall watchdog looks at the element. */
+const STALL_CHECK_INTERVAL_MS = 1_000;
+
+/** `readyState` from which the element has data to keep playing. */
+const HAVE_FUTURE_DATA = 3;
+
+/**
+ * Calls `onStall` once when the video should be playing but has been waiting
+ * for data, without its time moving, for `timeoutMs`.
+ *
+ * Paused or ended video, and video that has data (`readyState` from
+ * HAVE_FUTURE_DATA on), never counts; any movement of the time, a short wait
+ * on a slow network or a seek that lands, starts the count over.
+ *
+ * @param video - The video element
+ * @param timeoutMs - How long a stall lasts before `onStall`
+ * @param onStall - Called once when the stall reaches `timeoutMs`
+ * @returns Stops the watchdog
+ */
+export const watchForStall = (
+  video: HTMLMediaElement,
+  timeoutMs: number,
+  onStall: () => void
+): (() => void) => {
+  let lastTime = video.currentTime;
+  let stalledSince: number | null = null;
+
+  const timer = globalThis.setInterval(() => {
+    const waitingForData =
+      !video.paused && !video.ended && video.readyState < HAVE_FUTURE_DATA;
+    const moved = video.currentTime !== lastTime;
+    lastTime = video.currentTime;
+    if (!waitingForData || moved) {
+      stalledSince = null;
+      return;
+    }
+
+    const now = Date.now();
+    stalledSince ??= now;
+    if (now - stalledSince >= timeoutMs) {
+      globalThis.clearInterval(timer);
+      onStall();
+    }
+  }, STALL_CHECK_INTERVAL_MS);
+
+  return () => globalThis.clearInterval(timer);
+};
+
 /** The part of an hls.js level this module reads. */
 interface LevelInfo {
   height: number;
@@ -302,6 +357,11 @@ export interface UseHlsSourceParams {
   src: string;
   /** HLS master playlist URL. Without it, the MP4 plays as it always did. */
   hlsSrc?: string;
+  /**
+   * How long native HLS (Safari) may stall before falling back to the MP4.
+   * Defaults to `NATIVE_STALL_TIMEOUT_MS`.
+   */
+  stallTimeoutMs?: number;
 }
 
 export interface UseHlsSourceResult {
@@ -328,8 +388,8 @@ export interface UseHlsSourceResult {
  * - hls.js is imported on demand, so pages without HLS video do not load it.
  * - Safari plays HLS natively; its quality menu switches the source between
  *   the variant playlists listed in the master ("Automático" returns to it).
- * - A fatal error (after one media recovery attempt in hls.js) switches to
- *   the MP4.
+ * - A fatal error (after one media recovery attempt in hls.js), or a native
+ *   stall longer than `stallTimeoutMs`, switches to the MP4.
  * - Every source change keeps the position, the play/pause state, the speed
  *   and the caption mode.
  *
@@ -343,6 +403,7 @@ export const useHlsSource = ({
   videoRef,
   src,
   hlsSrc,
+  stallTimeoutMs = NATIVE_STALL_TIMEOUT_MS,
 }: UseHlsSourceParams): UseHlsSourceResult => {
   const key = `${src}\n${hlsSrc ?? ''}`;
   const [stored, setStored] = useState<SourceState>(() =>
@@ -437,10 +498,12 @@ export const useHlsSource = ({
       hlsRef.current?.destroy();
       hlsRef.current = null;
     };
+    let stopStallWatchdog = () => {};
     const fallBackToMp4 = () => {
       if (cancelled) return;
       // Once on the MP4 there is nothing else to fall back to.
       video.removeEventListener('error', fallBackToMp4);
+      stopStallWatchdog();
       beginSourceChange();
       destroyHls();
       update({ engine: 'mp4', qualities: [], selected: AUTO_QUALITY });
@@ -459,7 +522,10 @@ export const useHlsSource = ({
     if (engine === 'mp4') {
       update({ engine: 'mp4' });
     } else if (engine === 'native') {
+      // Safari reports a broken source with an error, but a missing segment
+      // only as a stall.
       video.addEventListener('error', fallBackToMp4);
+      stopStallWatchdog = watchForStall(video, stallTimeoutMs, fallBackToMp4);
       startNativePlayback(context, (urls) => {
         variantUrlsRef.current = urls;
       });
@@ -475,9 +541,10 @@ export const useHlsSource = ({
       cancelled = true;
       controller.abort();
       video.removeEventListener('error', fallBackToMp4);
+      stopStallWatchdog();
       destroyHls();
     };
-  }, [key, hlsSrc, videoRef, beginSourceChange]);
+  }, [key, hlsSrc, videoRef, beginSourceChange, stallTimeoutMs]);
 
   const { engine, nativeUrl } = state;
   const selectQuality = useCallback(

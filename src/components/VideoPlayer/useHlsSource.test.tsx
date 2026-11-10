@@ -3,11 +3,13 @@ import { act, render, waitFor } from '@testing-library/react';
 import { MockHls } from '../../testing/mockHlsJs';
 import {
   HLS_CONFIG,
+  NATIVE_STALL_TIMEOUT_MS,
   findLevelIndex,
   pickPlaybackEngine,
   pickStartLevel,
   qualitiesFromLevels,
   useHlsSource,
+  watchForStall,
   type UseHlsSourceResult,
 } from './useHlsSource';
 
@@ -149,6 +151,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  jest.useRealTimers();
   jest.restoreAllMocks();
   delete (globalThis as { MediaSource?: unknown }).MediaSource;
   delete (globalThis as { ManagedMediaSource?: unknown }).ManagedMediaSource;
@@ -181,6 +184,70 @@ describe('pickPlaybackEngine', () => {
 
   it('plays the MP4 when nothing plays HLS', () => {
     expect(pickPlaybackEngine(element(''))).toBe('mp4');
+  });
+});
+
+describe('watchForStall', () => {
+  const TIMEOUT = 15_000;
+  let video: {
+    currentTime: number;
+    paused: boolean;
+    ended: boolean;
+    readyState: number;
+  };
+  let onStall: jest.Mock;
+  let stop: () => void;
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    // Playing, waiting for data: HAVE_CURRENT_DATA.
+    video = { currentTime: 3.8, paused: false, ended: false, readyState: 2 };
+    onStall = jest.fn();
+    stop = watchForStall(
+      video as unknown as HTMLMediaElement,
+      TIMEOUT,
+      onStall
+    );
+  });
+
+  afterEach(() => stop());
+
+  it('reports a stall that lasts the whole timeout, once', () => {
+    jest.advanceTimersByTime(TIMEOUT);
+    expect(onStall).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(1_000);
+    expect(onStall).toHaveBeenCalledTimes(1);
+
+    jest.advanceTimersByTime(TIMEOUT * 2);
+    expect(onStall).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts over whenever the time moves', () => {
+    jest.advanceTimersByTime(TIMEOUT - 2_000);
+    // A short wait on a slow network, or a seek that lands.
+    video.currentTime = 4.2;
+    jest.advanceTimersByTime(TIMEOUT - 2_000);
+    expect(onStall).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(4_000);
+    expect(onStall).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['paused', { paused: true }],
+    ['ended', { ended: true }],
+    ['playing with data', { readyState: 4 }],
+  ])('never fires while the video is %s', (_label, state) => {
+    Object.assign(video, state);
+    jest.advanceTimersByTime(TIMEOUT * 4);
+    expect(onStall).not.toHaveBeenCalled();
+  });
+
+  it('stops watching when told to', () => {
+    stop();
+    jest.advanceTimersByTime(TIMEOUT * 2);
+    expect(onStall).not.toHaveBeenCalled();
   });
 });
 
@@ -546,6 +613,44 @@ describe('useHlsSource', () => {
       );
       expect(media.currentTime).toBe(12);
       expect(media.paused).toBe(false);
+    });
+
+    it('falls back to the MP4 when playback stalls, keeping the position', async () => {
+      jest.useFakeTimers();
+      const { result, video, media, play } = await renderNative();
+      fire(video, 'loadedmetadata');
+      // A missing segment: Safari keeps waiting at 3.8 s (jsdom's readyState
+      // stays at HAVE_NOTHING).
+      Object.assign(media, { currentTime: 3.8, paused: false });
+
+      act(() => {
+        jest.advanceTimersByTime(NATIVE_STALL_TIMEOUT_MS - 2_000);
+      });
+      expect(result().videoSrc).toBe(HLS);
+
+      // The count starts on the first check that sees the stall.
+      act(() => {
+        jest.advanceTimersByTime(5_000);
+      });
+      expect(result().videoSrc).toBe(MP4);
+      expect(result().qualities).toEqual([]);
+
+      Object.assign(media, { currentTime: 0, paused: true });
+      fire(video, 'loadstart');
+      fire(video, 'loadedmetadata');
+      expect(play).toHaveBeenCalled();
+      expect(media.currentTime).toBe(3.8);
+    });
+
+    it('does not fall back while the video is paused', async () => {
+      jest.useFakeTimers();
+      const { result } = await renderNative();
+
+      act(() => {
+        jest.advanceTimersByTime(NATIVE_STALL_TIMEOUT_MS * 4);
+      });
+
+      expect(result().videoSrc).toBe(HLS);
     });
 
     it('falls back to the MP4 when the browser reports a media error', async () => {

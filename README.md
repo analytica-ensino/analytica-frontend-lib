@@ -19,11 +19,11 @@ yarn add analytica-frontend-lib
 Para usar os componentes, basta importá-los no seu projeto:
 
 ```tsx
-import { Text } from 'analytica-frontend-lib'
+import { Text } from 'analytica-frontend-lib';
 
 const MyComponent = () => {
-  return <Text>Olá mundo!</Text>
-}
+  return <Text>Olá mundo!</Text>;
+};
 ```
 
 ### Importando Estilos CSS
@@ -57,6 +57,19 @@ import 'analytica-frontend-lib/styles.css';
   - `peerDependencies`: Framework core (React)
   - `dependencies`: Bibliotecas específicas usadas pelos componentes
   - `devDependencies`: Ferramentas de build, testes, linting
+
+## Testes de navegador (Playwright)
+
+Os testes em `e2e/` abrem as stories do Ladle em navegadores de verdade. Hoje cobrem o `VideoPlayer` com HLS: reprodução, seletor de qualidade, fallback para o MP4, retomada e conclusão. Eles não rodam no CI.
+
+```bash
+yarn playwright install webkit   # uma vez; o projeto "chromium" usa o Google Chrome instalado
+yarn test:e2e                    # sobe o Ladle sozinho (ou reaproveita um já aberto na porta 61010)
+yarn test:e2e --project=webkit   # só um navegador
+```
+
+- O projeto `chromium` usa o Chrome instalado (`channel: 'chrome'`), que tem H.264/AAC; o `webkit` simula o Safari com HLS nativo.
+- O vídeo de teste fica em `public/fixtures/video` e é gerado por `scripts/video-fixtures/generate.sh` (ffmpeg via Docker). Nenhum teste depende de rede.
 
 ## Ladle
 
