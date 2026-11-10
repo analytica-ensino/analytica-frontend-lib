@@ -1954,6 +1954,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@playwright/test@npm:1.64.1":
+  version: 1.64.1
+  resolution: "@playwright/test@npm:1.64.1"
+  dependencies:
+    playwright: "npm:1.64.1"
+  bin:
+    playwright: cli.js
+  checksum: 10c0/0a1a853d76d6c532cafaf0366a5448584b766737ebd39bbd23dc0580f3d3b6ef4c833082af47a792e7fc2501f444debdfaad37a87a76cc5b195f3803fc80ea3c
+  languageName: node
+  linkType: hard
+
 "@react-google-maps/api@npm:^2.20.8":
   version: 2.20.8
   resolution: "@react-google-maps/api@npm:2.20.8"
@@ -3705,6 +3716,7 @@ __metadata:
     "@hookform/resolvers": "npm:^5.4.0"
     "@ladle/react": "npm:^5.1.1"
     "@phosphor-icons/react": "npm:^2.1.10"
+    "@playwright/test": "npm:1.64.1"
     "@react-google-maps/api": "npm:^2.20.8"
     "@tailwindcss/postcss": "npm:^4.3.0"
     "@testing-library/dom": "npm:^10.4.1"
@@ -3748,6 +3760,7 @@ __metadata:
     eslint-config-prettier: "npm:^10.1.8"
     eslint-plugin-jsdoc: "npm:^63.0.1"
     eslint-plugin-prettier: "npm:^5.5.6"
+    hls.js: "npm:1.7.3"
     html-react-parser: "npm:6.1.2"
     husky: "npm:^9.1.7"
     identity-obj-proxy: "npm:^3.0.0"
@@ -6475,6 +6488,13 @@ __metadata:
   dependencies:
     "@babel/runtime": "npm:^7.7.6"
   checksum: 10c0/812ec839386222d6437bd78d9f05db32e47d105ada0ad8834b32626919dd2fee7a10001bc489510f93a8069d02f118214bd8d42a82f7cf9daf8e84fbcbbb2016
+  languageName: node
+  linkType: hard
+
+"hls.js@npm:1.7.3":
+  version: 1.7.3
+  resolution: "hls.js@npm:1.7.3"
+  checksum: 10c0/c44c0098b9f4b53cb0c2cc2301d4cad907a77c60f470fa344b8cfc5077da4ccab9590d47e5cf81100a958d4aa43d7dc7bcb6566197fd9ae170ec10cea8af3e8c
   languageName: node
   linkType: hard
 
@@ -9504,6 +9524,26 @@ __metadata:
     mlly: "npm:^1.7.4"
     pathe: "npm:^2.0.1"
   checksum: 10c0/19e6cb8b66dcc66c89f2344aecfa47f2431c988cfa3366bdfdcfb1dd6695f87dcce37fbd90fe9d1605e2f4440b77f391e83c23255347c35cf84e7fd774d7fcea
+  languageName: node
+  linkType: hard
+
+"playwright-core@npm:1.64.1":
+  version: 1.64.1
+  resolution: "playwright-core@npm:1.64.1"
+  bin:
+    playwright-core: cli.js
+  checksum: 10c0/91c4f5ed1cff4b0e18b6ac62f66770f5f1b6c204d4aebd6a321c07466dca18a70822ac692597c6059705a703f9768097ac551df179fb49294d639509148e04f3
+  languageName: node
+  linkType: hard
+
+"playwright@npm:1.64.1":
+  version: 1.64.1
+  resolution: "playwright@npm:1.64.1"
+  dependencies:
+    playwright-core: "npm:1.64.1"
+  bin:
+    playwright: cli.js
+  checksum: 10c0/edf52d0a79feca37bf383e841a467aa68750684128218eac560063991c9e4b615a94901f580cd8a088bb05fd53008ab4a0e5e8d976067698b60ae5d1de2459f3
   languageName: node
   linkType: hard
 
