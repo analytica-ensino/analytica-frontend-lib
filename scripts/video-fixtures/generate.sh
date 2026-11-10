@@ -14,23 +14,32 @@
 # Usage:
 #   scripts/video-fixtures/generate.sh
 #
-# ffmpeg runs in Docker. FFMPEG_IMAGE picks the image (any image with ffmpeg 6+
-# and bash); set it to an empty string to use the local ffmpeg instead:
-#   FFMPEG_IMAGE=some/ffmpeg-image scripts/video-fixtures/generate.sh
-#   FFMPEG_IMAGE= scripts/video-fixtures/generate.sh
+# ffmpeg runs in Docker. By default it is installed on the fly in the public
+# alpine:3.22 image (ffmpeg 6.1; needs network for `apk add`). Other options:
+#   FFMPEG_IMAGE=<image> scripts/video-fixtures/generate.sh   # an image with ffmpeg 6+ and bash
+#   FFMPEG_LOCAL=1 scripts/video-fixtures/generate.sh         # the ffmpeg on this machine
+# The committed fixture was generated with ffmpeg 8.1.3; any ffmpeg 6+ gives an
+# equivalent one (same layout, durations and renditions), not identical bytes.
 set -euo pipefail
+
+DEFAULT_IMAGE=alpine:3.22
 
 if [ "${1:-}" != "--inside" ]; then
   ROOT=$(cd "$(dirname "$0")/../.." && pwd)
   OUT="$ROOT/public/fixtures/video"
-  IMAGE=${FFMPEG_IMAGE-hls01-poc:latest}
   mkdir -p "$OUT"
-  if [ -n "$IMAGE" ]; then
-    docker run --rm --user "$(id -u):$(id -g)" \
-      -v "$ROOT/scripts/video-fixtures:/scripts:ro" -v "$OUT:/out" \
-      --entrypoint bash "$IMAGE" /scripts/generate.sh --inside /out
-  else
+  MOUNTS=(-v "$ROOT/scripts/video-fixtures:/scripts:ro" -v "$OUT:/out")
+  if [ "${FFMPEG_LOCAL:-}" = 1 ]; then
     bash "$0" --inside "$OUT"
+  elif [ -n "${FFMPEG_IMAGE:-}" ]; then
+    docker run --rm --user "$(id -u):$(id -g)" "${MOUNTS[@]}" \
+      --entrypoint bash "$FFMPEG_IMAGE" /scripts/generate.sh --inside /out
+  else
+    # apk needs root; the files are handed back to the current user.
+    docker run --rm "${MOUNTS[@]}" --entrypoint sh "$DEFAULT_IMAGE" -c \
+      "apk add --no-cache -q ffmpeg bash \
+        && bash /scripts/generate.sh --inside /out \
+        && chown -R $(id -u):$(id -g) /out"
   fi
   exit 0
 fi

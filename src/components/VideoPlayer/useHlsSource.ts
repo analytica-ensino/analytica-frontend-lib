@@ -164,17 +164,19 @@ export const findLevelIndex = (
   );
 
 /**
- * Level hls.js starts on: 480p when it exists, else the tallest one below it,
- * else the shortest one. ABR takes over from there.
+ * Level hls.js starts on: 480p when it exists, else the tallest one below it.
+ * A level without a picture size (no `RESOLUTION` in the master) is never
+ * picked; with no known level up to 480p, ABR chooses the start. ABR takes
+ * over from there either way.
  *
  * @param levels - hls.js levels
- * @returns Level index (0 when the list is empty)
+ * @returns Level index, or -1 to let ABR choose
  */
 export const pickStartLevel = (levels: readonly LevelInfo[]): number => {
-  const heights = levels.map((level) => level.height);
-  const below = heights.filter((height) => height <= START_HEIGHT);
-  const target = below.length ? Math.max(...below) : Math.min(...heights);
-  return Math.max(0, findLevelIndex(levels, target));
+  const below = levels
+    .map((level) => level.height)
+    .filter((height) => height > 0 && height <= START_HEIGHT);
+  return below.length ? findLevelIndex(levels, Math.max(...below)) : -1;
 };
 
 /** How the video was playing right before its source changed. */

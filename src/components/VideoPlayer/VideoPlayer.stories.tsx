@@ -94,7 +94,10 @@ const CDN_TEST_HLS =
   'https://cdn.analyticaensino.com.br/hls/_test/ae-3284/master.m3u8';
 
 /** Player HLS com o estado dos callbacks visível, como a página da aula usa. */
-const HlsPlayerWithStatus = ({ hlsSrc }: Readonly<{ hlsSrc: string }>) => {
+const HlsPlayerWithStatus = ({
+  hlsSrc,
+  initialTime,
+}: Readonly<{ hlsSrc: string; initialTime?: number }>) => {
   const [seconds, setSeconds] = useState(0);
   const [progress, setProgress] = useState(0);
   const [completed, setCompleted] = useState(false);
@@ -110,6 +113,9 @@ const HlsPlayerWithStatus = ({ hlsSrc }: Readonly<{ hlsSrc: string }>) => {
         onTimeUpdate={setSeconds}
         onProgress={setProgress}
         onVideoComplete={() => setCompleted(true)}
+        initialTime={initialTime}
+        // Com posição salva vinda da aula, o localStorage não entra.
+        autoSave={initialTime === undefined}
       />
       <p role="status" className="text-sm text-text-700">
         Tempo: {Math.floor(seconds)} s · Progresso: {Math.floor(progress)}% ·
@@ -124,6 +130,14 @@ const HlsPlayerWithStatus = ({ hlsSrc }: Readonly<{ hlsSrc: string }>) => {
  * (macOS e iOS) toca nativo. Se o HLS falhar, cai para o MP4 na mesma posição.
  */
 export const Hls: Story = () => <HlsPlayerWithStatus hlsSrc={FIXTURE_HLS} />;
+
+/**
+ * Aula retomada: a posição salva (6 s) chega por `initialTime`, como a página
+ * da aula passa, e o vídeo começa dali em vez do início.
+ */
+export const HlsResume: Story = () => (
+  <HlsPlayerWithStatus hlsSrc={FIXTURE_HLS} initialTime={6} />
+);
 
 /**
  * Stream de teste real do CDN, para conferência manual em navegador e iPhone.

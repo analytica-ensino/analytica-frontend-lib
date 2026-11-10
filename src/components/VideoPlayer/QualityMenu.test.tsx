@@ -177,4 +177,63 @@ describe('QualityMenu', () => {
 
     expect(screen.queryByRole('menu')).toBeNull();
   });
+
+  it('tells the player when it opens and closes', () => {
+    const onOpenChange = jest.fn();
+    renderMenu({ onOpenChange });
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+
+    openMenu();
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+
+    fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' });
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it('closes for good when the renditions go away', () => {
+    const onOpenChange = jest.fn();
+    const props = { selected: 'auto' as const, onSelect: jest.fn() };
+    const { rerender } = render(
+      <QualityMenu
+        {...props}
+        qualities={[720, 360]}
+        isFullscreen={false}
+        onOpenChange={onOpenChange}
+      />
+    );
+    openMenu();
+
+    // MP4 fallback: no renditions.
+    rerender(
+      <QualityMenu
+        {...props}
+        qualities={[]}
+        isFullscreen={false}
+        onOpenChange={onOpenChange}
+      />
+    );
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+
+    // A new list does not bring the menu back open.
+    rerender(
+      <QualityMenu
+        {...props}
+        qualities={[480, 360]}
+        isFullscreen={false}
+        onOpenChange={onOpenChange}
+      />
+    );
+    expect(screen.queryByRole('menu')).toBeNull();
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it('reports closed when it unmounts while open', () => {
+    const onOpenChange = jest.fn();
+    const { unmount } = renderMenu({ onOpenChange });
+    openMenu();
+
+    unmount();
+
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+  });
 });

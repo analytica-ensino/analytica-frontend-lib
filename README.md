@@ -69,7 +69,19 @@ yarn test:e2e --project=webkit   # só um navegador
 ```
 
 - O projeto `chromium` usa o Chrome instalado (`channel: 'chrome'`), que tem H.264/AAC; o `webkit` simula o Safari com HLS nativo.
-- O vídeo de teste fica em `public/fixtures/video` e é gerado por `scripts/video-fixtures/generate.sh` (ffmpeg via Docker). Nenhum teste depende de rede.
+- O vídeo de teste fica em `public/fixtures/video` (já commitado). Nenhum teste depende de rede.
+
+### Regerar o vídeo de teste
+
+`scripts/video-fixtures/generate.sh` gera de novo o MP4 e o HLS (10 s, 360p/480p/720p, segmentos de 2 s), no mesmo formato da conversão das aulas. O ffmpeg roda no Docker:
+
+```bash
+scripts/video-fixtures/generate.sh                                  # padrão: imagem pública alpine:3.22 (ffmpeg 6.1, instalado na hora; precisa de rede)
+FFMPEG_IMAGE=minha/imagem:tag scripts/video-fixtures/generate.sh    # outra imagem com ffmpeg 6+ e bash
+FFMPEG_LOCAL=1 scripts/video-fixtures/generate.sh                   # o ffmpeg instalado na máquina, sem Docker
+```
+
+O fixture commitado foi gerado com o ffmpeg 8.1.3. Outra versão 6+ gera um equivalente (mesma estrutura, duração e qualidades), mas não os mesmos bytes: só regere quando o vídeo de teste precisar mudar.
 
 ## Ladle
 

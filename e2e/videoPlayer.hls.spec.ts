@@ -14,6 +14,9 @@ import { expect as baseExpect, test, type Page } from '@playwright/test';
 const expect = baseExpect.configure({ timeout: 30_000 });
 
 const HLS_STORY = 'videoplayer--hls';
+/** The HLS story with `initialTime={6}`, the position a lesson resumes at. */
+const RESUME_STORY = 'videoplayer--hls-resume';
+const RESUME_AT = 6;
 const MP4_STORY = 'videoplayer--with-subtitles';
 const MP4_STORY_URL = 'https://www.w3schools.com/html/mov_bbb.mp4';
 const FIXTURE_MP4 = path.join(
@@ -24,8 +27,6 @@ const FIXTURE_MP4 = path.join(
   'video',
   'sample.mp4'
 );
-/** localStorage key of the saved position (`<storageKey>-<src>`). */
-const SAVED_POSITION_KEY = 'video-progress-fixtures/video/sample.mp4';
 
 interface VideoState {
   src: string;
@@ -53,6 +54,57 @@ const readVideo = (page: Page): Promise<VideoState> =>
 
 const videoTime = async (page: Page) => (await readVideo(page)).time;
 const videoSrc = async (page: Page) => (await readVideo(page)).src;
+
+/**
+ * Records where the video is when it first starts playing, and when it first
+ * plays the MP4, from the start of the page.
+ */
+const recordFirstPlaying = (page: Page) =>
+  page.addInitScript(() => {
+    const scope = globalThis as typeof globalThis & {
+      __firstPlaying: number | null;
+      __firstMp4Playing: number | null;
+      __lastHlsTime: number;
+    };
+    scope.__firstPlaying = null;
+    scope.__firstMp4Playing = null;
+    scope.__lastHlsTime = 0;
+    const isMp4 = (video: HTMLVideoElement) =>
+      video.currentSrc.endsWith('/sample.mp4');
+    document.addEventListener(
+      'playing',
+      (event) => {
+        const video = event.target as HTMLVideoElement;
+        scope.__firstPlaying ??= video.currentTime;
+        if (isMp4(video)) scope.__firstMp4Playing ??= video.currentTime;
+      },
+      true
+    );
+    document.addEventListener(
+      'timeupdate',
+      (event) => {
+        const video = event.target as HTMLVideoElement;
+        if (video.currentSrc && !isMp4(video) && video.currentTime > 0) {
+          scope.__lastHlsTime = video.currentTime;
+        }
+      },
+      true
+    );
+  });
+
+const playbackMarks = (page: Page) =>
+  page.evaluate(() => {
+    const scope = globalThis as typeof globalThis & {
+      __firstPlaying: number | null;
+      __firstMp4Playing: number | null;
+      __lastHlsTime: number;
+    };
+    return {
+      firstPlaying: scope.__firstPlaying,
+      firstMp4Playing: scope.__firstMp4Playing,
+      lastHlsTime: scope.__lastHlsTime,
+    };
+  });
 
 /** Paths of every request the page makes, in order. */
 const trackRequests = (page: Page): string[] => {
@@ -84,9 +136,26 @@ const reportedSeconds = (page: Page) =>
     () => (globalThis as typeof globalThis & { __seconds: number[] }).__seconds
   );
 
-const openStory = async (page: Page, story = HLS_STORY) => {
+/**
+ * Opens a story. By default it waits for the video's metadata: until then
+ * the player has no height, and the control bar moves under the pointer when
+ * the picture arrives.
+ */
+const openStory = async (
+  page: Page,
+  story = HLS_STORY,
+  { waitForMetadata = true } = {}
+) => {
   await page.goto(`?story=${story}&mode=preview`);
-  await expect(page.locator('video')).toBeAttached();
+  const video = page.locator('video');
+  await expect(video).toBeAttached();
+  if (waitForMetadata) {
+    await expect
+      .poll(() =>
+        video.evaluate((element: HTMLVideoElement) => element.readyState)
+      )
+      .toBeGreaterThan(0);
+  }
 };
 
 const play = (page: Page) =>
@@ -282,6 +351,7 @@ test.describe('VideoPlayer HLS @e2e', () => {
       await route.fulfill({ status: 404, body: 'not found' });
     });
 
+    await recordFirstPlaying(page);
     let before: VideoState;
     try {
       await openStory(page);
@@ -300,7 +370,14 @@ test.describe('VideoPlayer HLS @e2e', () => {
     await expect
       .poll(() => videoSrc(page), { timeout: 90_000 })
       .toMatch(/\/sample\.mp4$/);
-    await expect.poll(() => videoTime(page)).toBeGreaterThan(before.time + 0.5);
+    // The MP4 starts where the stream stopped, not from 0.
+    await expect
+      .poll(async () => (await playbackMarks(page)).firstMp4Playing)
+      .not.toBeNull();
+    const { lastHlsTime, firstMp4Playing } = await playbackMarks(page);
+    expect(lastHlsTime).toBeGreaterThan(before.time);
+    expect(firstMp4Playing).toBeGreaterThanOrEqual(lastHlsTime - 0.5);
+    await expect.poll(() => videoTime(page)).toBeGreaterThan(lastHlsTime);
     const after = await readVideo(page);
     expect(after.paused).toBe(false);
     expect(after.rate).toBe(1.25);
@@ -312,19 +389,61 @@ test.describe('VideoPlayer HLS @e2e', () => {
     );
   });
 
-  test('resumes the HLS stream from the saved position', async ({
-    page,
-    browserName,
-  }) => {
-    await page.addInitScript((key) => {
-      localStorage.setItem(key, '6');
-    }, SAVED_POSITION_KEY);
-    await openStory(page);
-    await play(page);
+  const resumeCases = [
+    { name: '', master: 'ok' },
+    // The click arrives before the stream has any data.
+    { name: ' when play comes before the stream loads', master: 'late' },
+    { name: ' when the master fails', master: 'fails' },
+  ] as const;
+  for (const { name, master } of resumeCases) {
+    test(`resumes at the lesson's saved position${name}`, async ({
+      page,
+      browserName,
+    }) => {
+      await recordFirstPlaying(page);
+      let releaseMaster = () => {};
+      const masterReleased = new Promise<void>((resolve) => {
+        releaseMaster = resolve;
+      });
+      await page.route('**/hls/master.m3u8', async (route) => {
+        if (master === 'fails') {
+          return route.fulfill({ status: 404, body: 'not found' });
+        }
+        if (master === 'late') await masterReleased;
+        return route.continue();
+      });
 
-    await expect.poll(() => videoTime(page)).toBeGreaterThan(6.2);
-    expectHlsEngine(await videoSrc(page), browserName);
-  });
+      try {
+        // With the master held there is no metadata before the click.
+        await openStory(page, RESUME_STORY, {
+          waitForMetadata: master !== 'late',
+        });
+        if (master === 'late') {
+          // Without metadata the player has no height yet and the center
+          // button sits over the control bar: use the bar's play button.
+          await page
+            .getByRole('button', { name: 'Reproduzir', exact: true })
+            .click();
+        } else {
+          await play(page);
+        }
+      } finally {
+        releaseMaster();
+      }
+
+      // Playback starts at the saved position, never from 0 first.
+      await expect
+        .poll(async () => (await playbackMarks(page)).firstPlaying)
+        .not.toBeNull();
+      const { firstPlaying } = await playbackMarks(page);
+      expect(firstPlaying).toBeGreaterThanOrEqual(RESUME_AT - 0.5);
+      if (master === 'fails') {
+        expect(await videoSrc(page)).toMatch(/\/sample\.mp4$/);
+      } else {
+        expectHlsEngine(await videoSrc(page), browserName);
+      }
+    });
+  }
 
   test('reports completion above 95% on the HLS stream', async ({
     page,

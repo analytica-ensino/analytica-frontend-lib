@@ -15,6 +15,10 @@ jest.mock('hls.js', () => ({
 }));
 
 const MP4 = 'https://cdn.example.com/lesson.mp4';
+const LEVELS = [
+  { height: 360, bitrate: 1 },
+  { height: 720, bitrate: 2 },
+];
 const HLS = 'https://cdn.example.com/hls/lesson/master.m3u8';
 
 /** jsdom does not play media: the test sets the time the element reports. */
@@ -52,6 +56,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  jest.useRealTimers();
   jest.restoreAllMocks();
   delete (globalThis as { MediaSource?: unknown }).MediaSource;
 });
@@ -91,6 +96,38 @@ describe('VideoPlayer with HLS', () => {
       await waitFor(() => expect(MockHls.instances).toHaveLength(1));
       return { ...view, video, media, hls: MockHls.last, onTimeUpdate };
     };
+
+    it('keeps the controls on screen while the quality menu is open', async () => {
+      jest.useFakeTimers();
+      const { container, hls } = await renderHlsPlayer();
+      act(() => hls.parseManifest(LEVELS));
+      const section = container.querySelector('section') as HTMLElement;
+      const button = screen.getByRole('button', { name: 'Qualidade' });
+      const controls = button.closest('.bottom-0') as HTMLElement;
+      /** The pointer leaves the player, with no control holding focus. */
+      const leavePlayer = () => {
+        act(() => (document.activeElement as HTMLElement | null)?.blur());
+        fireEvent.mouseLeave(section);
+        act(() => {
+          jest.advanceTimersByTime(1_500);
+        });
+      };
+
+      fireEvent.mouseEnter(section);
+      fireEvent.click(button);
+      act(() => {
+        jest.advanceTimersByTime(0);
+      });
+      leavePlayer();
+      expect(screen.getByRole('menu', { name: 'Qualidade' })).toBeVisible();
+      expect(controls).toHaveClass('opacity-100');
+
+      // Closed, the controls hide as usual.
+      fireEvent.mouseDown(document.body);
+      fireEvent.mouseEnter(section);
+      leavePlayer();
+      expect(controls).toHaveClass('opacity-0');
+    });
 
     it('leaves the source to hls.js and offers the quality menu', async () => {
       const { video, hls } = await renderHlsPlayer();

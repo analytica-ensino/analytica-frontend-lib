@@ -273,12 +273,20 @@ describe('level helpers', () => {
     expect(findLevelIndex(levels, 1080)).toBe(-1);
   });
 
-  it('starts at 480p, else the tallest below it, else the shortest', () => {
+  it('starts at 480p, else the tallest below it, else lets ABR choose', () => {
     const level = (height: number) => ({ height, bitrate: height });
     expect(pickStartLevel([360, 480, 720].map(level))).toBe(1);
     expect(pickStartLevel([240, 360, 720].map(level))).toBe(1);
-    expect(pickStartLevel([1080, 720].map(level))).toBe(1);
-    expect(pickStartLevel([])).toBe(0);
+    expect(pickStartLevel([1080, 720].map(level))).toBe(-1);
+    expect(pickStartLevel([])).toBe(-1);
+  });
+
+  it('never starts on a level without a picture size', () => {
+    const level = (height: number) => ({ height, bitrate: height });
+    // hls.js reports 0 for a variant without RESOLUTION.
+    expect(pickStartLevel([0, 360, 720].map(level))).toBe(1);
+    expect(pickStartLevel([0, 720].map(level))).toBe(-1);
+    expect(pickStartLevel([0].map(level))).toBe(-1);
   });
 });
 

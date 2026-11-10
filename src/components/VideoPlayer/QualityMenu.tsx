@@ -26,6 +26,11 @@ export interface QualityMenuProps {
   isFullscreen: boolean;
   /** Icon size, following the other controls. */
   iconSize?: number;
+  /**
+   * Told when the menu opens and closes, so the player keeps its controls on
+   * screen while the menu is open (as it does for the speed menu).
+   */
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -44,11 +49,27 @@ const QualityMenu = ({
   onSelect,
   isFullscreen,
   iconSize = 24,
+  onOpenChange,
 }: Readonly<QualityMenuProps>) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpenState, setIsOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const hasMenu = qualities.length >= 2;
+  const isOpen = isOpenState && hasMenu;
+
+  // The menu goes away with the renditions (MP4 fallback, another lesson):
+  // it must not pop back open when a new list arrives.
+  useEffect(() => {
+    if (!hasMenu) setIsOpen(false);
+  }, [hasMenu]);
+
+  useEffect(() => {
+    onOpenChange?.(isOpen);
+  }, [isOpen, onOpenChange]);
+
+  // Unmounting while open must not leave the player believing it still is.
+  useEffect(() => () => onOpenChange?.(false), [onOpenChange]);
 
   // Closes on a click outside both the button and the (portaled) menu.
   useEffect(() => {
@@ -78,7 +99,7 @@ const QualityMenu = ({
     return () => clearTimeout(timer);
   }, [isOpen]);
 
-  if (qualities.length < 2) return null;
+  if (!hasMenu) return null;
 
   const options: QualitySelection[] = [AUTO_QUALITY, ...qualities];
 

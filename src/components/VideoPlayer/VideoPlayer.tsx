@@ -485,6 +485,7 @@ const VideoPlayer = ({
   }, [src, storageKey]);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [showQualityMenu, setShowQualityMenu] = useState(false);
   const lastSaveTimeRef = useRef(0);
   const trackRef = useRef<HTMLTrackElement>(null);
   const controlsTimeoutRef = useRef<number | null>(null);
@@ -494,8 +495,8 @@ const VideoPlayer = ({
    * Check if user is currently interacting with controls
    */
   const isUserInteracting = useCallback(() => {
-    // Check if speed menu is open
-    if (showSpeedMenu) {
+    // Check if the speed or the quality menu is open
+    if (showSpeedMenu || showQualityMenu) {
       return true;
     }
 
@@ -517,7 +518,7 @@ const VideoPlayer = ({
     }
 
     return false;
-  }, [showSpeedMenu]);
+  }, [showSpeedMenu, showQualityMenu]);
 
   /**
    * Clear controls timeout
@@ -1625,6 +1626,7 @@ const VideoPlayer = ({
                 onSelect={hlsSource.selectQuality}
                 isFullscreen={isFullscreen}
                 iconSize={getIconSize()}
+                onOpenChange={setShowQualityMenu}
               />
             </div>
           </div>
