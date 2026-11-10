@@ -79,6 +79,13 @@ export interface LessonViewPageProps {
   readonly breadcrumbItems?: ReactNode;
   /** Runs before any breadcrumb navigation away from the lesson. */
   readonly onNavigateAway?: () => void;
+  /**
+   * Pauses the video when the tab loses focus. On by default; pass
+   * `!hasLessonBackgroundPlayback` from `useModules`.
+   */
+  readonly pauseOnBackground?: boolean;
+  /** Shows the PiP button. Pass `hasLessonPictureInPicture` from `useModules`. */
+  readonly allowPictureInPicture?: boolean;
 }
 
 interface LessonCardProps {
@@ -131,6 +138,8 @@ export function LessonViewPage({
   onOpenQuestionnaire,
   breadcrumbItems,
   onNavigateAway,
+  pauseOnBackground,
+  allowPictureInPicture,
 }: LessonViewPageProps) {
   const { subjectId, topicId } = useParams<{
     subjectId: string;
@@ -735,6 +744,8 @@ export function LessonViewPage({
             storageKey={`lesson-${currentLesson.id}`}
             userId={userId}
             className="w-full h-full object-contain rounded-b-xl"
+            pauseOnBackground={pauseOnBackground}
+            allowPictureInPicture={allowPictureInPicture}
           />
         </span>
       </div>

@@ -55,6 +55,11 @@ export interface UseModulesReturn {
   // playing when the tab loses focus (institution-wide). Off by default.
   hasLessonPictureInPicture: boolean;
 
+  // Background playback on the lesson player: the video keeps playing when the
+  // tab loses focus, without the PiP button (institution-wide). Off by
+  // default.
+  hasLessonBackgroundPlayback: boolean;
+
   // AI correction of dissertative answers (institution-wide). Off by default:
   // an institution that wants its teachers to be the only graders must be able
   // to say so, and with it off the essays keep landing in the manual queue.
@@ -165,10 +170,11 @@ export const useModules = (): UseModulesReturn => {
     // "Guia do Vestiba" playlist (opt-in per institution, defaults off)
     hasVestibaGuide: modules.vestibaGuide ?? false,
 
-    // Lesson playlists/favorites and picture-in-picture (opt-in per
-    // institution, defaults off)
+    // Lesson playlists/favorites, picture-in-picture and background playback
+    // (opt-in per institution, defaults off)
     hasLessonFavorites: modules.lessonFavorites ?? false,
     hasLessonPictureInPicture: modules.lessonPictureInPicture ?? false,
+    hasLessonBackgroundPlayback: modules.lessonBackgroundPlayback ?? false,
 
     // AI correction of dissertative answers (opt-in per institution, defaults
     // off — with it off only the teacher grades an essay)

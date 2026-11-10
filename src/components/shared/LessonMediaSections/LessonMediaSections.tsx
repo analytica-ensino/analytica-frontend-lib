@@ -39,6 +39,16 @@ export interface LessonVideoSectionProps {
   emptyMessage?: string;
   /** Rendered directly below the player (alerts, questionnaire cards, ...). */
   children?: ReactNode;
+  /**
+   * Pauses the video when the tab is hidden or the window loses focus. On by
+   * default; pass `!hasLessonBackgroundPlayback` from `useModules`.
+   */
+  pauseOnBackground?: boolean;
+  /**
+   * Shows the picture-in-picture button. Pass `hasLessonPictureInPicture`
+   * from `useModules`.
+   */
+  allowPictureInPicture?: boolean;
 }
 
 /**
@@ -58,6 +68,8 @@ export const LessonVideoSection = ({
   className = 'w-full h-full object-cover rounded-b-xl',
   emptyMessage = 'Vídeo não disponível para esta aula.',
   children,
+  pauseOnBackground,
+  allowPictureInPicture,
 }: LessonVideoSectionProps) => {
   if (!video.src) {
     return (
@@ -82,6 +94,8 @@ export const LessonVideoSection = ({
         autoSave={persistProgress}
         storageKey={storageKey}
         userId={userId}
+        pauseOnBackground={pauseOnBackground}
+        allowPictureInPicture={allowPictureInPicture}
       />
       {children}
     </>

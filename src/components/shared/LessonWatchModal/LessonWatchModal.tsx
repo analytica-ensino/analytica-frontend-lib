@@ -36,6 +36,13 @@ export interface LessonWatchModalProps {
    * Modal title. Defaults to selectedLesson?.title || 'Assistir Aula'
    */
   title?: string;
+  /**
+   * Pauses the video when the tab loses focus. On by default; pass
+   * `!hasLessonBackgroundPlayback` from `useModules`.
+   */
+  pauseOnBackground?: boolean;
+  /** Shows the PiP button. Pass `hasLessonPictureInPicture` from `useModules`. */
+  allowPictureInPicture?: boolean;
 }
 
 type VideoSectionProps = Omit<
@@ -61,6 +68,8 @@ const VideoSection = ({
   onPodcastEnded,
   getBoardImages,
   getBoardImageRef,
+  pauseOnBackground,
+  allowPictureInPicture,
 }: VideoSectionProps) => {
   const boardImages: WhiteboardImage[] = getBoardImages(lesson);
 
@@ -72,6 +81,8 @@ const VideoSection = ({
       onVideoComplete={handleVideoCompleteCallback}
       storageKey={`lesson-${lesson.id}`}
       userId={userId}
+      pauseOnBackground={pauseOnBackground}
+      allowPictureInPicture={allowPictureInPicture}
     >
       <div className="flex flex-col gap-4">
         <Alert
@@ -111,6 +122,8 @@ export const LessonWatchModal = ({
   getBoardImageRef,
   footer,
   title,
+  pauseOnBackground,
+  allowPictureInPicture,
 }: LessonWatchModalProps) => {
   const defaultFooter = (
     <div className="flex gap-3">
@@ -137,6 +150,8 @@ export const LessonWatchModal = ({
             getInitialTimestampValue={getInitialTimestampValue}
             handleVideoTimeUpdate={handleVideoTimeUpdate}
             handleVideoCompleteCallback={handleVideoCompleteCallback}
+            pauseOnBackground={pauseOnBackground}
+            allowPictureInPicture={allowPictureInPicture}
             getPodcastData={getPodcastData}
             onPodcastEnded={onPodcastEnded}
             getBoardImages={getBoardImages}

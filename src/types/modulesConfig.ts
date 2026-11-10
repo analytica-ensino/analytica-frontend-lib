@@ -231,6 +231,14 @@ export interface ModulesConfig {
    */
   lessonPictureInPicture: boolean;
 
+  /**
+   * Background playback on the lesson player (opt-in per institution, off by
+   * default). When `true`, the video keeps playing when the tab is hidden or
+   * the window loses focus, without showing the PiP button. Consumed via
+   * `useModules().hasLessonBackgroundPlayback`.
+   */
+  lessonBackgroundPlayback: boolean;
+
   // Nested configurations
   exams: boolean;
   simulations: SimulationsConfig;
@@ -286,10 +294,11 @@ export const DEFAULT_MODULES: ModulesConfig = {
   // "Guia do Vestiba" playlist off by default (opt-in per institution)
   vestibaGuide: false,
 
-  // Lesson playlists/favorites and picture-in-picture off by default
-  // (opt-in per institution)
+  // Lesson playlists/favorites, picture-in-picture and background playback
+  // off by default (opt-in per institution)
   lessonFavorites: false,
   lessonPictureInPicture: false,
+  lessonBackgroundPlayback: false,
 
   // Nested configurations
   exams: DEFAULT_EXAMS,
