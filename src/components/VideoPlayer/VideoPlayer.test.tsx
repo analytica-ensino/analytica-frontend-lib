@@ -1206,6 +1206,239 @@ describe('VideoPlayer', () => {
 
       expect(mockPause).not.toHaveBeenCalled();
     });
+
+    /**
+     * Starts playback, then hides the tab and blurs the window. The pause spy
+     * is cleared after the click, so only the pauses caused by leaving the tab
+     * are counted (the click itself toggles playback).
+     */
+    const playThenLeave = async () => {
+      await act(async () => {
+        fireEvent.click(
+          screen.getByRole('button', { name: /reproduzir vídeo/i })
+        );
+      });
+      act(() => {
+        fireEvent(screen.getByLabelText(/^vídeo$/i), new Event('play'));
+      });
+      mockPause.mockClear();
+      Object.defineProperty(document, 'hidden', {
+        configurable: true,
+        value: true,
+      });
+      fireEvent(document, new Event('visibilitychange'));
+      fireEvent(window, new Event('blur'));
+    };
+
+    it('keeps playing in the background when pauseOnBackground is false', async () => {
+      render(<VideoPlayer {...defaultProps} pauseOnBackground={false} />);
+
+      await playThenLeave();
+
+      expect(mockPause).not.toHaveBeenCalled();
+    });
+
+    it('keeps playing in the background when picture-in-picture is allowed', async () => {
+      render(<VideoPlayer {...defaultProps} allowPictureInPicture />);
+
+      await playThenLeave();
+
+      expect(mockPause).not.toHaveBeenCalled();
+    });
+
+    it('pauses again when pauseOnBackground is turned back on', async () => {
+      const { rerender } = render(
+        <VideoPlayer {...defaultProps} pauseOnBackground={false} />
+      );
+      rerender(<VideoPlayer {...defaultProps} pauseOnBackground />);
+
+      await playThenLeave();
+
+      expect(mockPause).toHaveBeenCalled();
+    });
+  });
+
+  describe('Picture-in-picture', () => {
+    const pipButton = () =>
+      screen.queryByRole('button', { name: /janela flutuante/i });
+
+    const video = () => document.querySelector('video') as HTMLVideoElement;
+
+    let requestPictureInPicture: jest.Mock;
+    let exitPictureInPicture: jest.Mock;
+
+    /** Enables the standard PiP API on the document and video prototype. */
+    const enableStandardApi = () => {
+      requestPictureInPicture = jest.fn().mockResolvedValue({});
+      exitPictureInPicture = jest.fn().mockResolvedValue(undefined);
+      Object.defineProperty(document, 'pictureInPictureEnabled', {
+        configurable: true,
+        value: true,
+      });
+      Object.defineProperty(document, 'pictureInPictureElement', {
+        configurable: true,
+        value: null,
+        writable: true,
+      });
+      Object.defineProperty(document, 'exitPictureInPicture', {
+        configurable: true,
+        value: exitPictureInPicture,
+      });
+      Object.defineProperty(
+        HTMLVideoElement.prototype,
+        'requestPictureInPicture',
+        { configurable: true, value: requestPictureInPicture }
+      );
+    };
+
+    afterEach(() => {
+      const doc = document as unknown as Record<string, unknown>;
+      delete doc.pictureInPictureEnabled;
+      delete doc.pictureInPictureElement;
+      delete doc.exitPictureInPicture;
+      const proto = HTMLVideoElement.prototype as unknown as Record<
+        string,
+        unknown
+      >;
+      delete proto.requestPictureInPicture;
+      delete proto.webkitSupportsPresentationMode;
+      delete proto.webkitSetPresentationMode;
+      delete proto.webkitPresentationMode;
+    });
+
+    it('does not show the button when picture-in-picture is not allowed', () => {
+      enableStandardApi();
+      render(<VideoPlayer {...defaultProps} />);
+
+      expect(pipButton()).not.toBeInTheDocument();
+    });
+
+    it('does not show the button in browsers without a PiP API (Firefox)', () => {
+      render(<VideoPlayer {...defaultProps} allowPictureInPicture />);
+
+      expect(pipButton()).not.toBeInTheDocument();
+    });
+
+    it('opens the floating window with the standard API', async () => {
+      enableStandardApi();
+      render(<VideoPlayer {...defaultProps} allowPictureInPicture />);
+
+      const button = screen.getByRole('button', {
+        name: 'Abrir em janela flutuante',
+      });
+      expect(button).toHaveAttribute('aria-pressed', 'false');
+
+      await act(async () => {
+        fireEvent.click(button);
+      });
+
+      expect(requestPictureInPicture).toHaveBeenCalledTimes(1);
+      expect(exitPictureInPicture).not.toHaveBeenCalled();
+    });
+
+    it('closes the floating window when the video is already in it', async () => {
+      enableStandardApi();
+      render(<VideoPlayer {...defaultProps} allowPictureInPicture />);
+      Object.defineProperty(document, 'pictureInPictureElement', {
+        configurable: true,
+        value: video(),
+      });
+
+      await act(async () => {
+        fireEvent.click(pipButton()!);
+      });
+
+      expect(exitPictureInPicture).toHaveBeenCalledTimes(1);
+      expect(requestPictureInPicture).not.toHaveBeenCalled();
+    });
+
+    it('swallows a rejected request, keeping the button usable', async () => {
+      enableStandardApi();
+      requestPictureInPicture.mockRejectedValue(new Error('NotAllowedError'));
+      render(<VideoPlayer {...defaultProps} allowPictureInPicture />);
+
+      await act(async () => {
+        fireEvent.click(pipButton()!);
+      });
+
+      expect(
+        screen.getByRole('button', { name: 'Abrir em janela flutuante' })
+      ).toBeInTheDocument();
+    });
+
+    it('syncs the button with the window opening and closing', () => {
+      enableStandardApi();
+      render(<VideoPlayer {...defaultProps} allowPictureInPicture />);
+
+      act(() => {
+        fireEvent(video(), new Event('enterpictureinpicture'));
+      });
+      expect(
+        screen.getByRole('button', { name: 'Sair da janela flutuante' })
+      ).toHaveAttribute('aria-pressed', 'true');
+
+      act(() => {
+        fireEvent(video(), new Event('leavepictureinpicture'));
+      });
+      expect(
+        screen.getByRole('button', { name: 'Abrir em janela flutuante' })
+      ).toHaveAttribute('aria-pressed', 'false');
+    });
+
+    it('uses the presentation mode on Safari without the standard API', async () => {
+      const setPresentationMode = jest.fn();
+      Object.defineProperty(
+        HTMLVideoElement.prototype,
+        'webkitSupportsPresentationMode',
+        { configurable: true, value: () => true }
+      );
+      Object.defineProperty(
+        HTMLVideoElement.prototype,
+        'webkitSetPresentationMode',
+        { configurable: true, value: setPresentationMode }
+      );
+      Object.defineProperty(
+        HTMLVideoElement.prototype,
+        'webkitPresentationMode',
+        { configurable: true, value: 'inline', writable: true }
+      );
+      render(<VideoPlayer {...defaultProps} allowPictureInPicture />);
+
+      await act(async () => {
+        fireEvent.click(pipButton()!);
+      });
+      expect(setPresentationMode).toHaveBeenLastCalledWith(
+        'picture-in-picture'
+      );
+
+      Object.defineProperty(video(), 'webkitPresentationMode', {
+        configurable: true,
+        value: 'picture-in-picture',
+      });
+      act(() => {
+        fireEvent(video(), new Event('webkitpresentationmodechanged'));
+      });
+      expect(
+        screen.getByRole('button', { name: 'Sair da janela flutuante' })
+      ).toBeInTheDocument();
+
+      await act(async () => {
+        fireEvent.click(pipButton()!);
+      });
+      expect(setPresentationMode).toHaveBeenLastCalledWith('inline');
+    });
+
+    it('hides the button when picture-in-picture is turned off', () => {
+      enableStandardApi();
+      const { rerender } = render(
+        <VideoPlayer {...defaultProps} allowPictureInPicture />
+      );
+      expect(pipButton()).toBeInTheDocument();
+
+      rerender(<VideoPlayer {...defaultProps} allowPictureInPicture={false} />);
+
+      expect(pipButton()).not.toBeInTheDocument();
+    });
   });
 
   describe('Callbacks', () => {
