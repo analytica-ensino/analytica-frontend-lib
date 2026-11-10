@@ -79,6 +79,12 @@ export interface LessonViewPageProps {
   readonly breadcrumbItems?: ReactNode;
   /** Runs before any breadcrumb navigation away from the lesson. */
   readonly onNavigateAway?: () => void;
+  /**
+   * Extra actions for the lesson on screen, rendered in its header before the
+   * download button (the student's favorite and "save to list", for one).
+   * Called again whenever the student switches lessons.
+   */
+  readonly renderHeaderActions?: (lesson: LessonDetails) => ReactNode;
 }
 
 interface LessonCardProps {
@@ -131,6 +137,7 @@ export function LessonViewPage({
   onOpenQuestionnaire,
   breadcrumbItems,
   onNavigateAway,
+  renderHeaderActions,
 }: LessonViewPageProps) {
   const { subjectId, topicId } = useParams<{
     subjectId: string;
@@ -706,12 +713,15 @@ export function LessonViewPage({
             )}
           </div>
 
-          <DownloadButton
-            content={downloadContent}
-            lessonTitle={lessonData.title}
-            onDownloadComplete={handleDownloadComplete}
-            className="flex-shrink-0"
-          />
+          <div className="flex flex-row items-center gap-2 flex-shrink-0">
+            {renderHeaderActions?.(currentLesson)}
+            <DownloadButton
+              content={downloadContent}
+              lessonTitle={lessonData.title}
+              onDownloadComplete={handleDownloadComplete}
+              className="flex-shrink-0"
+            />
+          </div>
         </span>
 
         <span
