@@ -58,3 +58,38 @@ export const VideoHlsComVoltaAoMp4: Story = () => {
 
   return ready ? <LessonVideo hlsSrc={FIXTURE_HLS} /> : null;
 };
+
+/**
+ * Aula convertida com a volta ao MP4 trocada com a página aberta, como quando a
+ * revalidação de `/me/modules` traz `lessonVideoMp4Only` diferente do que
+ * estava salvo: o botão liga e desliga a chave no store de módulos.
+ */
+export const VideoHlsComTrocaDaChave: Story = () => {
+  const mp4Only = useModulesStore(
+    (state) => state.modules.lessonVideoMp4Only === true
+  );
+
+  useEffect(
+    () => () => {
+      useModulesStore.setState({ modules: DEFAULT_MODULES });
+    },
+    []
+  );
+
+  return (
+    <div className="flex flex-col gap-4">
+      <button
+        type="button"
+        className="self-start rounded border px-3 py-1"
+        onClick={() =>
+          useModulesStore.setState((state) => ({
+            modules: { ...state.modules, lessonVideoMp4Only: !mp4Only },
+          }))
+        }
+      >
+        {mp4Only ? 'Desligar volta ao MP4' : 'Ligar volta ao MP4'}
+      </button>
+      <LessonVideo hlsSrc={FIXTURE_HLS} />
+    </div>
+  );
+};
