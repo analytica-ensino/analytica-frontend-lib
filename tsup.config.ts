@@ -560,6 +560,9 @@ export default defineConfig({
     '@tiptap/extension-image',
     '@tiptap/extension-table',
     'xlsx',
+    // Imported on demand by the VideoPlayer when a lesson has HLS; external,
+    // the app's bundler turns it into a chunk of its own.
+    'hls.js',
   ],
   target: 'es2022',
   sourcemap: true,

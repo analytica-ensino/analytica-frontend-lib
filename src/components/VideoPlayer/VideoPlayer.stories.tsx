@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Story } from '@ladle/react';
 import VideoPlayer from './VideoPlayer';
 
@@ -77,4 +78,56 @@ export const MobileView: Story = () => (
       subtitles={SAMPLE_SUBTITLES}
     />
   </div>
+);
+
+/**
+ * Vídeo de teste servido pelo próprio Ladle (`public/fixtures/video`, gerado
+ * por `scripts/video-fixtures/generate.sh`): 10 s, HLS em 360p, 480p e 720p,
+ * mais o MP4 de fallback. Caminhos relativos funcionam no `ladle serve` e no
+ * Ladle publicado.
+ */
+const FIXTURE_MP4 = 'fixtures/video/sample.mp4';
+const FIXTURE_HLS = 'fixtures/video/hls/master.m3u8';
+const FIXTURE_CAPTIONS = 'fixtures/video/captions.vtt';
+/** Stream de teste da conversão no CDN (60 s, 360p a 1080p). */
+const CDN_TEST_HLS =
+  'https://cdn.analyticaensino.com.br/hls/_test/ae-3284/master.m3u8';
+
+/** Player HLS com o estado dos callbacks visível, como a página da aula usa. */
+const HlsPlayerWithStatus = ({ hlsSrc }: Readonly<{ hlsSrc: string }>) => {
+  const [seconds, setSeconds] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [completed, setCompleted] = useState(false);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <VideoPlayer
+        src={FIXTURE_MP4}
+        hlsSrc={hlsSrc}
+        subtitles={FIXTURE_CAPTIONS}
+        title="Vídeo em HLS"
+        subtitle="A engrenagem escolhe a qualidade; Automático é o padrão"
+        onTimeUpdate={setSeconds}
+        onProgress={setProgress}
+        onVideoComplete={() => setCompleted(true)}
+      />
+      <p role="status" className="text-sm text-text-700">
+        Tempo: {Math.floor(seconds)} s · Progresso: {Math.floor(progress)}% ·
+        Concluído: {completed ? 'sim' : 'não'}
+      </p>
+    </div>
+  );
+};
+
+/**
+ * HLS com seletor de qualidade. Chrome e Firefox tocam via hls.js; Safari
+ * (macOS e iOS) toca nativo. Se o HLS falhar, cai para o MP4 na mesma posição.
+ */
+export const Hls: Story = () => <HlsPlayerWithStatus hlsSrc={FIXTURE_HLS} />;
+
+/**
+ * Stream de teste real do CDN, para conferência manual em navegador e iPhone.
+ */
+export const HlsCdnTestStream: Story = () => (
+  <HlsPlayerWithStatus hlsSrc={CDN_TEST_HLS} />
 );

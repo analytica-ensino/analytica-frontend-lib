@@ -18,3 +18,7 @@ test-report.xml
 # for development
 CLAUDE.md
 /.cache
+
+# Playwright (yarn test:e2e)
+test-results/
+playwright-report/
