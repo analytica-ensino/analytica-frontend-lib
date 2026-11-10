@@ -29,6 +29,7 @@ export function mapApiLessonToLessonDetails(
     description: apiLesson.content.name,
     bnccCode: apiLesson.content.bnccCode,
     videoUrl: apiLesson.urlVideo,
+    videoHlsUrl: apiLesson.urlVideoHls ?? null,
     videoDuration: 0, // Duration not provided by API, will be set when video loads
     thumbnailUrl: apiLesson.urlCover,
     order: index + 1, // Use index as order since API doesn't provide order

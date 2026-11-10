@@ -26,6 +26,8 @@ jest.mock('../shared/LessonMediaSections', () => {
         <button
           type="button"
           data-testid="video-player"
+          data-src={String((props.video as { src?: string }).src)}
+          data-hls-src={String((props.video as { hlsSrc?: string }).hlsSrc)}
           data-autosave={String(props.persistProgress)}
           data-initial-time={String(
             props.persistProgress ? props.initialTime : 0
@@ -161,6 +163,23 @@ describe('LessonViewPage', () => {
     expect(await screen.findByTestId('video-player')).toBeInTheDocument();
     expect(api.get).toHaveBeenCalledWith('/lesson/by-subtopic/sub-1');
     expect(screen.getAllByText('Estrutura do DNA').length).toBeGreaterThan(0);
+  });
+
+  it('hands the player the MP4 and, beside it, the HLS master', async () => {
+    const master = 'https://cdn.test/hls/abc/master.m3u8';
+    renderPage(makeApi([apiLesson({ urlVideoHls: master })]));
+
+    const player = await screen.findByTestId('video-player');
+    expect(player).toHaveAttribute('data-src', 'https://cdn.test/v.mp4');
+    expect(player).toHaveAttribute('data-hls-src', master);
+  });
+
+  it('hands the player no HLS master while the lesson is not converted', async () => {
+    renderPage(makeApi([apiLesson({ urlVideoHls: null })]));
+
+    const player = await screen.findByTestId('video-player');
+    expect(player).toHaveAttribute('data-src', 'https://cdn.test/v.mp4');
+    expect(player).toHaveAttribute('data-hls-src', 'null');
   });
 
   it('lists the sibling lessons in the sidebar', async () => {

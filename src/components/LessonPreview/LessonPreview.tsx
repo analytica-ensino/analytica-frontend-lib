@@ -15,6 +15,7 @@ import type { Lesson } from '../../types/lessons';
 import type { WhiteboardImage } from '../Whiteboard/Whiteboard';
 import { cn } from '../../utils/utils';
 import { LessonWatchModal } from '../shared/LessonWatchModal';
+import type { LessonVideoData } from '../shared/LessonMediaSections';
 import { AddActivityOptionModal, type ActivityOption } from './components';
 import { ChooseActivityModelModal } from '../ChooseActivityModelModal';
 import type { BaseApiClient } from '../../types/api';
@@ -32,6 +33,8 @@ import { buildLessonTrail } from '../../utils/lessonTrail';
  */
 interface LessonWithMedia extends Lesson {
   videoSrc?: string;
+  /** HLS master of the video; `videoSrc` stays the MP4 and the fallback. */
+  videoHlsSrc?: string | null;
   videoPoster?: string;
   videoSubtitles?: string;
   podcastSrc?: string;
@@ -176,10 +179,11 @@ export const LessonPreview = ({
   /**
    * Get video data from lesson
    */
-  const getVideoData = (lesson: LessonWithMedia | null) => {
+  const getVideoData = (lesson: LessonWithMedia | null): LessonVideoData => {
     if (!lesson) return { src: '' };
     return {
       src: lesson.videoSrc || '',
+      hlsSrc: lesson.videoHlsSrc,
       poster: lesson.videoPoster,
       subtitles: lesson.videoSubtitles,
     };

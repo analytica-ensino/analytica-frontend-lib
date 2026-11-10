@@ -361,6 +361,30 @@ describe('RecommendedLessonCreate.utils', () => {
   });
 
   describe('convertLessonToPreview', () => {
+    it('should keep the MP4 as videoSrc and map the HLS master beside it', () => {
+      const lesson: Lesson = {
+        id: 'lesson-1',
+        urlVideo: 'https://cdn.test/v.mp4',
+        urlVideoHls: 'https://cdn.test/hls/abc/master.m3u8',
+      };
+
+      const result = convertLessonToPreview(lesson);
+
+      expect(result.videoSrc).toBe('https://cdn.test/v.mp4');
+      expect(result.videoHlsSrc).toBe('https://cdn.test/hls/abc/master.m3u8');
+    });
+
+    it('should map no HLS master for a lesson not converted', () => {
+      const result = convertLessonToPreview({
+        id: 'lesson-1',
+        urlVideo: 'https://cdn.test/v.mp4',
+        urlVideoHls: null,
+      });
+
+      expect(result.videoSrc).toBe('https://cdn.test/v.mp4');
+      expect(result.videoHlsSrc).toBeNull();
+    });
+
     it('should convert lesson to preview format with undefined position', () => {
       const lesson: Lesson = {
         id: 'lesson-1',

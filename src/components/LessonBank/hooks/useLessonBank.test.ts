@@ -622,6 +622,39 @@ describe('useLessonBank', () => {
       });
     });
 
+    it('should hand over the HLS master beside the MP4', () => {
+      const mockLesson = createMockLesson('1', {
+        urlVideo: 'https://example.com/video.mp4',
+        urlVideoHls: 'https://example.com/hls/abc/master.m3u8',
+      });
+
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+        })
+      );
+
+      const videoData = result.current.getVideoData(mockLesson);
+
+      expect(videoData.src).toBe('https://example.com/video.mp4');
+      expect(videoData.hlsSrc).toBe('https://example.com/hls/abc/master.m3u8');
+    });
+
+    it('should hand over no HLS master while the lesson is not converted', () => {
+      const mockLesson = createMockLesson('1', {
+        urlVideo: 'https://example.com/video.mp4',
+        urlVideoHls: null,
+      });
+
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+        })
+      );
+
+      expect(result.current.getVideoData(mockLesson).hlsSrc).toBeNull();
+    });
+
     it('should return empty video data for null lesson', () => {
       const { result } = renderHook(() =>
         useLessonBank({

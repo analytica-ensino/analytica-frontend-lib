@@ -13,6 +13,7 @@ import type {
   LessonsPagination,
 } from '../../../types/lessons';
 import type { WhiteboardImage } from '../../Whiteboard/Whiteboard';
+import type { LessonVideoData } from '../../shared/LessonMediaSections';
 
 export interface LessonFilters {
   subjectId?: string[];
@@ -60,11 +61,7 @@ interface UseLessonBankReturn {
   fetchRandomLessons: (count: number) => Promise<Lesson[]>;
 
   // Data getters
-  getVideoData: (lesson: Lesson | null) => {
-    src: string;
-    poster?: string;
-    subtitles?: string;
-  };
+  getVideoData: (lesson: Lesson | null) => LessonVideoData;
   getPodcastData: (lesson: Lesson | null) => {
     src: string;
     title: string;
@@ -395,7 +392,7 @@ export const useLessonBank = (
   /**
    * Get video data from lesson
    */
-  const getVideoData = useCallback((lesson: Lesson | null) => {
+  const getVideoData = useCallback((lesson: Lesson | null): LessonVideoData => {
     if (!lesson) {
       return {
         src: '',
@@ -406,6 +403,7 @@ export const useLessonBank = (
 
     return {
       src: lesson.urlVideo || '',
+      hlsSrc: lesson.urlVideoHls,
       poster: lesson.urlCover,
       subtitles: lesson.urlSubtitle,
     };

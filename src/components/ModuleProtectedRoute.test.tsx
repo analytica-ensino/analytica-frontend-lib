@@ -63,6 +63,7 @@ const createMockModulesReturn = (
   hasVestibaGuide: false,
   hasLessonFavorites: false,
   hasLessonPictureInPicture: false,
+  hasLessonVideoMp4Only: false,
   hasAiDissertativeCorrection: false,
   hasExams: true,
   hasSimulations: true,

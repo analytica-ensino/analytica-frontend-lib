@@ -231,6 +231,17 @@ export interface ModulesConfig {
    */
   lessonPictureInPicture: boolean;
 
+  /**
+   * Way back to the MP4 on the lesson player, without a deploy (off by
+   * default). Off, a lesson whose `urlVideoHls` is filled plays its HLS master,
+   * with the quality menu; on, every lesson plays its MP4 (`urlVideo`) as it
+   * did before HLS, with no quality menu. Only a real `true` switches it on: a
+   * missing key (an older backend, an older persisted state) reads as off.
+   * Consumed via `useModules().hasLessonVideoMp4Only` and by the lesson players
+   * of the lib (`useLessonVideoHlsSrc`).
+   */
+  lessonVideoMp4Only: boolean;
+
   // Nested configurations
   exams: boolean;
   simulations: SimulationsConfig;
@@ -291,6 +302,9 @@ export const DEFAULT_MODULES: ModulesConfig = {
   lessonFavorites: false,
   lessonPictureInPicture: false,
 
+  // Lesson videos play their HLS when they have one; `true` forces the MP4
+  lessonVideoMp4Only: false,
+
   // Nested configurations
   exams: DEFAULT_EXAMS,
   simulations: DEFAULT_SIMULATIONS,
@@ -349,3 +363,18 @@ export const mergeModulesConfig = (
     simulatedScore: { ...DEFAULT_SIMULATED_SCORE, ...v.simulatedScore },
   };
 };
+
+/**
+ * Whether the lesson player must ignore HLS and play the MP4
+ * (`lessonVideoMp4Only`).
+ *
+ * Strict on purpose: only a real `true` switches HLS off. A missing key — a
+ * backend that does not know it yet, a state persisted before it existed —
+ * reads as off, so the default is always "HLS when the lesson has it".
+ *
+ * @param modules - Modules configuration, possibly partial or not loaded
+ * @returns True when the lesson player must play the MP4 only
+ */
+export const isLessonVideoMp4Only = (
+  modules?: Partial<Pick<ModulesConfig, 'lessonVideoMp4Only'>> | null
+): boolean => modules?.lessonVideoMp4Only === true;

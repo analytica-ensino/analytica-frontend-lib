@@ -244,6 +244,7 @@ export function LessonViewPage({
       bnccCode: currentLesson?.bnccCode,
       video: {
         src: currentLesson?.videoUrl ?? '',
+        hlsSrc: currentLesson?.videoHlsUrl,
         poster: currentLesson?.thumbnailUrl,
         subtitles: currentLesson?.subtitleUrl,
       },

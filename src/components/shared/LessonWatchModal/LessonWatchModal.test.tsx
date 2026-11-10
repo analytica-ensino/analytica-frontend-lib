@@ -18,7 +18,7 @@ jest.mock('../LessonMediaSections', () => ({
     initialTime,
     children,
   }: {
-    video: { src: string };
+    video: { src: string; hlsSrc?: string | null };
     storageKey?: string;
     initialTime?: number;
     children?: ReactNode;
@@ -26,6 +26,7 @@ jest.mock('../LessonMediaSections', () => ({
     <div
       data-testid="video-section"
       data-src={video.src}
+      data-hls-src={String(video.hlsSrc)}
       data-storage-key={storageKey}
       data-initial-time={String(initialTime)}
     >
@@ -74,6 +75,26 @@ describe('LessonWatchModal', () => {
     expect(screen.getByTestId('board-section')).toHaveAttribute(
       'data-count',
       '1'
+    );
+  });
+
+  it('should hand the HLS master from getVideoData to the video section', () => {
+    render(
+      <LessonWatchModal
+        {...buildProps({
+          getVideoData: jest.fn(() => ({
+            src: 'https://cdn.test/video.mp4',
+            hlsSrc: 'https://cdn.test/hls/abc/master.m3u8',
+          })),
+        })}
+      />
+    );
+
+    const video = screen.getByTestId('video-section');
+    expect(video).toHaveAttribute('data-src', 'https://cdn.test/video.mp4');
+    expect(video).toHaveAttribute(
+      'data-hls-src',
+      'https://cdn.test/hls/abc/master.m3u8'
     );
   });
 

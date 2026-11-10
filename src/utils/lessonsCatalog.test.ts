@@ -49,6 +49,26 @@ describe('mapApiLessonToLessonDetails', () => {
     });
   });
 
+  it('keeps the MP4 as videoUrl and carries the HLS master beside it', () => {
+    const master = 'https://cdn.test/hls/abc/master.m3u8';
+    const lesson = mapApiLessonToLessonDetails(
+      apiLesson({ urlVideoHls: master }),
+      0
+    );
+
+    expect(lesson.videoUrl).toBe('https://cdn.test/v.mp4');
+    expect(lesson.videoHlsUrl).toBe(master);
+  });
+
+  it('maps a lesson not converted yet to no HLS', () => {
+    expect(
+      mapApiLessonToLessonDetails(apiLesson({ urlVideoHls: null }), 0)
+        .videoHlsUrl
+    ).toBeNull();
+    // An API older than the HLS rollout does not send the field at all.
+    expect(mapApiLessonToLessonDetails(apiLesson(), 0).videoHlsUrl).toBeNull();
+  });
+
   it('builds a podcast whenever there is an audio URL', () => {
     const lesson = mapApiLessonToLessonDetails(
       apiLesson({
