@@ -1,6 +1,8 @@
 import {
   DEFAULT_ENEM_MOMENT_REPORT,
+  DEFAULT_MODULES,
   DEFAULT_REPORTS,
+  isLessonVideoMp4Only,
   mergeModulesConfig,
 } from './modulesConfig';
 
@@ -119,5 +121,35 @@ describe('mergeModulesConfig — reports.enemMoment', () => {
     });
 
     expect(merged.reports.enemMoment.sisuSimulator).toBe(false);
+  });
+});
+
+describe('lessonVideoMp4Only', () => {
+  it('is off by default: lessons play their HLS when they have one', () => {
+    expect(DEFAULT_MODULES.lessonVideoMp4Only).toBe(false);
+    expect(isLessonVideoMp4Only(mergeModulesConfig())).toBe(false);
+  });
+
+  it('is on when the stored row says so', () => {
+    expect(
+      isLessonVideoMp4Only(mergeModulesConfig({ lessonVideoMp4Only: true }))
+    ).toBe(true);
+  });
+
+  it('reads a missing key, or no modules at all, as off', () => {
+    expect(isLessonVideoMp4Only({})).toBe(false);
+    expect(isLessonVideoMp4Only(null)).toBe(false);
+    expect(isLessonVideoMp4Only(undefined)).toBe(false);
+  });
+
+  it('turns on only with a real true', () => {
+    expect(
+      isLessonVideoMp4Only({
+        lessonVideoMp4Only: 'true' as unknown as boolean,
+      })
+    ).toBe(false);
+    expect(
+      isLessonVideoMp4Only({ lessonVideoMp4Only: 1 as unknown as boolean })
+    ).toBe(false);
   });
 });

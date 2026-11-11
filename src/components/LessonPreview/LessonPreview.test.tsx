@@ -174,6 +174,7 @@ jest.mock('../shared/LessonWatchModal', () => ({
     onClose: () => void;
     getVideoData?: (lesson: unknown) => {
       src: string;
+      hlsSrc?: string | null;
       poster?: string;
       subtitles?: string;
     };
@@ -192,9 +193,8 @@ jest.mock('../shared/LessonWatchModal', () => ({
     if (!isOpen) return null;
 
     // Call helper functions to test them
-    if (selectedLesson && getVideoData) {
-      getVideoData(selectedLesson);
-    }
+    const videoData =
+      selectedLesson && getVideoData ? getVideoData(selectedLesson) : undefined;
     if (selectedLesson && getPodcastData) {
       getPodcastData(selectedLesson);
     }
@@ -215,7 +215,11 @@ jest.mock('../shared/LessonWatchModal', () => ({
     }
 
     return (
-      <div data-testid="lesson-watch-modal">
+      <div
+        data-testid="lesson-watch-modal"
+        data-video-src={videoData?.src}
+        data-video-hls-src={String(videoData?.hlsSrc)}
+      >
         <button data-testid="close-watch-modal" onClick={onClose}>
           Close
         </button>
@@ -1404,6 +1408,53 @@ describe('LessonPreview', () => {
       fireEvent.click(watchButtons[0]);
 
       expect(screen.getByTestId('lesson-watch-modal')).toBeInTheDocument();
+    });
+
+    it('should hand the HLS master to the watch modal beside the MP4', () => {
+      const lessonsWithHls = [
+        {
+          id: 'lesson-hls',
+          title: 'HLS Lesson',
+          videoSrc: 'https://example.com/video.mp4',
+          videoHlsSrc: 'https://example.com/hls/abc/master.m3u8',
+        },
+      ];
+
+      render(<LessonPreview {...defaultProps} lessons={lessonsWithHls} />);
+
+      fireEvent.click(screen.getAllByTestId(/button-Assistir aula/)[0]);
+
+      const modal = screen.getByTestId('lesson-watch-modal');
+      expect(modal).toHaveAttribute(
+        'data-video-src',
+        'https://example.com/video.mp4'
+      );
+      expect(modal).toHaveAttribute(
+        'data-video-hls-src',
+        'https://example.com/hls/abc/master.m3u8'
+      );
+    });
+
+    it('should hand no HLS master for a lesson not converted', () => {
+      const lessonsWithoutHls = [
+        {
+          id: 'lesson-mp4',
+          title: 'MP4 Lesson',
+          videoSrc: 'https://example.com/video.mp4',
+          videoHlsSrc: null,
+        },
+      ];
+
+      render(<LessonPreview {...defaultProps} lessons={lessonsWithoutHls} />);
+
+      fireEvent.click(screen.getAllByTestId(/button-Assistir aula/)[0]);
+
+      const modal = screen.getByTestId('lesson-watch-modal');
+      expect(modal).toHaveAttribute(
+        'data-video-src',
+        'https://example.com/video.mp4'
+      );
+      expect(modal).toHaveAttribute('data-video-hls-src', 'null');
     });
 
     it('should handle lessons with podcast data', () => {

@@ -607,6 +607,7 @@ describe('createUseClassLessons', () => {
               urlPodCast: 'https://cdn.test/p.mp3',
               podCastTitle: 'Episódio 1',
               urlInitialFrame: 'https://cdn.test/i.png',
+              urlVideoHls: 'https://cdn.test/hls/abc/master.m3u8',
             }),
           ],
         },
@@ -629,6 +630,7 @@ describe('createUseClassLessons', () => {
           title: 'Quadro Inicial',
         },
       ]);
+      // The download is always the MP4, even when the lesson plays HLS.
       expect(result.current.getDownloadContent(lesson).urlVideo).toBe(
         'https://cdn.test/v.mp4'
       );

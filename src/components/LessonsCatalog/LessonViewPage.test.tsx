@@ -26,6 +26,8 @@ jest.mock('../shared/LessonMediaSections', () => {
         <button
           type="button"
           data-testid="video-player"
+          data-src={String((props.video as { src?: string }).src)}
+          data-hls-src={String((props.video as { hlsSrc?: string }).hlsSrc)}
           data-autosave={String(props.persistProgress)}
           data-initial-time={String(
             props.persistProgress ? props.initialTime : 0
@@ -119,6 +121,7 @@ function renderPage(
     mode = 'student',
     entry = '/aulas/s-1/topicos/sub-1/licoes',
     onOpenQuestionnaire,
+    renderHeaderActions,
   }: {
     mode?: 'student' | 'preview';
     entry?: string;
@@ -126,6 +129,7 @@ function renderPage(
       lessonId: string;
       hasQuestionnaire: boolean;
     }) => Promise<void>;
+    renderHeaderActions?: (lesson: { id: string }) => ReactNode;
   } = {}
 ) {
   return render(
@@ -139,6 +143,7 @@ function renderPage(
               routes={ROUTES}
               mode={mode}
               onOpenQuestionnaire={onOpenQuestionnaire}
+              renderHeaderActions={renderHeaderActions}
             />
           }
         />
@@ -163,6 +168,23 @@ describe('LessonViewPage', () => {
     expect(screen.getAllByText('Estrutura do DNA').length).toBeGreaterThan(0);
   });
 
+  it('hands the player the MP4 and, beside it, the HLS master', async () => {
+    const master = 'https://cdn.test/hls/abc/master.m3u8';
+    renderPage(makeApi([apiLesson({ urlVideoHls: master })]));
+
+    const player = await screen.findByTestId('video-player');
+    expect(player).toHaveAttribute('data-src', 'https://cdn.test/v.mp4');
+    expect(player).toHaveAttribute('data-hls-src', master);
+  });
+
+  it('hands the player no HLS master while the lesson is not converted', async () => {
+    renderPage(makeApi([apiLesson({ urlVideoHls: null })]));
+
+    const player = await screen.findByTestId('video-player');
+    expect(player).toHaveAttribute('data-src', 'https://cdn.test/v.mp4');
+    expect(player).toHaveAttribute('data-hls-src', 'null');
+  });
+
   it('lists the sibling lessons in the sidebar', async () => {
     const api = makeApi([
       apiLesson(),
@@ -174,6 +196,45 @@ describe('LessonViewPage', () => {
     renderPage(api);
 
     expect(await screen.findByText('Replicação')).toBeInTheDocument();
+  });
+
+  describe('header actions', () => {
+    it('renders the actions for the lesson on screen, and follows a switch', async () => {
+      const api = makeApi([
+        apiLesson(),
+        apiLesson({
+          id: 'lesson-2',
+          content: { id: 'c-2', name: 'Replicação', bnccCode: 'EM13B' },
+        }),
+      ]);
+      renderPage(api, {
+        renderHeaderActions: (lesson) => (
+          <button type="button" data-testid="header-action">
+            {lesson.id}
+          </button>
+        ),
+      });
+
+      expect(await screen.findByTestId('header-action')).toHaveTextContent(
+        'lesson-1'
+      );
+
+      fireEvent.click(screen.getByText('Replicação'));
+
+      await waitFor(() =>
+        expect(screen.getByTestId('header-action')).toHaveTextContent(
+          'lesson-2'
+        )
+      );
+    });
+
+    it('renders only the download button without actions', async () => {
+      const api = makeApi();
+      renderPage(api);
+
+      await screen.findByTestId('video-player');
+      expect(screen.queryByTestId('header-action')).not.toBeInTheDocument();
+    });
   });
 
   it('opens the lesson pinned by ?aula=', async () => {

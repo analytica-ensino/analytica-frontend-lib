@@ -30,6 +30,8 @@ import DownloadButton, {
   DownloadContent,
 } from '../DownloadButton/DownloadButton';
 import { useCaptionPosition } from './useCaptionPosition';
+import { useHlsSource } from './useHlsSource';
+import QualityMenu from './QualityMenu';
 
 // Constants for timeout durations
 const CONTROLS_HIDE_TIMEOUT = 3000; // 3 seconds for normal control hiding
@@ -50,6 +52,12 @@ export interface VideoEndControls {
 interface VideoPlayerProps {
   /** Video source URL */
   src: string;
+  /**
+   * HLS master playlist (`master.m3u8`). When given it plays instead of `src`,
+   * with a quality menu; `src` stays the fallback if HLS fails. Without it the
+   * player plays `src` exactly as before.
+   */
+  hlsSrc?: string;
   /** Video poster/thumbnail URL */
   poster?: string;
   /** Subtitles URL */
@@ -479,6 +487,7 @@ const SpeedMenu = ({
  */
 const VideoPlayer = ({
   src,
+  hlsSrc,
   poster,
   subtitles,
   title,
@@ -504,6 +513,8 @@ const VideoPlayer = ({
   onDownloadError,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsSource = useHlsSource({ videoRef, src, hlsSrc });
+  const { isSwitchingSource } = hlsSource;
   const { isUltraSmallMobile, isTinyMobile } = useMobile();
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
@@ -553,6 +564,7 @@ const VideoPlayer = ({
   }, [src, storageKey]);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [showQualityMenu, setShowQualityMenu] = useState(false);
   const lastSaveTimeRef = useRef(0);
   const trackRef = useRef<HTMLTrackElement>(null);
   const controlsTimeoutRef = useRef<number | null>(null);
@@ -562,8 +574,8 @@ const VideoPlayer = ({
    * Check if user is currently interacting with controls
    */
   const isUserInteracting = useCallback(() => {
-    // Check if speed menu is open
-    if (showSpeedMenu) {
+    // Check if the speed or the quality menu is open
+    if (showSpeedMenu || showQualityMenu) {
       return true;
     }
 
@@ -585,7 +597,7 @@ const VideoPlayer = ({
     }
 
     return false;
-  }, [showSpeedMenu]);
+  }, [showSpeedMenu, showQualityMenu]);
 
   /**
    * Clear controls timeout
@@ -1121,7 +1133,8 @@ const VideoPlayer = ({
    */
   const handleTimeUpdate = useCallback(() => {
     const video = videoRef.current;
-    if (!video) return;
+    // Mid source change the element reports 0: not real progress.
+    if (!video || isSwitchingSource()) return;
 
     const current = video.currentTime;
 
@@ -1145,7 +1158,14 @@ const VideoPlayer = ({
       onProgress?.(progressPercent);
       checkVideoCompletion(progressPercent);
     }
-  }, [duration, saveProgress, onTimeUpdate, onProgress, checkVideoCompletion]);
+  }, [
+    duration,
+    saveProgress,
+    onTimeUpdate,
+    onProgress,
+    checkVideoCompletion,
+    isSwitchingSource,
+  ]);
 
   /**
    * Handle loaded metadata
@@ -1555,7 +1575,7 @@ const VideoPlayer = ({
         {/* Video Element */}
         <video
           ref={videoRef}
-          src={src}
+          src={hlsSource.videoSrc}
           crossOrigin="anonymous"
           className="w-full h-full object-contain analytica-video"
           controlsList="nodownload"
@@ -1744,6 +1764,16 @@ const VideoPlayer = ({
                 iconSize={getIconSize()}
                 isTinyMobile={isTinyMobile}
                 isFullscreen={isFullscreen}
+              />
+
+              {/* Quality (HLS only) */}
+              <QualityMenu
+                qualities={hlsSource.qualities}
+                selected={hlsSource.selectedQuality}
+                onSelect={hlsSource.selectQuality}
+                isFullscreen={isFullscreen}
+                iconSize={getIconSize()}
+                onOpenChange={setShowQualityMenu}
               />
             </div>
           </div>

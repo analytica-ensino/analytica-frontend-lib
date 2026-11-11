@@ -970,4 +970,103 @@ describe('useModules', () => {
       expect(result.current.hasVestibaGuide).toBe(false);
     });
   });
+
+  describe('lesson favorites and picture-in-picture', () => {
+    it('both are false by default (opt-in per institution)', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: defaultModules,
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasLessonFavorites).toBe(false);
+      expect(result.current.hasLessonPictureInPicture).toBe(false);
+    });
+
+    it('hasLessonFavorites is true when enabled', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: { ...defaultModules, lessonFavorites: true },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasLessonFavorites).toBe(true);
+      expect(result.current.hasLessonPictureInPicture).toBe(false);
+    });
+
+    it('hasLessonPictureInPicture is true when enabled', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: { ...defaultModules, lessonPictureInPicture: true },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasLessonPictureInPicture).toBe(true);
+      expect(result.current.hasLessonFavorites).toBe(false);
+    });
+
+    it('both default to false when the fields are missing', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: legacyModules, // old persisted state, without either key
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasLessonFavorites).toBe(false);
+      expect(result.current.hasLessonPictureInPicture).toBe(false);
+    });
+  });
+
+  describe('lesson video MP4-only switch', () => {
+    it('is false by default (lessons play their HLS when they have one)', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: defaultModules,
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasLessonVideoMp4Only).toBe(false);
+    });
+
+    it('is true when the institution switched it on', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: { ...defaultModules, lessonVideoMp4Only: true },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasLessonVideoMp4Only).toBe(true);
+    });
+
+    it('is false when the key is missing', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: legacyModules, // old persisted state, without the key
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasLessonVideoMp4Only).toBe(false);
+    });
+
+    it('is false for anything but a real `true`', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          lessonVideoMp4Only: 'true' as unknown as boolean,
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasLessonVideoMp4Only).toBe(false);
+    });
+  });
 });

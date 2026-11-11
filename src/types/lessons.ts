@@ -9,7 +9,10 @@ export interface Lesson {
   topicId?: string;
   subtopicId?: string;
   contentId?: string;
+  /** The lesson's MP4. Always kept: download, offline and the HLS fallback use it. */
   urlVideo?: string;
+  /** HLS master (`master.m3u8`) of the video, or null while not converted. */
+  urlVideoHls?: string | null;
   urlPodCast?: string;
   urlCover?: string;
   urlInitialFrame?: string;

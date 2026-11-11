@@ -193,7 +193,10 @@ export interface LessonDetails {
   id: string;
   title: string;
   description?: string;
+  /** The MP4: the player's source, the download and the HLS fallback. */
   videoUrl: string;
+  /** HLS master of the video, or null while the lesson is not converted. */
+  videoHlsUrl?: string | null;
   videoDuration: number;
   thumbnailUrl?: string;
   order: number;
@@ -242,7 +245,13 @@ export interface ApiLessonData {
   topicId: string;
   subtopicId: string;
   contentId: string;
+  /** The lesson's MP4. Always kept: download, offline and the HLS fallback use it. */
   urlVideo: string;
+  /**
+   * HLS master (`master.m3u8`) of the video, or null while not converted.
+   * Optional because an API older than the HLS rollout does not send it.
+   */
+  urlVideoHls?: string | null;
   urlPodCast: string;
   urlCover: string;
   urlInitialFrame: string;
