@@ -52,6 +52,7 @@ import {
   type VideoEndBehavior,
 } from '../../store/mediaPreferencesStore';
 import { useLessonCinemaLayout } from '../shared/LessonMediaSections/useLessonCinemaLayout';
+import IconRender from '../IconRender/IconRender';
 import { NextLessonCountdown } from './NextLessonCountdown';
 import { LessonQueueControls } from './LessonQueueControls';
 
@@ -951,6 +952,24 @@ export function LessonViewPage({
                     pendingLesson.lesson.description ||
                     pendingLesson.lesson.title
                   }
+                  imageUrl={
+                    pendingLesson.lesson.urlInitialFrame ||
+                    pendingLesson.lesson.thumbnailUrl ||
+                    undefined
+                  }
+                  icon={
+                    <IconRender
+                      iconName={subjectIcon}
+                      size={24}
+                      color="currentColor"
+                    />
+                  }
+                  color={
+                    subjectColor.startsWith('bg-')
+                      ? subjectColor
+                      : getSubjectColorWithOpacity(subjectColor, isDark)
+                  }
+                  progress={lessonProgressMap.get(pendingLesson.lesson.id) || 0}
                   onComplete={handleCountdownComplete}
                   onCancel={() => setPendingLesson(null)}
                 />
