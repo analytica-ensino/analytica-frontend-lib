@@ -263,6 +263,7 @@ export default defineConfig({
     'hooks/useLessonProgressTracker/index':
       'src/hooks/useLessonProgressTracker.ts',
     'hooks/useLessonTelemetry/index': 'src/hooks/useLessonTelemetry.ts',
+    'hooks/useLessonPlayback/index': 'src/hooks/useLessonPlayback.ts',
     'store/lessonsStore/index': 'src/store/lessonsStore.ts',
     'types/lessonsCatalog/index': 'src/types/lessonsCatalog.ts',
     'utils/lessonsCatalog/index': 'src/utils/lessonsCatalog.ts',

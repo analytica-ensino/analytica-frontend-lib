@@ -39,6 +39,7 @@ import type {
 import { createUseClassLessons } from '../../hooks/useClassLessons';
 import { createUseLessonProgressTracker } from '../../hooks/useLessonProgressTracker';
 import { createUseLessonTelemetry } from '../../hooks/useLessonTelemetry';
+import { createUseLessonPlayback } from '../../hooks/useLessonPlayback';
 import { useLessonsStore } from '../../store/lessonsStore';
 import {
   LessonVideoSection,
@@ -133,6 +134,12 @@ export interface LessonViewPageProps {
   /** Scopes the player's saved position per user. */
   readonly userId?: string;
   /**
+   * API base URL (`import.meta.env.VITE_API_URL`). Lets the student's video
+   * position be saved when the tab is closed; without it the position is still
+   * saved every minute, on pause, on hiding the tab and on leaving the lesson.
+   */
+  readonly apiUrl?: string;
+  /**
    * Opens the lesson's questionnaire. The page shows a loading modal while the
    * promise is pending and surfaces a rejection's message inline. Omit it to
    * render the questionnaire card disabled — which is what `preview` does
@@ -149,6 +156,12 @@ export interface LessonViewPageProps {
   readonly breadcrumbItems?: ReactNode;
   /** Runs before any breadcrumb navigation away from the lesson. */
   readonly onNavigateAway?: () => void;
+  /**
+   * Shows the picture-in-picture button and keeps the video playing on leaving
+   * the tab; off, the video pauses. Pass `hasLessonPictureInPicture` from
+   * `useModules`.
+   */
+  readonly allowPictureInPicture?: boolean;
   /**
    * Extra actions for the lesson on screen, rendered in its header before the
    * download button (the student's favorite and "save to list", for one).
@@ -204,9 +217,11 @@ export function LessonViewPage({
   mode = 'student',
   rootLabel = 'Aulas',
   userId,
+  apiUrl,
   onOpenQuestionnaire,
   breadcrumbItems,
   onNavigateAway,
+  allowPictureInPicture,
   renderHeaderActions,
 }: LessonViewPageProps) {
   const { subjectId, topicId } = useParams<{
@@ -234,6 +249,10 @@ export function LessonViewPage({
   );
   const useLessonTelemetry = useMemo(
     () => createUseLessonTelemetry(api, mode),
+    [api, mode]
+  );
+  const useLessonPlayback = useMemo(
+    () => createUseLessonPlayback(api, mode),
     [api, mode]
   );
 
@@ -298,7 +317,6 @@ export function LessonViewPage({
     fetchLessonsBySubtopic,
     handleVideoTimeUpdate: originalHandleVideoTimeUpdate,
     selectLesson,
-    getInitialTimestamp,
     clearError,
     registerLessonDownload,
     getDownloadContent,
@@ -323,6 +341,10 @@ export function LessonViewPage({
 
   const { startTelemetryTracking, stopTelemetryTracking } =
     useLessonTelemetry(activeLessonId);
+
+  // Where the video resumes, kept on the backend so it follows the student
+  // across devices. In preview it is always 0 and nothing is saved.
+  const playback = useLessonPlayback(activeLessonId, { apiUrl });
 
   useEffect(() => {
     if (activeLessonId) {
@@ -361,11 +383,13 @@ export function LessonViewPage({
    * value suppressed the very call that would learn it — the lesson stayed at
    * 0 forever and no watched seconds were ever recorded.
    */
+  const { handleTimeUpdate: recordPlaybackPosition } = playback;
   const handleVideoTimeUpdate = useCallback(
     (seconds: number, duration?: number) => {
       originalHandleVideoTimeUpdate(seconds, duration);
+      recordPlaybackPosition(seconds, duration);
     },
-    [originalHandleVideoTimeUpdate]
+    [originalHandleVideoTimeUpdate, recordPlaybackPosition]
   );
 
   /**
@@ -946,52 +970,68 @@ export function LessonViewPage({
           {/* Keyed by lesson: the player only rearms its completion flag when
               `src` changes, so switching between two lessons that share the
               same video file would leave it flagged as already completed and
-              onVideoComplete would never fire again. */}
-          <LessonVideoSection
-            key={activeLessonId}
-            video={lessonData.video}
-            onTimeUpdate={handleVideoTimeUpdate}
-            onVideoComplete={handleVideoCompleteCallback}
-            onEnded={handleVideoEnded}
-            isCinemaMode={isCinemaMode}
-            onToggleCinemaMode={toggleCinemaMode}
-            autoPlay={autoPlayLessonId === activeLessonId}
-            overlay={
-              pendingLesson ? (
-                <NextLessonCountdown
-                  title={
-                    pendingLesson.lesson.description ||
-                    pendingLesson.lesson.title
-                  }
-                  imageUrl={
-                    pendingLesson.lesson.urlInitialFrame ||
-                    pendingLesson.lesson.thumbnailUrl ||
-                    undefined
-                  }
-                  icon={
-                    <IconRender
-                      iconName={subjectIcon}
-                      size={24}
-                      color="currentColor"
-                    />
-                  }
-                  color={
-                    subjectColor.startsWith('bg-')
-                      ? subjectColor
-                      : getSubjectColorWithOpacity(subjectColor, isDark)
-                  }
-                  progress={lessonProgressMap.get(pendingLesson.lesson.id) || 0}
-                  onComplete={handleCountdownComplete}
-                  onCancel={() => setPendingLesson(null)}
-                />
-              ) : undefined
-            }
-            initialTime={getInitialTimestamp(currentLesson.id)}
-            persistProgress={!isPreview}
-            storageKey={`lesson-${currentLesson.id}`}
-            userId={userId}
-            className="w-full h-full object-contain rounded-b-xl"
-          />
+              onVideoComplete would never fire again.
+
+              Mounted only once the resume point is known: the player applies
+              its start position once per video, so a point arriving after it
+              had started would be ignored. The position comes from the backend
+              alone (`persistProgress` off), so no local copy competes with it. */}
+          {playback.resumeAt === null ? (
+            <SkeletonCard
+              className="w-full h-full aspect-video rounded-b-xl"
+              data-testid="lesson-video-loading"
+            />
+          ) : (
+            <LessonVideoSection
+              key={activeLessonId}
+              video={lessonData.video}
+              onTimeUpdate={handleVideoTimeUpdate}
+              onPause={playback.handlePause}
+              onVideoComplete={handleVideoCompleteCallback}
+              onEnded={handleVideoEnded}
+              isCinemaMode={isCinemaMode}
+              onToggleCinemaMode={toggleCinemaMode}
+              autoPlay={autoPlayLessonId === activeLessonId}
+              overlay={
+                pendingLesson ? (
+                  <NextLessonCountdown
+                    title={
+                      pendingLesson.lesson.description ||
+                      pendingLesson.lesson.title
+                    }
+                    imageUrl={
+                      pendingLesson.lesson.urlInitialFrame ||
+                      pendingLesson.lesson.thumbnailUrl ||
+                      undefined
+                    }
+                    icon={
+                      <IconRender
+                        iconName={subjectIcon}
+                        size={24}
+                        color="currentColor"
+                      />
+                    }
+                    color={
+                      subjectColor.startsWith('bg-')
+                        ? subjectColor
+                        : getSubjectColorWithOpacity(subjectColor, isDark)
+                    }
+                    progress={
+                      lessonProgressMap.get(pendingLesson.lesson.id) || 0
+                    }
+                    onComplete={handleCountdownComplete}
+                    onCancel={() => setPendingLesson(null)}
+                  />
+                ) : undefined
+              }
+              initialTime={playback.resumeAt}
+              persistProgress={false}
+              storageKey={`lesson-${currentLesson.id}`}
+              userId={userId}
+              className="w-full h-full object-contain rounded-b-xl"
+              allowPictureInPicture={allowPictureInPicture}
+            />
+          )}
         </span>
       </div>
 
