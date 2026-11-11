@@ -10,5 +10,10 @@ export interface BaseApiClient {
   ) => Promise<{ data: T }>;
   post: <T>(url: string, data?: object) => Promise<{ data: T }>;
   patch: <T>(url: string, data?: object) => Promise<{ data: T }>;
+  /**
+   * Optional so clients built before it keep satisfying the interface; a hook
+   * that needs it (the lesson resume point) skips its writes without it.
+   */
+  put?: <T>(url: string, data?: object) => Promise<{ data: T }>;
   delete: <T>(url: string) => Promise<{ data: T }>;
 }

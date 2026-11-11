@@ -87,7 +87,7 @@ describe('LessonVideoSection', () => {
     expect(player).toHaveAttribute('data-initial-time', '42');
   });
 
-  it('should neither save nor resume when persistProgress is false', () => {
+  it('should not save locally, but still resume, when persistProgress is false', () => {
     render(
       <LessonVideoSection
         video={video}
@@ -98,10 +98,10 @@ describe('LessonVideoSection', () => {
     );
 
     const player = screen.getByTestId('video-player');
-    // A preview viewer is not "watching" the lesson: nothing is remembered and
-    // playback always starts from the beginning.
+    // The page keeps the position elsewhere (the backend): the local copy is
+    // off, but the position it was given still applies.
     expect(player).toHaveAttribute('data-autosave', 'false');
-    expect(player).toHaveAttribute('data-initial-time', '0');
+    expect(player).toHaveAttribute('data-initial-time', '42');
   });
 
   describe('HLS', () => {

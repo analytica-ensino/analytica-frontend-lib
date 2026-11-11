@@ -1542,6 +1542,16 @@ export {
 } from './hooks/useLessonSearch';
 export { createUseLessonProgressTracker } from './hooks/useLessonProgressTracker';
 export { createUseLessonTelemetry } from './hooks/useLessonTelemetry';
+export {
+  createUseLessonPlayback,
+  resumeSecondsFor,
+  PLAYBACK_SYNC_INTERVAL_MS,
+  PLAYBACK_RESTART_RATIO,
+} from './hooks/useLessonPlayback';
+export type {
+  UseLessonPlaybackOptions,
+  UseLessonPlaybackReturn,
+} from './hooks/useLessonPlayback';
 export { useLessonsStore } from './store/lessonsStore';
 export {
   mapApiLessonToLessonDetails,
