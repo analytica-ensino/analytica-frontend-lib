@@ -5,6 +5,7 @@ import {
   DEFAULT_PERFORMANCE_GRAPHS,
   DEFAULT_REPORTS,
   DEFAULT_SIMULATED_SCORE,
+  isLessonVideoMp4Only,
   type ModulesConfig,
   type SimulationsConfig,
   type PerformanceGraphsConfig,
@@ -59,6 +60,10 @@ export interface UseModulesReturn {
   // tab loses focus, without the PiP button (institution-wide). Off by
   // default.
   hasLessonBackgroundPlayback: boolean;
+
+  // The lesson player plays the MP4 even when the lesson has HLS: the way
+  // back from HLS without a deploy (institution-wide). Off by default.
+  hasLessonVideoMp4Only: boolean;
 
   // AI correction of dissertative answers (institution-wide). Off by default:
   // an institution that wants its teachers to be the only graders must be able
@@ -175,6 +180,11 @@ export const useModules = (): UseModulesReturn => {
     hasLessonFavorites: modules.lessonFavorites ?? false,
     hasLessonPictureInPicture: modules.lessonPictureInPicture ?? false,
     hasLessonBackgroundPlayback: modules.lessonBackgroundPlayback ?? false,
+
+    // Way back to the MP4 on the lesson player (defaults off: HLS when the
+    // lesson has it). Only a real `true` switches it on — see
+    // `isLessonVideoMp4Only`.
+    hasLessonVideoMp4Only: isLessonVideoMp4Only(modules),
 
     // AI correction of dissertative answers (opt-in per institution, defaults
     // off — with it off only the teacher grades an essay)

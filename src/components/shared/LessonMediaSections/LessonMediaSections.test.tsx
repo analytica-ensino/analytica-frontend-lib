@@ -1,5 +1,5 @@
 import { createRef } from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import {
@@ -7,6 +7,8 @@ import {
   LessonPodcastSection,
   LessonBoardImagesSection,
 } from './LessonMediaSections';
+import { useModulesStore } from '../../../store/modulesStore';
+import { DEFAULT_MODULES } from '../../../types/modulesConfig';
 
 /**
  * VideoPlayer is a large component with its own suite; here we only care about
@@ -21,6 +23,7 @@ jest.mock('../../../index', () => {
       <div
         data-testid="video-player"
         data-src={String(props.src)}
+        data-hls-src={String(props.hlsSrc)}
         data-autosave={String(props.autoSave)}
         data-storage-key={String(props.storageKey)}
         data-initial-time={String(props.initialTime)}
@@ -99,6 +102,66 @@ describe('LessonVideoSection', () => {
     // playback always starts from the beginning.
     expect(player).toHaveAttribute('data-autosave', 'false');
     expect(player).toHaveAttribute('data-initial-time', '0');
+  });
+
+  describe('HLS', () => {
+    const master = 'https://cdn.test/hls/abc/master.m3u8';
+
+    afterEach(() => {
+      act(() => {
+        useModulesStore.setState({ modules: DEFAULT_MODULES });
+      });
+    });
+
+    it('hands the master to the player and keeps the MP4 as src', () => {
+      render(<LessonVideoSection video={{ ...video, hlsSrc: master }} />);
+
+      const player = screen.getByTestId('video-player');
+      expect(player).toHaveAttribute('data-hls-src', master);
+      // The MP4 stays the source: it is the fallback when HLS fails.
+      expect(player).toHaveAttribute('data-src', 'https://cdn.test/video.mp4');
+    });
+
+    it('passes no hlsSrc while the lesson is not converted', () => {
+      render(<LessonVideoSection video={{ ...video, hlsSrc: null }} />);
+
+      expect(screen.getByTestId('video-player')).toHaveAttribute(
+        'data-hls-src',
+        'undefined'
+      );
+    });
+
+    it('passes no hlsSrc when the video carries none (callers before HLS)', () => {
+      render(<LessonVideoSection video={video} />);
+
+      expect(screen.getByTestId('video-player')).toHaveAttribute(
+        'data-hls-src',
+        'undefined'
+      );
+    });
+
+    it('plays the MP4 only when the institution switched HLS off', () => {
+      act(() => {
+        useModulesStore.setState({
+          modules: { ...DEFAULT_MODULES, lessonVideoMp4Only: true },
+        });
+      });
+
+      render(<LessonVideoSection video={{ ...video, hlsSrc: master }} />);
+
+      const player = screen.getByTestId('video-player');
+      expect(player).toHaveAttribute('data-hls-src', 'undefined');
+      expect(player).toHaveAttribute('data-src', 'https://cdn.test/video.mp4');
+    });
+
+    it('shows the empty message when there is no MP4, even with a master', () => {
+      render(<LessonVideoSection video={{ src: '', hlsSrc: master }} />);
+
+      expect(screen.queryByTestId('video-player')).not.toBeInTheDocument();
+      expect(
+        screen.getByText('Vídeo não disponível para esta aula.')
+      ).toBeInTheDocument();
+    });
   });
 });
 

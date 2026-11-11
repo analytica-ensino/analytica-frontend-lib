@@ -1,5 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import {
+  act,
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import {
   RecommendedLessonViewModal,
@@ -7,6 +13,8 @@ import {
 } from './RecommendedLessonViewModal';
 import type { LessonDetailsData } from '../../../types/recommendedLessons';
 import type { Lesson } from '../../../types/lessons';
+import { useModulesStore } from '../../../store/modulesStore';
+import { DEFAULT_MODULES } from '../../../types/modulesConfig';
 
 // Mock useTheme hook
 jest.mock('../../../hooks/useTheme', () => ({
@@ -39,8 +47,10 @@ jest.mock('../../Modal/Modal', () => ({
 // Mock VideoPlayer component
 jest.mock('../../VideoPlayer/VideoPlayer', () => ({
   __esModule: true,
-  default: ({ src }: { src: string }) => (
-    <div data-testid="video-player">Video: {src}</div>
+  default: ({ src, hlsSrc }: { src: string; hlsSrc?: string }) => (
+    <div data-testid="video-player" data-hls-src={String(hlsSrc)}>
+      Video: {src}
+    </div>
   ),
 }));
 
@@ -482,6 +492,66 @@ describe('RecommendedLessonViewModal', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('video-player')).toBeInTheDocument();
+      });
+    });
+
+    describe('HLS', () => {
+      const master = 'https://example.com/hls/abc/master.m3u8';
+
+      const openLesson = async (lesson: Lesson) => {
+        render(
+          <RecommendedLessonViewModal
+            {...defaultProps}
+            apiClient={createMockApiClient(lesson)}
+          />
+        );
+        fireEvent.click(screen.getByText('Equações do 1º Grau'));
+        return screen.findByTestId('video-player');
+      };
+
+      afterEach(() => {
+        act(() => {
+          useModulesStore.setState({ modules: DEFAULT_MODULES });
+        });
+      });
+
+      it('plays the HLS master and keeps the MP4 as the source', async () => {
+        const player = await openLesson(
+          createMockLesson({ urlVideoHls: master })
+        );
+
+        expect(player).toHaveAttribute('data-hls-src', master);
+        expect(player).toHaveTextContent(
+          'Video: https://example.com/video.mp4'
+        );
+      });
+
+      it('plays the MP4 when the lesson is not converted', async () => {
+        const player = await openLesson(
+          createMockLesson({ urlVideoHls: null })
+        );
+
+        expect(player).toHaveAttribute('data-hls-src', 'undefined');
+        expect(player).toHaveTextContent(
+          'Video: https://example.com/video.mp4'
+        );
+      });
+
+      it('plays the MP4 when the institution switched HLS off', async () => {
+        act(() => {
+          useModulesStore.setState({
+            modules: { ...DEFAULT_MODULES, lessonVideoMp4Only: true },
+          });
+        });
+
+        const player = await openLesson(
+          createMockLesson({ urlVideoHls: master })
+        );
+
+        expect(player).toHaveAttribute('data-hls-src', 'undefined');
+        expect(player).toHaveTextContent(
+          'Video: https://example.com/video.mp4'
+        );
       });
     });
 

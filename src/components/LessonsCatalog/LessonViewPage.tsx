@@ -86,6 +86,12 @@ export interface LessonViewPageProps {
   readonly pauseOnBackground?: boolean;
   /** Shows the PiP button. Pass `hasLessonPictureInPicture` from `useModules`. */
   readonly allowPictureInPicture?: boolean;
+  /**
+   * Extra actions for the lesson on screen, rendered in its header before the
+   * download button (the student's favorite and "save to list", for one).
+   * Called again whenever the student switches lessons.
+   */
+  readonly renderHeaderActions?: (lesson: LessonDetails) => ReactNode;
 }
 
 interface LessonCardProps {
@@ -140,6 +146,7 @@ export function LessonViewPage({
   onNavigateAway,
   pauseOnBackground,
   allowPictureInPicture,
+  renderHeaderActions,
 }: LessonViewPageProps) {
   const { subjectId, topicId } = useParams<{
     subjectId: string;
@@ -253,6 +260,7 @@ export function LessonViewPage({
       bnccCode: currentLesson?.bnccCode,
       video: {
         src: currentLesson?.videoUrl ?? '',
+        hlsSrc: currentLesson?.videoHlsUrl,
         poster: currentLesson?.thumbnailUrl,
         subtitles: currentLesson?.subtitleUrl,
       },
@@ -715,12 +723,15 @@ export function LessonViewPage({
             )}
           </div>
 
-          <DownloadButton
-            content={downloadContent}
-            lessonTitle={lessonData.title}
-            onDownloadComplete={handleDownloadComplete}
-            className="flex-shrink-0"
-          />
+          <div className="flex flex-row items-center gap-2 flex-shrink-0">
+            {renderHeaderActions?.(currentLesson)}
+            <DownloadButton
+              content={downloadContent}
+              lessonTitle={lessonData.title}
+              onDownloadComplete={handleDownloadComplete}
+              className="flex-shrink-0"
+            />
+          </div>
         </span>
 
         <span

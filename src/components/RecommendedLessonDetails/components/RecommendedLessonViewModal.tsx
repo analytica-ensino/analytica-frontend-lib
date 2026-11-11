@@ -23,6 +23,7 @@ import {
 import { formatDate } from '../utils/lessonDetailsUtils';
 import { cn, getSubjectColorWithOpacity } from '../../../utils/utils';
 import { useTheme } from '../../../hooks/useTheme';
+import { useLessonVideoHlsSrc } from '../../../hooks/useLessonVideoHlsSrc';
 
 /**
  * Props for RecommendedLessonViewModal component
@@ -90,6 +91,8 @@ const LessonContent = ({
   const [error, setError] = useState<string | null>(null);
 
   const lesson = cachedLessons[lessonId];
+  // Called before the early returns below: hooks must run on every render.
+  const hlsSrc = useLessonVideoHlsSrc(lesson?.urlVideoHls);
 
   useEffect(() => {
     if (lesson || !apiClient) return;
@@ -154,6 +157,7 @@ const LessonContent = ({
       {hasVideo ? (
         <VideoPlayer
           src={lesson.urlVideo!}
+          hlsSrc={hlsSrc}
           poster={lesson.urlCover}
           subtitles={lesson.urlSubtitle}
           className="w-full rounded-lg"

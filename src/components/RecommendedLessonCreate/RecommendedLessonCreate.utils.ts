@@ -18,6 +18,8 @@ export interface KnowledgeArea {
 export interface PreviewLesson extends Lesson {
   position?: number;
   videoSrc?: string;
+  /** HLS master of the video; `videoSrc` stays the MP4 and the fallback. */
+  videoHlsSrc?: string | null;
   videoPoster?: string;
   videoSubtitles?: string;
   podcastSrc?: string;
@@ -215,6 +217,7 @@ export function convertLessonToPreview(lesson: Lesson): PreviewLesson {
     position: undefined,
     // Map API fields to component-expected fields for LessonPreview
     videoSrc: lesson.urlVideo,
+    videoHlsSrc: lesson.urlVideoHls,
     videoPoster: lesson.urlInitialFrame || lesson.urlCover,
     videoSubtitles: lesson.urlSubtitle,
     podcastSrc: lesson.urlPodCast,

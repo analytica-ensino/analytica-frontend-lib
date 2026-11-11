@@ -6,6 +6,7 @@ import {
   LessonVideoSection,
   LessonPodcastSection,
   LessonBoardImagesSection,
+  type LessonVideoData,
 } from '../LessonMediaSections';
 
 export interface LessonWatchModalProps {
@@ -13,11 +14,8 @@ export interface LessonWatchModalProps {
   onClose: () => void;
   selectedLesson: Lesson | null;
   userId?: string;
-  getVideoData: (lesson: Lesson | null) => {
-    src: string;
-    poster?: string;
-    subtitles?: string;
-  };
+  /** The lesson's video: the MP4 as `src`, and its HLS master as `hlsSrc`. */
+  getVideoData: (lesson: Lesson | null) => LessonVideoData;
   getInitialTimestampValue: (lessonId: string) => number;
   handleVideoTimeUpdate: (time: number) => void;
   handleVideoCompleteCallback: () => void;
