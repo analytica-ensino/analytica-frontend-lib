@@ -34,6 +34,12 @@ export interface LessonWatchModalProps {
    * Modal title. Defaults to selectedLesson?.title || 'Assistir Aula'
    */
   title?: string;
+  /**
+   * Shows the picture-in-picture button and keeps the video playing on leaving
+   * the tab; off, the video pauses. Pass `hasLessonPictureInPicture` from
+   * `useModules`.
+   */
+  allowPictureInPicture?: boolean;
 }
 
 type VideoSectionProps = Omit<
@@ -59,6 +65,7 @@ const VideoSection = ({
   onPodcastEnded,
   getBoardImages,
   getBoardImageRef,
+  allowPictureInPicture,
 }: VideoSectionProps) => {
   const boardImages: WhiteboardImage[] = getBoardImages(lesson);
 
@@ -70,6 +77,7 @@ const VideoSection = ({
       onVideoComplete={handleVideoCompleteCallback}
       storageKey={`lesson-${lesson.id}`}
       userId={userId}
+      allowPictureInPicture={allowPictureInPicture}
     >
       <div className="flex flex-col gap-4">
         <Alert
@@ -109,6 +117,7 @@ export const LessonWatchModal = ({
   getBoardImageRef,
   footer,
   title,
+  allowPictureInPicture,
 }: LessonWatchModalProps) => {
   const defaultFooter = (
     <div className="flex gap-3">
@@ -135,6 +144,7 @@ export const LessonWatchModal = ({
             getInitialTimestampValue={getInitialTimestampValue}
             handleVideoTimeUpdate={handleVideoTimeUpdate}
             handleVideoCompleteCallback={handleVideoCompleteCallback}
+            allowPictureInPicture={allowPictureInPicture}
             getPodcastData={getPodcastData}
             onPodcastEnded={onPodcastEnded}
             getBoardImages={getBoardImages}

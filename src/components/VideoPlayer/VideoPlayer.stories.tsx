@@ -140,6 +140,27 @@ export const HlsResume: Story = () => (
 );
 
 /**
+ * Comportamento padrão: o vídeo pausa ao trocar de aba ou clicar fora da
+ * janela, e não há botão de janela flutuante.
+ */
+export const PauseOnBackground: Story = () => (
+  <VideoPlayer src={FIXTURE_MP4} title="Pausa ao sair (padrão)" />
+);
+
+/**
+ * Flag `lessonPictureInPicture`: botão de janela flutuante (onde o navegador
+ * suporta) e o vídeo continua tocando fora da aba.
+ */
+export const PictureInPicture: Story = () => (
+  <VideoPlayer
+    src={FIXTURE_MP4}
+    subtitles={FIXTURE_CAPTIONS}
+    title="Janela flutuante"
+    allowPictureInPicture
+  />
+);
+
+/**
  * Stream de teste real do CDN, para conferência manual em navegador e iPhone.
  */
 export const HlsCdnTestStream: Story = () => (

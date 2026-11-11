@@ -55,6 +55,12 @@ export interface LessonVideoSectionProps {
   emptyMessage?: string;
   /** Rendered directly below the player (alerts, questionnaire cards, ...). */
   children?: ReactNode;
+  /**
+   * Shows the picture-in-picture button and keeps the video playing on leaving
+   * the tab; off, the video pauses. Pass `hasLessonPictureInPicture` from
+   * `useModules`.
+   */
+  allowPictureInPicture?: boolean;
 }
 
 /**
@@ -75,6 +81,7 @@ export const LessonVideoSection = ({
   className = 'w-full h-full object-cover rounded-b-xl',
   emptyMessage = 'Vídeo não disponível para esta aula.',
   children,
+  allowPictureInPicture,
 }: LessonVideoSectionProps) => {
   const hlsSrc = useLessonVideoHlsSrc(video.hlsSrc);
 
@@ -103,6 +110,8 @@ export const LessonVideoSection = ({
         autoSave={persistProgress}
         storageKey={storageKey}
         userId={userId}
+        pauseOnBackground={!allowPictureInPicture}
+        allowPictureInPicture={allowPictureInPicture}
       />
       {children}
     </>

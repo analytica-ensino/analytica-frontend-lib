@@ -16,6 +16,7 @@ import { ArrowsOutSimpleIcon } from '@phosphor-icons/react/dist/csr/ArrowsOutSim
 import { ArrowsInSimpleIcon } from '@phosphor-icons/react/dist/csr/ArrowsInSimple';
 import { ClosedCaptioningIcon } from '@phosphor-icons/react/dist/csr/ClosedCaptioning';
 import { DotsThreeVerticalIcon } from '@phosphor-icons/react/dist/csr/DotsThreeVertical';
+import { PictureInPictureIcon } from '@phosphor-icons/react/dist/csr/PictureInPicture';
 import { cn } from '../../utils/utils';
 import IconButton from '../IconButton/IconButton';
 import Text from '../Text/Text';
@@ -98,7 +99,47 @@ interface VideoPlayerProps {
   onDownloadComplete?: (contentType: string) => void;
   /** Callback fired when download fails */
   onDownloadError?: (contentType: string, error: Error) => void;
+  /**
+   * Pauses the video when the tab is hidden or the window loses focus. On by
+   * default. Ignored while `allowPictureInPicture` is on, since the floating
+   * window must keep playing outside the tab. The lesson screens only turn it
+   * off when the institution has `lessonPictureInPicture`.
+   */
+  pauseOnBackground?: boolean;
+  /**
+   * Shows the picture-in-picture button, in browsers that support it, and
+   * keeps the video playing on leaving the tab. The lesson screens pass the
+   * institution's `lessonPictureInPicture` here.
+   */
+  allowPictureInPicture?: boolean;
 }
+
+/** Vendor (Safari) presentation-mode API on the video element. */
+type PresentationModeVideo = HTMLVideoElement & {
+  webkitSupportsPresentationMode?: (mode: string) => boolean;
+  webkitPresentationMode?: string;
+  webkitSetPresentationMode?: (mode: string) => void;
+};
+
+/**
+ * Whether the browser can open this video in a floating window: the standard
+ * API (Chrome, Edge, recent Safari) or Safari's presentation mode. Firefox has
+ * neither — its PiP is a browser feature with no page API — so it gets no
+ * button.
+ */
+const supportsPictureInPicture = (video: HTMLVideoElement): boolean => {
+  if (
+    document.pictureInPictureEnabled &&
+    typeof video.requestPictureInPicture === 'function'
+  ) {
+    return true;
+  }
+  return Boolean(
+    (video as PresentationModeVideo).webkitSupportsPresentationMode?.(
+      'picture-in-picture'
+    )
+  );
+};
 
 /**
  * Format seconds to MM:SS display format
@@ -442,6 +483,8 @@ const VideoPlayer = ({
   onDownloadStart,
   onDownloadComplete,
   onDownloadError,
+  pauseOnBackground = true,
+  allowPictureInPicture = false,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsSource = useHlsSource({ videoRef, src, hlsSrc });
@@ -457,6 +500,8 @@ const VideoPlayer = ({
   // voltar a 100% a cada mídia.
   const { volume, isMuted, setVolume, setIsMuted } = useMediaVolumePreference();
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isPictureInPicture, setIsPictureInPicture] = useState(false);
+  const [canPictureInPicture, setCanPictureInPicture] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [hasCompleted, setHasCompleted] = useState(false);
   const [showCaptions, setShowCaptions] = useState(false);
@@ -1206,33 +1251,106 @@ const VideoPlayer = ({
   }, [subtitles, showCaptions, subtitlesValidation]);
 
   /**
-   * Handle visibility change and blur to pause video when losing focus
+   * Detects picture-in-picture support and keeps the button state in sync
+   * with the floating window, which can also be closed from its own controls.
+   * Play and pause done in the window already reach the player through the
+   * `<video>` play/pause listeners.
    */
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden && isPlaying && videoRef.current) {
-        videoRef.current.pause();
-        setIsPlaying(false);
-      }
-    };
+    const video = videoRef.current;
+    if (!allowPictureInPicture || !video) {
+      setCanPictureInPicture(false);
+      return;
+    }
 
-    const handleBlur = () => {
+    setCanPictureInPicture(supportsPictureInPicture(video));
+
+    const handleEnter = () => setIsPictureInPicture(true);
+    const handleLeave = () => setIsPictureInPicture(false);
+    const handlePresentationModeChange = () =>
+      setIsPictureInPicture(
+        (video as PresentationModeVideo).webkitPresentationMode ===
+          'picture-in-picture'
+      );
+
+    video.addEventListener('enterpictureinpicture', handleEnter);
+    video.addEventListener('leavepictureinpicture', handleLeave);
+    video.addEventListener(
+      'webkitpresentationmodechanged',
+      handlePresentationModeChange
+    );
+
+    return () => {
+      video.removeEventListener('enterpictureinpicture', handleEnter);
+      video.removeEventListener('leavepictureinpicture', handleLeave);
+      video.removeEventListener(
+        'webkitpresentationmodechanged',
+        handlePresentationModeChange
+      );
+    };
+  }, [allowPictureInPicture]);
+
+  /**
+   * Opens or closes the floating window. Uses the standard API when present
+   * and falls back to Safari's presentation mode. The returned promises can
+   * reject (no user gesture, document not active); there is nothing to do
+   * then, the button just stays as it was.
+   */
+  const togglePictureInPicture = useCallback(() => {
+    const video = videoRef.current as PresentationModeVideo | null;
+    if (!video) return;
+
+    if (
+      document.pictureInPictureEnabled &&
+      typeof video.requestPictureInPicture === 'function'
+    ) {
+      if (document.pictureInPictureElement === video) {
+        document.exitPictureInPicture().catch(() => {});
+      } else {
+        video.requestPictureInPicture().catch(() => {});
+      }
+      return;
+    }
+
+    if (video.webkitSetPresentationMode) {
+      video.webkitSetPresentationMode(
+        video.webkitPresentationMode === 'picture-in-picture'
+          ? 'inline'
+          : 'picture-in-picture'
+      );
+    }
+  }, []);
+
+  /**
+   * Pauses the video when the tab is hidden or the window loses focus, unless
+   * picture-in-picture is allowed.
+   */
+  const pausesInBackground = pauseOnBackground && !allowPictureInPicture;
+
+  useEffect(() => {
+    const pauseVideo = () => {
       if (isPlaying && videoRef.current) {
         videoRef.current.pause();
         setIsPlaying(false);
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    globalThis.addEventListener('blur', handleBlur);
+    const handleVisibilityChange = () => {
+      if (document.hidden) pauseVideo();
+    };
+
+    if (pausesInBackground) {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      globalThis.addEventListener('blur', pauseVideo);
+    }
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      globalThis.removeEventListener('blur', handleBlur);
+      globalThis.removeEventListener('blur', pauseVideo);
       // Clean up timers on unmount
       clearControlsTimeout();
     };
-  }, [isPlaying, clearControlsTimeout]);
+  }, [isPlaying, clearControlsTimeout, pausesInBackground]);
 
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
@@ -1650,6 +1768,24 @@ const VideoPlayer = ({
                 iconSize={getIconSize()}
                 onOpenChange={setShowQualityMenu}
               />
+
+              {/* Picture-in-picture: last button, only where supported */}
+              {canPictureInPicture && (
+                <IconButton
+                  icon={<PictureInPictureIcon size={getIconSize()} />}
+                  onClick={togglePictureInPicture}
+                  aria-label={
+                    isPictureInPicture
+                      ? 'Sair da janela flutuante'
+                      : 'Abrir em janela flutuante'
+                  }
+                  aria-pressed={isPictureInPicture}
+                  className={cn(
+                    '!bg-transparent hover:!bg-white/20',
+                    isPictureInPicture ? '!text-primary-400' : '!text-white'
+                  )}
+                />
+              )}
             </div>
           </div>
         </div>
