@@ -73,6 +73,12 @@ interface VideoPlayerProps {
   onTimeUpdate?: (seconds: number, duration?: number) => void;
   /** Callback fired with progress percentage (0-100) */
   onProgress?: (progress: number) => void;
+  /**
+   * Callback fired when playback pauses — by the student, by the end of the
+   * video or by the page losing focus. Receives the current second and the
+   * media's duration (0 before metadata loads).
+   */
+  onPause?: (seconds: number, duration: number) => void;
   /** Callback fired when video completes (>95% watched) */
   onVideoComplete?: () => void;
   /** Additional CSS classes */
@@ -466,6 +472,7 @@ const VideoPlayer = ({
   initialTime = 0,
   onTimeUpdate,
   onProgress,
+  onPause,
   onVideoComplete,
   className,
   autoSave = true,
@@ -679,6 +686,12 @@ const VideoPlayer = ({
     };
   }, [setVolume, setIsMuted]);
 
+  /** Latest `onPause`, read by the media listener without re-binding it. */
+  const onPauseRef = useRef(onPause);
+  useEffect(() => {
+    onPauseRef.current = onPause;
+  }, [onPause]);
+
   /**
    * Synchronize isPlaying state with media events
    */
@@ -691,19 +704,28 @@ const VideoPlayer = ({
       setHasStarted(true);
       hasStartedRef.current = true;
     };
-    const onPause = () => setIsPlaying(false);
+    const handlePause = () => {
+      setIsPlaying(false);
+      // A quality switch pauses the element while it swaps sources; that is
+      // not the student pausing.
+      if (isSwitchingSource()) return;
+      onPauseRef.current?.(
+        video.currentTime,
+        Number.isFinite(video.duration) ? video.duration : 0
+      );
+    };
     const onEnded = () => setIsPlaying(false);
 
     video.addEventListener('play', onPlay);
-    video.addEventListener('pause', onPause);
+    video.addEventListener('pause', handlePause);
     video.addEventListener('ended', onEnded);
 
     return () => {
       video.removeEventListener('play', onPlay);
-      video.removeEventListener('pause', onPause);
+      video.removeEventListener('pause', handlePause);
       video.removeEventListener('ended', onEnded);
     };
-  }, []);
+  }, [isSwitchingSource]);
 
   /**
    * Set iOS/Safari inline playback attributes imperatively

@@ -29,16 +29,23 @@ export interface LessonPodcastData {
 
 export interface LessonVideoSectionProps {
   video: LessonVideoData;
-  /** Second to resume playback from. Ignored when `persistProgress` is false. */
+  /**
+   * Second to resume playback from. Independent of `persistProgress`: a page
+   * that resumes from a position kept elsewhere (the backend, for a student's
+   * lesson) passes it here with `persistProgress` off.
+   */
   initialTime?: number;
   /** Receives the current second and the media duration once it is known. */
   onTimeUpdate?: (seconds: number, duration?: number) => void;
+  /** Receives the current second and the media duration when playback pauses. */
+  onPause?: (seconds: number, duration: number) => void;
   onVideoComplete?: () => void;
   /**
    * Saves and restores the playback position in localStorage, scoped by
    * `storageKey` and `userId`. Set to `false` for viewers whose position must
    * not be remembered — a teacher previewing the catalogue is not "watching"
-   * the lesson, and resuming them mid-video would be wrong.
+   * the lesson — and for pages whose position lives elsewhere, so a stale
+   * local copy cannot compete with it.
    */
   persistProgress?: boolean;
   storageKey?: string;
@@ -66,6 +73,7 @@ export const LessonVideoSection = ({
   video,
   initialTime,
   onTimeUpdate,
+  onPause,
   onVideoComplete,
   persistProgress = true,
   storageKey,
@@ -95,8 +103,9 @@ export const LessonVideoSection = ({
         poster={video.poster}
         subtitles={video.subtitles}
         onTimeUpdate={onTimeUpdate}
+        onPause={onPause}
         onVideoComplete={onVideoComplete}
-        initialTime={persistProgress ? initialTime : 0}
+        initialTime={initialTime}
         className={className}
         autoSave={persistProgress}
         storageKey={storageKey}

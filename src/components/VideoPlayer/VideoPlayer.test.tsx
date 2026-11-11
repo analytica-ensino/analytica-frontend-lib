@@ -1476,6 +1476,44 @@ describe('VideoPlayer', () => {
       expect(mockOnTimeUpdate).toHaveBeenCalledWith(10, 100);
     });
 
+    it('should call onPause with the position and the duration', () => {
+      const mockOnPause = jest.fn();
+      const { container } = render(
+        <VideoPlayer {...defaultProps} onPause={mockOnPause} />
+      );
+
+      const video = container.querySelector('video')!;
+      Object.defineProperty(video, 'duration', {
+        configurable: true,
+        value: 100,
+      });
+      Object.defineProperty(video, 'currentTime', {
+        configurable: true,
+        value: 42,
+      });
+
+      fireEvent.pause(video);
+
+      expect(mockOnPause).toHaveBeenCalledWith(42, 100);
+    });
+
+    it('should report a duration of 0 to onPause before metadata loads', () => {
+      const mockOnPause = jest.fn();
+      const { container } = render(
+        <VideoPlayer {...defaultProps} onPause={mockOnPause} />
+      );
+
+      const video = container.querySelector('video')!;
+      Object.defineProperty(video, 'duration', {
+        configurable: true,
+        value: Number.NaN,
+      });
+
+      fireEvent.pause(video);
+
+      expect(mockOnPause).toHaveBeenCalledWith(0, 0);
+    });
+
     it('should call onProgress callback', () => {
       const mockOnProgress = jest.fn();
       const { container } = render(

@@ -39,6 +39,7 @@ import type {
 import { createUseClassLessons } from '../../hooks/useClassLessons';
 import { createUseLessonProgressTracker } from '../../hooks/useLessonProgressTracker';
 import { createUseLessonTelemetry } from '../../hooks/useLessonTelemetry';
+import { createUseLessonPlayback } from '../../hooks/useLessonPlayback';
 import { useLessonsStore } from '../../store/lessonsStore';
 import {
   LessonVideoSection,
@@ -62,6 +63,12 @@ export interface LessonViewPageProps {
   readonly rootLabel?: string;
   /** Scopes the player's saved position per user. */
   readonly userId?: string;
+  /**
+   * API base URL (`import.meta.env.VITE_API_URL`). Lets the student's video
+   * position be saved when the tab is closed; without it the position is still
+   * saved every minute, on pause, on hiding the tab and on leaving the lesson.
+   */
+  readonly apiUrl?: string;
   /**
    * Opens the lesson's questionnaire. The page shows a loading modal while the
    * promise is pending and surfaces a rejection's message inline. Omit it to
@@ -140,6 +147,7 @@ export function LessonViewPage({
   mode = 'student',
   rootLabel = 'Aulas',
   userId,
+  apiUrl,
   onOpenQuestionnaire,
   breadcrumbItems,
   onNavigateAway,
@@ -171,6 +179,10 @@ export function LessonViewPage({
   );
   const useLessonTelemetry = useMemo(
     () => createUseLessonTelemetry(api, mode),
+    [api, mode]
+  );
+  const useLessonPlayback = useMemo(
+    () => createUseLessonPlayback(api, mode),
     [api, mode]
   );
 
@@ -218,7 +230,6 @@ export function LessonViewPage({
     fetchLessonsBySubtopic,
     handleVideoTimeUpdate: originalHandleVideoTimeUpdate,
     selectLesson,
-    getInitialTimestamp,
     clearError,
     registerLessonDownload,
     getDownloadContent,
@@ -241,6 +252,10 @@ export function LessonViewPage({
 
   const { startTelemetryTracking, stopTelemetryTracking } =
     useLessonTelemetry(activeLessonId);
+
+  // Where the video resumes, kept on the backend so it follows the student
+  // across devices. In preview it is always 0 and nothing is saved.
+  const playback = useLessonPlayback(activeLessonId, { apiUrl });
 
   useEffect(() => {
     if (activeLessonId) {
@@ -279,11 +294,13 @@ export function LessonViewPage({
    * value suppressed the very call that would learn it — the lesson stayed at
    * 0 forever and no watched seconds were ever recorded.
    */
+  const { handleTimeUpdate: recordPlaybackPosition } = playback;
   const handleVideoTimeUpdate = useCallback(
     (seconds: number, duration?: number) => {
       originalHandleVideoTimeUpdate(seconds, duration);
+      recordPlaybackPosition(seconds, duration);
     },
-    [originalHandleVideoTimeUpdate]
+    [originalHandleVideoTimeUpdate, recordPlaybackPosition]
   );
 
   /**
@@ -742,19 +759,32 @@ export function LessonViewPage({
           {/* Keyed by lesson: the player only rearms its completion flag when
               `src` changes, so switching between two lessons that share the
               same video file would leave it flagged as already completed and
-              onVideoComplete would never fire again. */}
-          <LessonVideoSection
-            key={activeLessonId}
-            video={lessonData.video}
-            onTimeUpdate={handleVideoTimeUpdate}
-            onVideoComplete={handleVideoCompleteCallback}
-            initialTime={getInitialTimestamp(currentLesson.id)}
-            persistProgress={!isPreview}
-            storageKey={`lesson-${currentLesson.id}`}
-            userId={userId}
-            className="w-full h-full object-contain rounded-b-xl"
-            allowPictureInPicture={allowPictureInPicture}
-          />
+              onVideoComplete would never fire again.
+
+              Mounted only once the resume point is known: the player applies
+              its start position once per video, so a point arriving after it
+              had started would be ignored. The position comes from the backend
+              alone (`persistProgress` off), so no local copy competes with it. */}
+          {playback.resumeAt === null ? (
+            <SkeletonCard
+              className="w-full h-full aspect-video rounded-b-xl"
+              data-testid="lesson-video-loading"
+            />
+          ) : (
+            <LessonVideoSection
+              key={activeLessonId}
+              video={lessonData.video}
+              onTimeUpdate={handleVideoTimeUpdate}
+              onPause={playback.handlePause}
+              onVideoComplete={handleVideoCompleteCallback}
+              initialTime={playback.resumeAt}
+              persistProgress={false}
+              storageKey={`lesson-${currentLesson.id}`}
+              userId={userId}
+              className="w-full h-full object-contain rounded-b-xl"
+              allowPictureInPicture={allowPictureInPicture}
+            />
+          )}
         </span>
       </div>
 

@@ -29,12 +29,19 @@ jest.mock('../shared/LessonMediaSections', () => {
           data-src={String((props.video as { src?: string }).src)}
           data-hls-src={String((props.video as { hlsSrc?: string }).hlsSrc)}
           data-autosave={String(props.persistProgress)}
-          data-initial-time={String(
-            props.persistProgress ? props.initialTime : 0
-          )}
+          data-initial-time={String(props.initialTime)}
           onClick={() => (props.onVideoComplete as () => void)?.()}
         >
           player
+        </button>
+        <button
+          type="button"
+          data-testid="video-pause"
+          onClick={() =>
+            (props.onPause as (s: number, d: number) => void)?.(45, 600)
+          }
+        >
+          pause
         </button>
         <button
           type="button"
@@ -87,15 +94,28 @@ function apiLesson(overrides: Partial<ApiLessonData> = {}): ApiLessonData {
   };
 }
 
-function makeApi(lessons: ApiLessonData[] = [apiLesson()]) {
+function makeApi(
+  lessons: ApiLessonData[] = [apiLesson()],
+  playback: { positionSeconds: number; durationSeconds: number } | null = null
+) {
   return {
     get: jest.fn((url: string) => {
       if (url.startsWith('/lesson/by-subtopic')) {
         return Promise.resolve({ data: { message: 'ok', data: lessons } });
       }
+      if (url.endsWith('/playback')) {
+        return Promise.resolve({
+          data: {
+            success: true,
+            message: 'ok',
+            data: playback && { lessonId: 'lesson-1', ...playback },
+          },
+        });
+      }
       return Promise.resolve({ data: {} });
     }),
     post: jest.fn(),
+    put: jest.fn().mockResolvedValue({ data: { success: true } }),
     patch: jest.fn().mockResolvedValue({
       data: {
         message: 'ok',
@@ -357,13 +377,76 @@ describe('LessonViewPage', () => {
       );
     });
 
-    it('lets the player save and restore the position', async () => {
-      const api = makeApi();
+    it('resumes from the position saved on the backend, not from the local copies', async () => {
+      // A device that watched less keeps an older local position; it must not
+      // win over the backend.
+      useLessonsStore.setState({ lastWatchedTimestamps: { 'lesson-1': 500 } });
+      const api = makeApi(undefined, {
+        positionSeconds: 120,
+        durationSeconds: 600,
+      });
+      renderPage(api, { mode: 'student' });
+
+      const player = await screen.findByTestId('video-player');
+      expect(player).toHaveAttribute('data-initial-time', '120');
+      expect(player).toHaveAttribute('data-autosave', 'false');
+      expect(api.get).toHaveBeenCalledWith('/lesson/lesson-1/playback');
+    });
+
+    it('starts from the beginning a lesson watched past 95%', async () => {
+      const api = makeApi(undefined, {
+        positionSeconds: 590,
+        durationSeconds: 600,
+      });
       renderPage(api, { mode: 'student' });
 
       expect(await screen.findByTestId('video-player')).toHaveAttribute(
-        'data-autosave',
-        'true'
+        'data-initial-time',
+        '0'
+      );
+    });
+
+    it('starts from the beginning when the saved position cannot be read', async () => {
+      const api = makeApi();
+      const get = api.get.getMockImplementation()!;
+      api.get.mockImplementation(((url: string) =>
+        url.endsWith('/playback')
+          ? Promise.reject(new Error('offline'))
+          : get(url)) as typeof api.get);
+      renderPage(api, { mode: 'student' });
+
+      expect(await screen.findByTestId('video-player')).toHaveAttribute(
+        'data-initial-time',
+        '0'
+      );
+    });
+
+    it('holds the player until the saved position arrives', async () => {
+      const api = makeApi();
+      const get = api.get.getMockImplementation()!;
+      api.get.mockImplementation(((url: string) =>
+        url.endsWith('/playback')
+          ? new Promise(() => {})
+          : get(url)) as typeof api.get);
+      renderPage(api, { mode: 'student' });
+
+      expect(
+        await screen.findByTestId('lesson-video-loading')
+      ).toBeInTheDocument();
+      expect(screen.queryByTestId('video-player')).not.toBeInTheDocument();
+    });
+
+    it('saves the position when the video pauses', async () => {
+      const api = makeApi();
+      renderPage(api, { mode: 'student' });
+
+      fireEvent.click(await screen.findByTestId('video-pause'));
+
+      await waitFor(() =>
+        expect(api.put).toHaveBeenCalledWith('/lesson/lesson-1/playback', {
+          positionSeconds: 45,
+          durationSeconds: 600,
+        })
       );
     });
 
@@ -607,13 +690,21 @@ describe('LessonViewPage', () => {
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     });
 
-    it('never saves or restores the playback position', async () => {
-      const api = makeApi();
+    it('never reads, saves or restores the playback position', async () => {
+      const api = makeApi(undefined, {
+        positionSeconds: 120,
+        durationSeconds: 600,
+      });
       renderPage(api, { mode: 'preview' });
 
       const player = await screen.findByTestId('video-player');
       expect(player).toHaveAttribute('data-autosave', 'false');
       expect(player).toHaveAttribute('data-initial-time', '0');
+
+      fireEvent.click(screen.getByTestId('video-pause'));
+
+      expect(api.get).not.toHaveBeenCalledWith('/lesson/lesson-1/playback');
+      expect(api.put).not.toHaveBeenCalled();
     });
 
     it('shows the questionnaire but disabled, even with a handler', async () => {
