@@ -56,11 +56,6 @@ export interface UseModulesReturn {
   // playing when the tab loses focus (institution-wide). Off by default.
   hasLessonPictureInPicture: boolean;
 
-  // Background playback on the lesson player: the video keeps playing when the
-  // tab loses focus, without the PiP button (institution-wide). Off by
-  // default.
-  hasLessonBackgroundPlayback: boolean;
-
   // The lesson player plays the MP4 even when the lesson has HLS: the way
   // back from HLS without a deploy (institution-wide). Off by default.
   hasLessonVideoMp4Only: boolean;
@@ -175,11 +170,10 @@ export const useModules = (): UseModulesReturn => {
     // "Guia do Vestiba" playlist (opt-in per institution, defaults off)
     hasVestibaGuide: modules.vestibaGuide ?? false,
 
-    // Lesson playlists/favorites, picture-in-picture and background playback
-    // (opt-in per institution, defaults off)
+    // Lesson playlists/favorites and picture-in-picture (opt-in per
+    // institution, defaults off)
     hasLessonFavorites: modules.lessonFavorites ?? false,
     hasLessonPictureInPicture: modules.lessonPictureInPicture ?? false,
-    hasLessonBackgroundPlayback: modules.lessonBackgroundPlayback ?? false,
 
     // Way back to the MP4 on the lesson player (defaults off: HLS when the
     // lesson has it). Only a real `true` switches it on — see

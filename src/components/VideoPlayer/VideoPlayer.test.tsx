@@ -1230,14 +1230,6 @@ describe('VideoPlayer', () => {
       fireEvent(window, new Event('blur'));
     };
 
-    it('keeps playing in the background when pauseOnBackground is false', async () => {
-      render(<VideoPlayer {...defaultProps} pauseOnBackground={false} />);
-
-      await playThenLeave();
-
-      expect(mockPause).not.toHaveBeenCalled();
-    });
-
     it('keeps playing in the background when picture-in-picture is allowed', async () => {
       render(<VideoPlayer {...defaultProps} allowPictureInPicture />);
 
@@ -1246,11 +1238,11 @@ describe('VideoPlayer', () => {
       expect(mockPause).not.toHaveBeenCalled();
     });
 
-    it('pauses again when pauseOnBackground is turned back on', async () => {
+    it('pauses again when picture-in-picture is turned off', async () => {
       const { rerender } = render(
-        <VideoPlayer {...defaultProps} pauseOnBackground={false} />
+        <VideoPlayer {...defaultProps} allowPictureInPicture />
       );
-      rerender(<VideoPlayer {...defaultProps} pauseOnBackground />);
+      rerender(<VideoPlayer {...defaultProps} allowPictureInPicture={false} />);
 
       await playThenLeave();
 

@@ -35,11 +35,10 @@ export interface LessonWatchModalProps {
    */
   title?: string;
   /**
-   * Pauses the video when the tab loses focus. On by default; pass
-   * `!hasLessonBackgroundPlayback` from `useModules`.
+   * Shows the picture-in-picture button and keeps the video playing on leaving
+   * the tab; off, the video pauses. Pass `hasLessonPictureInPicture` from
+   * `useModules`.
    */
-  pauseOnBackground?: boolean;
-  /** Shows the PiP button. Pass `hasLessonPictureInPicture` from `useModules`. */
   allowPictureInPicture?: boolean;
 }
 
@@ -66,7 +65,6 @@ const VideoSection = ({
   onPodcastEnded,
   getBoardImages,
   getBoardImageRef,
-  pauseOnBackground,
   allowPictureInPicture,
 }: VideoSectionProps) => {
   const boardImages: WhiteboardImage[] = getBoardImages(lesson);
@@ -79,7 +77,6 @@ const VideoSection = ({
       onVideoComplete={handleVideoCompleteCallback}
       storageKey={`lesson-${lesson.id}`}
       userId={userId}
-      pauseOnBackground={pauseOnBackground}
       allowPictureInPicture={allowPictureInPicture}
     >
       <div className="flex flex-col gap-4">
@@ -120,7 +117,6 @@ export const LessonWatchModal = ({
   getBoardImageRef,
   footer,
   title,
-  pauseOnBackground,
   allowPictureInPicture,
 }: LessonWatchModalProps) => {
   const defaultFooter = (
@@ -148,7 +144,6 @@ export const LessonWatchModal = ({
             getInitialTimestampValue={getInitialTimestampValue}
             handleVideoTimeUpdate={handleVideoTimeUpdate}
             handleVideoCompleteCallback={handleVideoCompleteCallback}
-            pauseOnBackground={pauseOnBackground}
             allowPictureInPicture={allowPictureInPicture}
             getPodcastData={getPodcastData}
             onPodcastEnded={onPodcastEnded}

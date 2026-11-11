@@ -80,11 +80,10 @@ export interface LessonViewPageProps {
   /** Runs before any breadcrumb navigation away from the lesson. */
   readonly onNavigateAway?: () => void;
   /**
-   * Pauses the video when the tab loses focus. On by default; pass
-   * `!hasLessonBackgroundPlayback` from `useModules`.
+   * Shows the picture-in-picture button and keeps the video playing on leaving
+   * the tab; off, the video pauses. Pass `hasLessonPictureInPicture` from
+   * `useModules`.
    */
-  readonly pauseOnBackground?: boolean;
-  /** Shows the PiP button. Pass `hasLessonPictureInPicture` from `useModules`. */
   readonly allowPictureInPicture?: boolean;
   /**
    * Extra actions for the lesson on screen, rendered in its header before the
@@ -144,7 +143,6 @@ export function LessonViewPage({
   onOpenQuestionnaire,
   breadcrumbItems,
   onNavigateAway,
-  pauseOnBackground,
   allowPictureInPicture,
   renderHeaderActions,
 }: LessonViewPageProps) {
@@ -755,7 +753,6 @@ export function LessonViewPage({
             storageKey={`lesson-${currentLesson.id}`}
             userId={userId}
             className="w-full h-full object-contain rounded-b-xl"
-            pauseOnBackground={pauseOnBackground}
             allowPictureInPicture={allowPictureInPicture}
           />
         </span>

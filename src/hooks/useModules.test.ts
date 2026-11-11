@@ -1019,40 +1019,6 @@ describe('useModules', () => {
       expect(result.current.hasLessonFavorites).toBe(false);
       expect(result.current.hasLessonPictureInPicture).toBe(false);
     });
-
-    it('hasLessonBackgroundPlayback is false by default', () => {
-      mockUseModulesStore.mockReturnValue({
-        modules: defaultModules,
-        loading: false,
-      });
-
-      const { result } = renderHook(() => useModules());
-
-      expect(result.current.hasLessonBackgroundPlayback).toBe(false);
-    });
-
-    it('hasLessonBackgroundPlayback is true when enabled, independent of PiP', () => {
-      mockUseModulesStore.mockReturnValue({
-        modules: { ...defaultModules, lessonBackgroundPlayback: true },
-        loading: false,
-      });
-
-      const { result } = renderHook(() => useModules());
-
-      expect(result.current.hasLessonBackgroundPlayback).toBe(true);
-      expect(result.current.hasLessonPictureInPicture).toBe(false);
-    });
-
-    it('hasLessonBackgroundPlayback defaults to false when the field is missing', () => {
-      mockUseModulesStore.mockReturnValue({
-        modules: legacyModules,
-        loading: false,
-      });
-
-      const { result } = renderHook(() => useModules());
-
-      expect(result.current.hasLessonBackgroundPlayback).toBe(false);
-    });
   });
 
   describe('lesson video MP4-only switch', () => {

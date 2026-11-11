@@ -148,18 +148,6 @@ export const PauseOnBackground: Story = () => (
 );
 
 /**
- * Flag `lessonBackgroundPlayback`: o vídeo continua tocando fora da aba, sem
- * o botão de janela flutuante.
- */
-export const BackgroundPlayback: Story = () => (
-  <VideoPlayer
-    src={FIXTURE_MP4}
-    title="Toca em segundo plano"
-    pauseOnBackground={false}
-  />
-);
-
-/**
  * Flag `lessonPictureInPicture`: botão de janela flutuante (onde o navegador
  * suporta) e o vídeo continua tocando fora da aba.
  */

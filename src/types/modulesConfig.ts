@@ -232,14 +232,6 @@ export interface ModulesConfig {
   lessonPictureInPicture: boolean;
 
   /**
-   * Background playback on the lesson player (opt-in per institution, off by
-   * default). When `true`, the video keeps playing when the tab is hidden or
-   * the window loses focus, without showing the PiP button. Consumed via
-   * `useModules().hasLessonBackgroundPlayback`.
-   */
-  lessonBackgroundPlayback: boolean;
-
-  /**
    * Way back to the MP4 on the lesson player, without a deploy (off by
    * default). Off, a lesson whose `urlVideoHls` is filled plays its HLS master,
    * with the quality menu; on, every lesson plays its MP4 (`urlVideo`) as it
@@ -305,11 +297,10 @@ export const DEFAULT_MODULES: ModulesConfig = {
   // "Guia do Vestiba" playlist off by default (opt-in per institution)
   vestibaGuide: false,
 
-  // Lesson playlists/favorites, picture-in-picture and background playback
-  // off by default (opt-in per institution)
+  // Lesson playlists/favorites and picture-in-picture off by default
+  // (opt-in per institution)
   lessonFavorites: false,
   lessonPictureInPicture: false,
-  lessonBackgroundPlayback: false,
 
   // Lesson videos play their HLS when they have one; `true` forces the MP4
   lessonVideoMp4Only: false,

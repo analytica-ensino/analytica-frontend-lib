@@ -49,13 +49,9 @@ export interface LessonVideoSectionProps {
   /** Rendered directly below the player (alerts, questionnaire cards, ...). */
   children?: ReactNode;
   /**
-   * Pauses the video when the tab is hidden or the window loses focus. On by
-   * default; pass `!hasLessonBackgroundPlayback` from `useModules`.
-   */
-  pauseOnBackground?: boolean;
-  /**
-   * Shows the picture-in-picture button. Pass `hasLessonPictureInPicture`
-   * from `useModules`.
+   * Shows the picture-in-picture button and keeps the video playing on leaving
+   * the tab; off, the video pauses. Pass `hasLessonPictureInPicture` from
+   * `useModules`.
    */
   allowPictureInPicture?: boolean;
 }
@@ -77,7 +73,6 @@ export const LessonVideoSection = ({
   className = 'w-full h-full object-cover rounded-b-xl',
   emptyMessage = 'Vídeo não disponível para esta aula.',
   children,
-  pauseOnBackground,
   allowPictureInPicture,
 }: LessonVideoSectionProps) => {
   const hlsSrc = useLessonVideoHlsSrc(video.hlsSrc);
@@ -106,7 +101,7 @@ export const LessonVideoSection = ({
         autoSave={persistProgress}
         storageKey={storageKey}
         userId={userId}
-        pauseOnBackground={pauseOnBackground}
+        pauseOnBackground={!allowPictureInPicture}
         allowPictureInPicture={allowPictureInPicture}
       />
       {children}

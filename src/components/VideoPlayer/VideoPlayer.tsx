@@ -95,14 +95,15 @@ interface VideoPlayerProps {
   onDownloadError?: (contentType: string, error: Error) => void;
   /**
    * Pauses the video when the tab is hidden or the window loses focus. On by
-   * default; turn it off to let the video keep playing in the background.
-   * Ignored while `allowPictureInPicture` is on, since the floating window
-   * must keep playing outside the tab.
+   * default. Ignored while `allowPictureInPicture` is on, since the floating
+   * window must keep playing outside the tab. The lesson screens only turn it
+   * off when the institution has `lessonPictureInPicture`.
    */
   pauseOnBackground?: boolean;
   /**
-   * Shows the picture-in-picture button, in browsers that support it. Also
-   * stops the pause on leaving the tab.
+   * Shows the picture-in-picture button, in browsers that support it, and
+   * keeps the video playing on leaving the tab. The lesson screens pass the
+   * institution's `lessonPictureInPicture` here.
    */
   allowPictureInPicture?: boolean;
 }
@@ -1300,7 +1301,7 @@ const VideoPlayer = ({
 
   /**
    * Pauses the video when the tab is hidden or the window loses focus, unless
-   * background playback or picture-in-picture is allowed.
+   * picture-in-picture is allowed.
    */
   const pausesInBackground = pauseOnBackground && !allowPictureInPicture;
 

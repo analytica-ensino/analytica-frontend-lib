@@ -2,8 +2,8 @@ import { expect as baseExpect, test, type Page } from '@playwright/test';
 
 /**
  * Pause on leaving the tab and picture-in-picture (AE-3311), in the Ladle
- * stories `VideoPlayer > PauseOnBackground`, `BackgroundPlayback` and
- * `PictureInPicture`. All three play the local 10 s fixture.
+ * stories `VideoPlayer > PauseOnBackground` and `PictureInPicture`. Both play
+ * the local 10 s fixture.
  *
  * Leaving the tab is simulated the way the browser reports it to the page:
  * `document.hidden` turns true, then `visibilitychange` and the window `blur`
@@ -14,7 +14,6 @@ import { expect as baseExpect, test, type Page } from '@playwright/test';
 const expect = baseExpect.configure({ timeout: 30_000 });
 
 const PAUSE_STORY = 'videoplayer--pause-on-background';
-const BACKGROUND_STORY = 'videoplayer--background-playback';
 const PIP_STORY = 'videoplayer--picture-in-picture';
 
 const openStory = async (page: Page, story: string) => {
@@ -69,20 +68,6 @@ test.describe('VideoPlayer: pause on leaving the tab', () => {
     await leaveTab(page);
 
     await expect.poll(() => isPaused(page)).toBe(true);
-  });
-
-  test('keeps playing on leaving the tab with background playback', async ({
-    page,
-  }) => {
-    await openStory(page, BACKGROUND_STORY);
-    await expect(pipButton(page)).toHaveCount(0);
-
-    await play(page);
-    await leaveTab(page);
-    const leftAt = await videoTime(page);
-
-    await expect.poll(() => videoTime(page)).toBeGreaterThan(leftAt + 1);
-    expect(await isPaused(page)).toBe(false);
   });
 });
 
