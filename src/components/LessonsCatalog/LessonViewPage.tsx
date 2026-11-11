@@ -80,6 +80,12 @@ export interface LessonViewPageProps {
   /** Runs before any breadcrumb navigation away from the lesson. */
   readonly onNavigateAway?: () => void;
   /**
+   * Shows the picture-in-picture button and keeps the video playing on leaving
+   * the tab; off, the video pauses. Pass `hasLessonPictureInPicture` from
+   * `useModules`.
+   */
+  readonly allowPictureInPicture?: boolean;
+  /**
    * Extra actions for the lesson on screen, rendered in its header before the
    * download button (the student's favorite and "save to list", for one).
    * Called again whenever the student switches lessons.
@@ -137,6 +143,7 @@ export function LessonViewPage({
   onOpenQuestionnaire,
   breadcrumbItems,
   onNavigateAway,
+  allowPictureInPicture,
   renderHeaderActions,
 }: LessonViewPageProps) {
   const { subjectId, topicId } = useParams<{
@@ -746,6 +753,7 @@ export function LessonViewPage({
             storageKey={`lesson-${currentLesson.id}`}
             userId={userId}
             className="w-full h-full object-contain rounded-b-xl"
+            allowPictureInPicture={allowPictureInPicture}
           />
         </span>
       </div>
