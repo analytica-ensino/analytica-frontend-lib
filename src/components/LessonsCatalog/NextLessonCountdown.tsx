@@ -58,7 +58,7 @@ export function NextLessonCountdown({
   }, [remaining]);
 
   return (
-    <div className="absolute inset-0 z-10 flex items-center justify-center overflow-y-auto bg-black p-4">
+    <div className="absolute inset-0 z-10 flex items-center justify-center overflow-y-auto bg-neutral-900 p-4">
       <div className="flex w-full max-w-sm flex-col gap-3">
         <Text size="md" weight="bold" color="text-white" aria-live="polite">
           Próxima aula em {remaining}s
@@ -79,6 +79,9 @@ export function NextLessonCountdown({
           progress={progress}
           showDates={false}
           onClick={complete}
+          // Fica sobre o player, escuro em qualquer tema: mesmo critério dos
+          // gradientes dos controles do vídeo.
+          className="!bg-white/5 !border-white/15 hover:!bg-white/10 [&_p]:!text-white [&_span]:!text-white"
         />
 
         <div className="flex gap-3 border-t border-white/30 pt-3">
