@@ -121,6 +121,7 @@ function renderPage(
     mode = 'student',
     entry = '/aulas/s-1/topicos/sub-1/licoes',
     onOpenQuestionnaire,
+    renderHeaderActions,
   }: {
     mode?: 'student' | 'preview';
     entry?: string;
@@ -128,6 +129,7 @@ function renderPage(
       lessonId: string;
       hasQuestionnaire: boolean;
     }) => Promise<void>;
+    renderHeaderActions?: (lesson: { id: string }) => ReactNode;
   } = {}
 ) {
   return render(
@@ -141,6 +143,7 @@ function renderPage(
               routes={ROUTES}
               mode={mode}
               onOpenQuestionnaire={onOpenQuestionnaire}
+              renderHeaderActions={renderHeaderActions}
             />
           }
         />
@@ -193,6 +196,45 @@ describe('LessonViewPage', () => {
     renderPage(api);
 
     expect(await screen.findByText('Replicação')).toBeInTheDocument();
+  });
+
+  describe('header actions', () => {
+    it('renders the actions for the lesson on screen, and follows a switch', async () => {
+      const api = makeApi([
+        apiLesson(),
+        apiLesson({
+          id: 'lesson-2',
+          content: { id: 'c-2', name: 'Replicação', bnccCode: 'EM13B' },
+        }),
+      ]);
+      renderPage(api, {
+        renderHeaderActions: (lesson) => (
+          <button type="button" data-testid="header-action">
+            {lesson.id}
+          </button>
+        ),
+      });
+
+      expect(await screen.findByTestId('header-action')).toHaveTextContent(
+        'lesson-1'
+      );
+
+      fireEvent.click(screen.getByText('Replicação'));
+
+      await waitFor(() =>
+        expect(screen.getByTestId('header-action')).toHaveTextContent(
+          'lesson-2'
+        )
+      );
+    });
+
+    it('renders only the download button without actions', async () => {
+      const api = makeApi();
+      renderPage(api);
+
+      await screen.findByTestId('video-player');
+      expect(screen.queryByTestId('header-action')).not.toBeInTheDocument();
+    });
   });
 
   it('opens the lesson pinned by ?aula=', async () => {
