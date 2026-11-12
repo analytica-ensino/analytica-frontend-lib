@@ -25,6 +25,7 @@ jest.mock('../shared/LessonMediaSections', () => ({
         type="button"
         data-testid="ended"
         data-autoplay={String(Boolean(props.autoPlay))}
+        data-src={(props.video as { src: string }).src}
         onClick={() =>
           (props.onEnded as (controls: unknown) => void)?.({
             replay: mockReplay,
@@ -103,14 +104,19 @@ const progressResponse = {
   },
 };
 
-function makeApi(lessons: ApiLessonData[]) {
+function makeApi(
+  lessons: ApiLessonData[],
+  pendingUrls: Record<string, Promise<unknown>> = {}
+) {
   return {
-    get: jest.fn((url: string) =>
-      Promise.resolve({
-        data: url.startsWith('/lesson/by-subtopic')
-          ? { message: 'ok', data: lessons }
-          : {},
-      })
+    get: jest.fn(
+      (url: string) =>
+        pendingUrls[url] ??
+        Promise.resolve({
+          data: url.startsWith('/lesson/by-subtopic')
+            ? { message: 'ok', data: lessons }
+            : {},
+        })
     ),
     post: jest.fn(),
     patch: jest.fn().mockResolvedValue(progressResponse),
@@ -157,7 +163,7 @@ const finishCountdown = async () => {
   });
 };
 
-describe('LessonViewPage: fila e fim do vídeo', () => {
+describe('LessonViewPage: queue and end of video', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     globalThis.scrollTo = jest.fn();
@@ -171,7 +177,7 @@ describe('LessonViewPage: fila e fim do vídeo', () => {
 
   afterEach(() => jest.restoreAllMocks());
 
-  it('conta e avança para a próxima aula com início automático', async () => {
+  it('counts down and advances to the next lesson with autoplay', async () => {
     const api = makeApi([lesson('a'), lesson('b')]);
     await renderPage(api);
 
@@ -188,7 +194,7 @@ describe('LessonViewPage: fila e fim do vídeo', () => {
     );
   });
 
-  it('espera a gravação do progresso antes de trocar de aula', async () => {
+  it('waits for progress to be saved before switching lessons', async () => {
     const api = makeApi([lesson('a'), lesson('b')]);
     let resolveWrite: (value: { data: unknown }) => void = () => undefined;
     api.patch.mockImplementation((url: string) =>
@@ -209,7 +215,7 @@ describe('LessonViewPage: fila e fim do vídeo', () => {
     await waitFor(() => expect(currentId()).toBe('b'));
   });
 
-  it('não troca se o aluno escolheu outra aula durante a gravação', async () => {
+  it('does not switch if the student picked another lesson while saving', async () => {
     const api = makeApi([lesson('a'), lesson('b'), lesson('c')]);
     let resolveWrite: (value: { data: unknown }) => void = () => undefined;
     api.patch.mockImplementation((url: string) =>
@@ -236,7 +242,7 @@ describe('LessonViewPage: fila e fim do vídeo', () => {
     expect(currentId()).toBe('c');
   });
 
-  it('cancelar mantém a aula atual', async () => {
+  it('cancel keeps the current lesson', async () => {
     await renderPage(makeApi([lesson('a'), lesson('b')]));
 
     await endVideo();
@@ -246,7 +252,7 @@ describe('LessonViewPage: fila e fim do vídeo', () => {
     expect(currentId()).toBe('a');
   });
 
-  it('pula aulas sem vídeo na fila', async () => {
+  it('skips lessons without video in the queue', async () => {
     await renderPage(makeApi([lesson('a'), lesson('b', ''), lesson('c')]));
 
     await endVideo();
@@ -255,7 +261,7 @@ describe('LessonViewPage: fila e fim do vídeo', () => {
     await waitFor(() => expect(currentId()).toBe('c'));
   });
 
-  it('na última aula sem repetir a lista, volta ao início', async () => {
+  it('on the last lesson without repeat list, rewinds to the start', async () => {
     await renderPage(makeApi([lesson('a'), lesson('b')]), { aula: 'b' });
 
     await endVideo();
@@ -264,7 +270,7 @@ describe('LessonViewPage: fila e fim do vídeo', () => {
     expect(screen.queryByTestId('countdown-done')).not.toBeInTheDocument();
   });
 
-  it('na última aula com repetir a lista, recomeça a fila', async () => {
+  it('on the last lesson with repeat list, restarts the queue', async () => {
     useMediaPreferencesStore.setState({ queueRepeatList: true });
     await renderPage(makeApi([lesson('a'), lesson('b')]), { aula: 'b' });
 
@@ -274,7 +280,7 @@ describe('LessonViewPage: fila e fim do vídeo', () => {
     await waitFor(() => expect(currentId()).toBe('a'));
   });
 
-  it('vídeo fora de fila volta ao início mesmo com repetir a lista', async () => {
+  it('a video outside a queue rewinds even with repeat list on', async () => {
     useMediaPreferencesStore.setState({ queueRepeatList: true });
     await renderPage(makeApi([lesson('a')]));
 
@@ -284,7 +290,7 @@ describe('LessonViewPage: fila e fim do vídeo', () => {
     expect(screen.queryByTestId('countdown-done')).not.toBeInTheDocument();
   });
 
-  it('repetir um vídeo tem prioridade e não grava nova conclusão', async () => {
+  it('repeat video takes priority and does not record a new completion', async () => {
     useMediaPreferencesStore.setState({ videoEndBehavior: 'repeat-video' });
     const api = makeApi([lesson('a'), lesson('b')]);
     await renderPage(api);
@@ -297,7 +303,7 @@ describe('LessonViewPage: fila e fim do vídeo', () => {
     expect(progressWrites(api)).toHaveLength(1);
   });
 
-  it('voltar ao início tem prioridade sobre o avanço', async () => {
+  it('back to start takes priority over advancing', async () => {
     useMediaPreferencesStore.setState({ videoEndBehavior: 'back-to-start' });
     await renderPage(makeApi([lesson('a'), lesson('b')]));
 
@@ -307,7 +313,7 @@ describe('LessonViewPage: fila e fim do vídeo', () => {
     expect(screen.queryByTestId('countdown-done')).not.toBeInTheDocument();
   });
 
-  it('a pré-visualização não tem fila, controles nem gravação', async () => {
+  it('preview has no queue, controls or progress saving', async () => {
     useMediaPreferencesStore.setState({ videoEndBehavior: 'repeat-video' });
     const api = makeApi([lesson('a'), lesson('b')]);
     await renderPage(api, { mode: 'preview' });
@@ -322,7 +328,7 @@ describe('LessonViewPage: fila e fim do vídeo', () => {
     expect(progressWrites(api)).toHaveLength(0);
   });
 
-  it('a ordem aleatória percorre todas sem repetir e reembaralha', async () => {
+  it('shuffle plays every lesson without repeats and reshuffles', async () => {
     useMediaPreferencesStore.setState({
       queueShuffle: true,
       queueRepeatList: true,
@@ -344,7 +350,7 @@ describe('LessonViewPage: fila e fim do vídeo', () => {
     await waitFor(() => expect(currentId()).not.toBe(visited[2]));
   });
 
-  it('desligar a ordem aleatória retoma a ordem original', async () => {
+  it('turning shuffle off restores the original order', async () => {
     useMediaPreferencesStore.setState({ queueShuffle: true });
     await renderPage(makeApi([lesson('a'), lesson('b'), lesson('c')]), {
       aula: 'b',
@@ -357,7 +363,7 @@ describe('LessonViewPage: fila e fim do vídeo', () => {
     await waitFor(() => expect(currentId()).toBe('c'));
   });
 
-  it('escolher uma aula rola o <main> ao topo sem início automático', async () => {
+  it('picking a lesson scrolls <main> to the top without autoplay', async () => {
     const main = document.createElement('main');
     main.scrollTo = jest.fn();
     document.body.appendChild(main);
@@ -373,5 +379,50 @@ describe('LessonViewPage: fila e fim do vídeo', () => {
       'false'
     );
     main.remove();
+  });
+
+  it('keeps the same player across lessons, so fullscreen and PiP survive', async () => {
+    await renderPage(makeApi([lesson('a'), lesson('b')]));
+    const player = screen.getByTestId('ended');
+
+    await endVideo();
+    await finishCountdown();
+
+    await waitFor(() =>
+      expect(screen.getByTestId('ended')).toHaveAttribute(
+        'data-src',
+        'https://cdn.test/b.mp4'
+      )
+    );
+    expect(screen.getByTestId('ended')).toBe(player);
+  });
+
+  it('ignores the previous video while the next resume point loads', async () => {
+    let resolveResume: (value: unknown) => void = () => undefined;
+    const api = makeApi([lesson('a'), lesson('b')], {
+      '/lesson/b/playback': new Promise((resolve) => {
+        resolveResume = resolve;
+      }),
+    });
+    await renderPage(api);
+
+    fireEvent.click(screen.getByText('Conteúdo b'));
+    await waitFor(() => expect(currentId()).toBe('b'));
+    expect(screen.getByTestId('ended')).toHaveAttribute(
+      'data-src',
+      'https://cdn.test/a.mp4'
+    );
+
+    await endVideo();
+    expect(screen.queryByTestId('countdown-done')).not.toBeInTheDocument();
+    expect(progressWrites(api)).toHaveLength(0);
+
+    await act(async () => resolveResume({ data: { data: null } }));
+    await waitFor(() =>
+      expect(screen.getByTestId('ended')).toHaveAttribute(
+        'data-src',
+        'https://cdn.test/b.mp4'
+      )
+    );
   });
 });

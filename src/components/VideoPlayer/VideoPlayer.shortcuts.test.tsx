@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import VideoPlayer from './VideoPlayer';
 
-describe('VideoPlayer: atalhos e modo cinema', () => {
+describe('VideoPlayer: shortcuts and cinema mode', () => {
   let play: jest.SpyInstance;
 
   beforeEach(() => {
@@ -30,7 +30,7 @@ describe('VideoPlayer: atalhos e modo cinema', () => {
     return host.firstElementChild as HTMLElement;
   };
 
-  it('espaço toca com o foco fora do vídeo e não rola a página', () => {
+  it('space plays with focus outside the video and does not scroll the page', () => {
     render(<VideoPlayer src="a.mp4" />);
 
     const notPrevented = key(document.body, { key: ' ' });
@@ -39,7 +39,7 @@ describe('VideoPlayer: atalhos e modo cinema', () => {
     expect(notPrevented).toBe(false);
   });
 
-  it('o espaço aciona o botão em foco, não o vídeo', () => {
+  it('space activates the focused button, not the video', () => {
     render(<VideoPlayer src="a.mp4" />);
     const button = appendTo('<button>ok</button>');
     const option = appendTo('<div role="radio">a</div>');
@@ -54,7 +54,7 @@ describe('VideoPlayer: atalhos e modo cinema', () => {
     '<textarea></textarea>',
     '<select></select>',
     '<div contenteditable="true"></div>',
-  ])('ignora atalhos ao digitar em %s', (html) => {
+  ])('ignores shortcuts while typing in %s', (html) => {
     render(<VideoPlayer src="a.mp4" onToggleCinemaMode={jest.fn()} />);
     const field = appendTo(html);
 
@@ -64,7 +64,7 @@ describe('VideoPlayer: atalhos e modo cinema', () => {
   });
 
   it.each([{ ctrlKey: true }, { metaKey: true }, { altKey: true }])(
-    'não intercepta combinações %j',
+    'does not intercept %j combinations',
     (modifier) => {
       render(<VideoPlayer src="a.mp4" />);
 
@@ -73,7 +73,7 @@ describe('VideoPlayer: atalhos e modo cinema', () => {
     }
   );
 
-  it('deixa o evento chegar a atalhos globais', () => {
+  it('lets the event reach global shortcuts', () => {
     const { container } = render(<VideoPlayer src="a.mp4" />);
     const globalListener = jest.fn();
     document.addEventListener('keydown', globalListener);
@@ -84,7 +84,7 @@ describe('VideoPlayer: atalhos e modo cinema', () => {
     document.removeEventListener('keydown', globalListener);
   });
 
-  it('ignora atalhos atrás de um modal sem o player', () => {
+  it('ignores shortcuts behind a modal without the player', () => {
     render(<VideoPlayer src="a.mp4" />);
     appendTo('<div aria-modal="true"></div>');
 
@@ -92,7 +92,7 @@ describe('VideoPlayer: atalhos e modo cinema', () => {
     expect(play).not.toHaveBeenCalled();
   });
 
-  it('funciona com o player dentro do modal', () => {
+  it('works with the player inside the modal', () => {
     const modal = appendTo('<div aria-modal="true"></div>');
     render(<VideoPlayer src="a.mp4" />, { container: modal });
 
@@ -101,13 +101,13 @@ describe('VideoPlayer: atalhos e modo cinema', () => {
     expect(play).toHaveBeenCalledTimes(1);
   });
 
-  it('as setas seguem exigindo o foco no vídeo', () => {
+  it('arrows still require focus on the video', () => {
     render(<VideoPlayer src="a.mp4" />);
 
     expect(key(document.body, { key: 'ArrowLeft' })).toBe(true);
   });
 
-  it('segurar a tecla não alterna várias vezes', () => {
+  it('holding the key does not toggle repeatedly', () => {
     render(<VideoPlayer src="a.mp4" />);
 
     key(document.body, { key: ' ', repeat: true });
@@ -115,7 +115,7 @@ describe('VideoPlayer: atalhos e modo cinema', () => {
     expect(play).not.toHaveBeenCalled();
   });
 
-  it('o espaço não reinicia o vídeo durante a contagem', () => {
+  it('space does not restart the video during the countdown', () => {
     render(<VideoPlayer src="a.mp4" overlay={<div>contagem</div>} />);
 
     key(document.body, { key: ' ' });
@@ -123,7 +123,7 @@ describe('VideoPlayer: atalhos e modo cinema', () => {
     expect(play).not.toHaveBeenCalled();
   });
 
-  it('T e o botão acionam o modo cinema quando oferecido', () => {
+  it('T and the button toggle cinema mode when offered', () => {
     const onToggle = jest.fn();
     render(<VideoPlayer src="a.mp4" onToggleCinemaMode={onToggle} />);
 
@@ -136,7 +136,7 @@ describe('VideoPlayer: atalhos e modo cinema', () => {
     ).toHaveAccessibleDescription('Modo cinema T');
   });
 
-  it('indica quando o modo cinema está ativo', () => {
+  it('indicates when cinema mode is active', () => {
     render(
       <VideoPlayer src="a.mp4" isCinemaMode onToggleCinemaMode={jest.fn()} />
     );
@@ -147,7 +147,7 @@ describe('VideoPlayer: atalhos e modo cinema', () => {
     );
   });
 
-  it('os tooltips mostram a ação e a tecla do atalho', () => {
+  it('tooltips show the action and the shortcut key', () => {
     render(<VideoPlayer src="a.mp4" onToggleCinemaMode={jest.fn()} />);
 
     const kbds = Array.from(document.querySelectorAll('[role="tooltip"]')).map(
@@ -168,7 +168,7 @@ describe('VideoPlayer: atalhos e modo cinema', () => {
     );
   });
 
-  it('C liga e desliga a legenda quando ela existe', async () => {
+  it('C toggles subtitles when they exist', async () => {
     const track = { mode: 'hidden' };
     Object.defineProperty(HTMLTrackElement.prototype, 'track', {
       configurable: true,
@@ -189,13 +189,13 @@ describe('VideoPlayer: atalhos e modo cinema', () => {
     delete (HTMLTrackElement.prototype as { track?: unknown }).track;
   });
 
-  it('sem legenda, C não faz nada', () => {
+  it('without subtitles, C does nothing', () => {
     render(<VideoPlayer src="a.mp4" />);
 
     expect(key(document.body, { key: 'c' })).toBe(true);
   });
 
-  it('sem suporte da página, não há botão nem atalho T', () => {
+  it('without page support, there is no button nor T shortcut', () => {
     render(<VideoPlayer src="a.mp4" />);
 
     expect(key(document.body, { key: 't' })).toBe(true);

@@ -8,7 +8,7 @@ const rehydrateWith = async (state: Record<string, unknown>) => {
   return useMediaPreferencesStore.getState();
 };
 
-describe('mediaPreferencesStore: controles de lista', () => {
+describe('mediaPreferencesStore: list controls', () => {
   beforeEach(() => {
     localStorage.clear();
     useMediaPreferencesStore.setState({
@@ -18,7 +18,7 @@ describe('mediaPreferencesStore: controles de lista', () => {
     });
   });
 
-  it('salva as escolhas no aparelho', () => {
+  it('saves the choices on the device', () => {
     const store = useMediaPreferencesStore.getState();
     store.setQueueShuffle(true);
     store.setQueueRepeatList(true);
@@ -32,7 +32,7 @@ describe('mediaPreferencesStore: controles de lista', () => {
     });
   });
 
-  it.each(['repeat-video', 'back-to-start'])('restaura %s', async (value) => {
+  it.each(['repeat-video', 'back-to-start'])('restores %s', async (value) => {
     const state = await rehydrateWith({
       queueShuffle: true,
       queueRepeatList: true,
@@ -44,7 +44,7 @@ describe('mediaPreferencesStore: controles de lista', () => {
     expect(state.videoEndBehavior).toBe(value);
   });
 
-  it('salva e restaura o modo cinema', async () => {
+  it('saves and restores cinema mode', async () => {
     useMediaPreferencesStore.getState().setCinemaMode(true);
     expect(
       JSON.parse(localStorage.getItem(STORAGE_KEY) as string).state.cinemaMode
@@ -54,7 +54,7 @@ describe('mediaPreferencesStore: controles de lista', () => {
     expect(state.cinemaMode).toBe(true);
   });
 
-  it('descarta valores inválidos do storage', async () => {
+  it('discards invalid values from storage', async () => {
     const state = await rehydrateWith({
       queueShuffle: 'sim',
       queueRepeatList: 1,

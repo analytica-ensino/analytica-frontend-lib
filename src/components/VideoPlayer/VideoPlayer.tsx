@@ -37,20 +37,20 @@ import { Tooltip } from '../Tooltip/Tooltip';
 
 interface PlayerTooltipProps {
   readonly label: string;
-  /** Tecla exibida como "tecla" ao lado do texto (Figma AE-3310). */
+  /** Key shown as a keycap next to the text (Figma AE-3310). */
   readonly shortcut?: string;
   readonly children: ReactNode;
 }
 
 /**
- * Tooltip dos botões do player, com o atalho do teclado ao lado do texto.
- * Fica acima do botão e sem portal, para aparecer também em tela cheia.
+ * Tooltip for the player buttons, with the keyboard shortcut next to the text.
+ * Sits above the button without a portal, so it also shows in fullscreen.
  */
 const PlayerTooltip = ({ label, shortcut, children }: PlayerTooltipProps) => (
   <Tooltip
     content={
-      // Sem `color`, o Text aplicaria `text-text-950` e apagaria o branco do
-      // tooltip.
+      // Without `color`, Text would apply `text-text-950` and override the
+      // tooltip's white.
       <Text
         as="span"
         size="xs"
@@ -77,11 +77,11 @@ const CONTROLS_HIDE_TIMEOUT = 3000; // 3 seconds for normal control hiding
 const LEAVE_HIDE_TIMEOUT = 1000; // 1 second when mouse leaves the video area
 const INIT_DELAY = 100; // ms delay to initialize controls on mount
 
-/** Ações disponíveis para quem decide o que fazer ao fim do vídeo. */
+/** Actions available to whoever decides what happens at the end of the video. */
 export interface VideoEndControls {
-  /** Toca o mesmo vídeo de novo, do começo. */
+  /** Plays the same video again from the start. */
   replay: () => void;
-  /** Volta para 0:00 e aguarda o play. */
+  /** Goes back to 0:00 and waits for play. */
   rewind: () => void;
 }
 
@@ -194,9 +194,9 @@ const SPACE_ACTIVATED_SELECTOR = [
 ].join(',');
 
 /**
- * Atalhos valem na página inteira, exceto durante a digitação, em combinações
- * do navegador ou de acessibilidade, e atrás de um modal sem o player.
- * Sliders contam como fora de digitação: só as setas pertencem a eles.
+ * Shortcuts work across the whole page, except while typing, on browser or
+ * accessibility key combinations, and behind a modal without the player.
+ * Sliders don't count as typing: only the arrows belong to them.
  */
 const shouldIgnoreShortcut = (
   event: globalThis.KeyboardEvent,
@@ -331,9 +331,10 @@ const VolumeControls = ({
           )
         }
         onClick={onToggleMute}
-        // O rótulo diz a AÇÃO, o `aria-pressed` diz o ESTADO — e é ele que faz o
-        // leitor anunciar "botão alternar". Sem o `aria-pressed` não dá para
-        // saber se está mudo sem acionar o botão e ouvir o rótulo mudar.
+        // The label states the ACTION, `aria-pressed` states the STATE — and it is
+        // what makes screen readers announce a "toggle button". Without
+        // `aria-pressed` there's no way to tell if it's muted without pressing
+        // the button and hearing the label change.
         aria-label={isMuted ? 'Ativar áudio' : 'Desativar áudio'}
         aria-pressed={isMuted}
         className="!bg-transparent !text-white hover:!bg-white/20"
@@ -636,8 +637,13 @@ const VideoPlayer = ({
   const resumeStateRef = useRef<'pending' | 'done'>('pending');
   /** Espelho de `hasStarted` legível de dentro dos callbacks de mídia. */
   const hasStartedRef = useRef(false);
-  /** Garante uma única tentativa de início automático por mídia. */
+  /** Ensures a single autoplay attempt per media. */
   const autoPlayAttemptedRef = useRef(false);
+  /**
+   * Autoplay held back because the tab was hidden: it runs when the student
+   * comes back, so the next lesson never starts playing unseen.
+   */
+  const pendingAutoPlayRef = useRef(false);
 
   // Reset completion flag when changing videos.
   //
@@ -651,6 +657,13 @@ const VideoPlayer = ({
     setHasStarted(false);
     hasStartedRef.current = false;
     autoPlayAttemptedRef.current = false;
+    pendingAutoPlayRef.current = false;
+    // The page may swap the media without remounting (lesson queue): loading a
+    // new source pauses the element without a `pause` event, so the playback
+    // state would keep showing the previous video.
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
     // Mídia nova, retomada nova: é a troca de mídia — e só ela — que libera
     // um novo restore de posição.
     resumeStateRef.current = 'pending';
@@ -1286,18 +1299,62 @@ const VideoPlayer = ({
     // pega, e é a última vez que ele acontece nesta mídia.
     applyResumeTime();
 
-    // Depois da retomada, para não começar do zero e saltar em seguida. Se o
-    // navegador bloquear, `togglePlayPause` absorve a rejeição e o botão
-    // central de play continua visível.
+    // After resuming, so it doesn't start from zero and then jump. If the
+    // browser blocks it, `togglePlayPause` absorbs the rejection and the
+    // center play button stays visible.
     if (autoPlay && !autoPlayAttemptedRef.current) {
       autoPlayAttemptedRef.current = true;
-      togglePlayPause();
+      // In picture-in-picture the student still sees the video, so it plays.
+      if (document.hidden && !document.pictureInPictureElement) {
+        pendingAutoPlayRef.current = true;
+      } else {
+        togglePlayPause();
+      }
     }
   }, [applyResumeTime, autoPlay, togglePlayPause]);
 
+  const handleLoadedMetadataRef = useRef(handleLoadedMetadata);
+  useEffect(() => {
+    handleLoadedMetadataRef.current = handleLoadedMetadata;
+  }, [handleLoadedMetadata]);
+
+  // A new item can reuse the file already loaded (two lessons built from the
+  // same recording). Setting the same `src` does not reload the element, so no
+  // `loadedmetadata` comes: start the new item from the beginning and run the
+  // same start-up (resume, autoplay) here. A different `src` resets
+  // `readyState` before this runs, and the real event takes over.
+  const isFirstMediaRef = useRef(true);
+  useEffect(() => {
+    if (isFirstMediaRef.current) {
+      isFirstMediaRef.current = false;
+      return;
+    }
+    const video = videoRef.current;
+    if (!video || video.readyState < 1) return;
+    video.currentTime = 0;
+    setCurrentTime(0);
+    setDuration(video.duration);
+    handleLoadedMetadataRef.current();
+  }, [src, storageKey]);
+
+  // Runs the autoplay held back while the tab was hidden, unless the student
+  // already started the video some other way.
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden || !pendingAutoPlayRef.current) return;
+      pendingAutoPlayRef.current = false;
+      if (videoRef.current?.paused && !hasStartedRef.current) {
+        togglePlayPause();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () =>
+      document.removeEventListener('visibilitychange', handleVisibility);
+  }, [togglePlayPause]);
+
   /**
-   * Entrega ao consumidor as ações de fim de vídeo. `hasCompleted` não é
-   * rearmado: repetir não dispara `onVideoComplete` de novo.
+   * Hands the end-of-video actions to the consumer. `hasCompleted` is not
+   * reset: replaying does not fire `onVideoComplete` again.
    */
   const handleEnded = useCallback(() => {
     const rewind = () => {
@@ -1312,7 +1369,7 @@ const VideoPlayer = ({
       try {
         await videoRef.current?.play();
       } catch {
-        // Bloqueado pelo navegador: o botão central de play continua visível.
+        // Blocked by the browser: the center play button stays visible.
       }
     };
 
@@ -1616,8 +1673,8 @@ const VideoPlayer = ({
   }, [handleVolumeChange, volume]);
 
   /**
-   * Único listener dos atalhos, no `document`, para funcionar com o foco em
-   * qualquer ponto da página e também em tela cheia.
+   * Single shortcut listener, on `document`, so it works with focus anywhere
+   * on the page and also in fullscreen.
    */
   const hasOverlay = Boolean(overlay);
   const hasValidSubtitles =
@@ -1629,7 +1686,7 @@ const VideoPlayer = ({
 
       const target = e.target as Element;
       const isOnVideo = target === video;
-      // A contagem cobre o player: tocar agora reiniciaria o vídeo por trás.
+      // The countdown covers the player: playing now would restart the video behind it.
       const playback = hasOverlay ? () => undefined : togglePlayPause;
       const spaceBelongsToTarget = target.closest?.(SPACE_ACTIVATED_SELECTOR);
 
@@ -1654,7 +1711,7 @@ const VideoPlayer = ({
       if (!handler) return;
 
       e.preventDefault();
-      // Segurar a tecla só repete as setas, nunca alterna play ou tela cheia.
+      // Holding a key only repeats the arrows, never toggles play or fullscreen.
       if (e.repeat && !e.key.startsWith('Arrow')) return;
 
       showControlsWithTimer();
@@ -1737,7 +1794,7 @@ const VideoPlayer = ({
       <section
         className={cn(
           'relative w-full flex-1 min-h-0 overflow-hidden group',
-          // Modo cinema: faixa preta nas laterais do vídeo (Figma AE-3309).
+          // Cinema mode: black bars on the sides of the video (Figma AE-3309).
           isCinemaMode ? 'bg-black' : 'bg-background',
           'rounded-b-xl',
           // Hide cursor when controls are hidden and video is playing
@@ -1790,8 +1847,8 @@ const VideoPlayer = ({
           <img
             src={poster}
             alt={title ? `Capa: ${title}` : 'Capa do vídeo'}
-            // No modo cinema a faixa é mais larga que 16:9: a capa não pode
-            // ser cortada, e as laterais ficam pretas como no vídeo.
+            // In cinema mode the strip is wider than 16:9: the poster must not
+            // be cropped, and the sides stay black as in the video.
             className={cn(
               'absolute inset-0 w-full h-full',
               isCinemaMode ? 'object-contain' : 'object-cover'
@@ -1879,9 +1936,9 @@ const VideoPlayer = ({
                   <IconButton
                     icon={<ClosedCaptioningIcon size={getIconSize()} />}
                     onClick={toggleCaptions}
-                    // Mesma natureza do mudo: ação no rótulo, estado no
-                    // `aria-pressed` — hoje o único sinal de que as legendas
-                    // estão ligadas é a cor do ícone.
+                    // Same as mute: action in the label, state in
+                    // `aria-pressed` — otherwise the only sign that subtitles
+                    // are on is the icon color.
                     aria-label={
                       showCaptions ? 'Ocultar legendas' : 'Exibir legendas'
                     }

@@ -12,23 +12,23 @@ export const DEFAULT_MEDIA_VOLUME = 1;
 export const UNMUTE_FALLBACK_VOLUME = 0.5;
 
 /**
- * O que fazer ao fim de cada vídeo, acima do avanço da fila. Um campo único
- * garante que "repetir um vídeo" e "voltar ao início" nunca fiquem ativos
- * ao mesmo tempo.
+ * What to do at the end of each video, taking precedence over queue advance.
+ * A single field ensures "repeat video" and "back to start" are never active
+ * at the same time.
  */
 export type VideoEndBehavior = 'none' | 'repeat-video' | 'back-to-start';
 
 /**
- * Preferências de áudio e de fila compartilhadas pelos players da plataforma
- * (videoaula e podcast).
+ * Audio and queue preferences shared by the platform's players
+ * (video lesson and podcast).
  */
 export interface MediaPreferencesState {
-  /** Ordem aleatória da fila de aulas */
+  /** Shuffled order of the lesson queue */
   queueShuffle: boolean;
-  /** Recomeça a fila ao terminar a última aula */
+  /** Restarts the queue after the last lesson ends */
   queueRepeatList: boolean;
   videoEndBehavior: VideoEndBehavior;
-  /** Player na largura total da página de aula */
+  /** Player at full width on the lesson page */
   cinemaMode: boolean;
   setCinemaMode: (cinemaMode: boolean) => void;
   setQueueShuffle: (queueShuffle: boolean) => void;

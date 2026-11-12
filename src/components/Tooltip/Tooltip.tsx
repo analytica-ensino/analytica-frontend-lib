@@ -293,8 +293,8 @@ export function Tooltip({
   return (
     <div
       ref={wrapperRef}
-      // Grupo nomeado: com `group` puro, qualquer ancestral `group` (como o
-      // player de vídeo) acendia o tooltip no hover dele.
+      // Named group: with a plain `group`, any `group` ancestor (such as the
+      // video player) showed the tooltip when it was hovered.
       className={cn('relative inline-flex group/tooltip', className)}
       aria-describedby={describableChild ? undefined : tooltipId}
     >

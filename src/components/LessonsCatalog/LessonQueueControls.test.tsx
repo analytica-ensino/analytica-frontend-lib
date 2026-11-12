@@ -15,7 +15,7 @@ describe('LessonQueueControls', () => {
     render(<LessonQueueControls />);
   });
 
-  it.each(['Aleatório', 'Repetir lista'])('liga e desliga "%s"', (name) => {
+  it.each(['Aleatório', 'Repetir lista'])('toggles "%s" on and off', (name) => {
     fireEvent.click(toggle(name));
     expect(toggle(name)).toHaveAttribute('aria-pressed', 'true');
 
@@ -23,7 +23,7 @@ describe('LessonQueueControls', () => {
     expect(toggle(name)).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('aleatório e repetir lista ficam livres com o fim do vídeo definido', () => {
+  it('shuffle and repeat list stay enabled with an end-of-video action set', () => {
     fireEvent.click(toggle('Repetir vídeo'));
 
     expect(toggle('Aleatório')).toBeEnabled();
@@ -33,7 +33,7 @@ describe('LessonQueueControls', () => {
   it.each([
     ['Repetir vídeo', 'Voltar ao início da lista', 'repeat-video'],
     ['Voltar ao início da lista', 'Repetir vídeo', 'back-to-start'],
-  ])('ativar "%s" desabilita "%s"', (on, blocked, behavior) => {
+  ])('turning on "%s" disables "%s"', (on, blocked, behavior) => {
     fireEvent.click(toggle(on));
 
     expect(useMediaPreferencesStore.getState().videoEndBehavior).toBe(behavior);
@@ -46,7 +46,7 @@ describe('LessonQueueControls', () => {
     expect(toggle(blocked)).toBeEnabled();
   });
 
-  it('mostra o nome da ação em tooltip', () => {
+  it('shows the action name in a tooltip', () => {
     const texts = screen
       .getAllByRole('tooltip', { hidden: true })
       .map((t) => t.textContent);

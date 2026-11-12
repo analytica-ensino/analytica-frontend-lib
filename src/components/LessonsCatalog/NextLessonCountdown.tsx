@@ -2,28 +2,28 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
 
-/** Parâmetro inicial da AE-3296, ainda a validar. */
+/** Initial value from AE-3296, still to be validated. */
 export const NEXT_LESSON_COUNTDOWN_SECONDS = 5;
 
 export interface NextLessonCountdownProps {
-  /** Título da próxima aula da fila. */
+  /** Title of the next lesson in the queue. */
   readonly title: string;
-  /** Frame inicial da próxima aula; sem ele, a imagem não aparece. */
+  /** First frame of the next lesson; without it, no image is shown. */
   readonly imageUrl?: string;
-  /** Ícone da matéria, exibido no card. */
+  /** Subject icon, shown in the card. */
   readonly icon: ReactNode;
-  /** Cor de fundo do ícone (classe `bg-*` ou hex). */
+  /** Icon background color (`bg-*` class or hex). */
   readonly color?: string;
-  /** Linha de contexto acima do título, como "Matéria • Subtema". */
+  /** Context line above the title, such as "Matéria • Subtema". */
   readonly subtitle?: string;
-  /** Chamado uma vez: ao zerar a contagem ou em "Assistir agora". */
+  /** Called once: when the countdown hits zero or on "Assistir agora". */
   readonly onComplete: () => void;
-  /** Interrompe o avanço; a aula atual continua na tela, pausada. */
+  /** Stops the advance; the current lesson stays on screen, paused. */
   readonly onCancel: () => void;
 }
 
 /**
- * Contagem sobre o player antes de avançar para a próxima aula da fila.
+ * Countdown over the player before advancing to the next lesson in the queue.
  */
 export function NextLessonCountdown({
   title,
@@ -37,7 +37,7 @@ export function NextLessonCountdown({
   const [remaining, setRemaining] = useState(NEXT_LESSON_COUNTDOWN_SECONDS);
   const hasCompletedRef = useRef(false);
 
-  // Lido por ref para que um novo render do pai não reinicie o segundo atual.
+  // Read through a ref so a parent re-render does not restart the current second.
   const onCompleteRef = useRef(onComplete);
   useEffect(() => {
     onCompleteRef.current = onComplete;
@@ -73,7 +73,7 @@ export function NextLessonCountdown({
           />
         )}
 
-        {/* Mesmo bloco do card "Continuar aula" do painel. */}
+        {/* Same block as the dashboard's "Continuar aula" card. */}
         <div className="flex min-w-0 items-center gap-2">
           <span
             aria-hidden="true"

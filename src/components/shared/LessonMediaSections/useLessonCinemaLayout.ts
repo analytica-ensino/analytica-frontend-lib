@@ -1,39 +1,40 @@
 import { useLayoutEffect, useState, type CSSProperties } from 'react';
 import { useMediaPreferencesStore } from '../../../store/mediaPreferencesStore';
 
-/** Abaixo de `lg` a lista já fica sob o player e o modo não se aplica. */
+/** Below `lg` the list already sits under the player and the mode does not apply. */
 const CINEMA_MIN_WIDTH = 1024;
 /**
- * Espaço acima do player com a página no topo: cabeçalho e menu do
- * `AppLayout` (120px), breadcrumb (~90px) e faixa do título (~77px), mais
- * folga. Medido em 287px no aluno; abaixo disso os controles saíam da tela.
+ * Space above the player with the page scrolled to the top: `AppLayout`
+ * header and menu (120px), breadcrumb (~90px) and title strip (~77px), plus
+ * slack. Measured at 287px on the student app; below that the controls went
+ * off screen.
  */
 const PLAYER_TOP_OFFSET = '300px';
 
 /**
- * Layout das páginas de aula com modo cinema (Figma da AE-3309).
+ * Layout of the lesson pages with cinema mode (Figma AE-3309).
  *
- * No modo cinema, a faixa do título e o player ocupam a largura toda; abaixo,
- * o conteúdo da aula fica na coluna esquerda e a lista de aulas na direita.
+ * In cinema mode, the title strip and the player take the full width; below,
+ * the lesson content sits in the left column and the lesson list in the right.
  *
- * A página monta sempre a mesma árvore:
+ * The page always renders the same tree:
  *
  * ```
  * grid (gridClassName)
  * ├─ section (mainClassName)
- * │  ├─ div (stageClassName + stageStyle): faixa do título e player
- * │  │  └─ quadro do player (playerFrameStyle)
- * │  └─ div (contentClassName): podcast, questionário, quadros
- * └─ section (listClassName): lista de aulas
+ * │  ├─ div (stageClassName + stageStyle): title strip and player
+ * │  │  └─ player frame (playerFrameStyle)
+ * │  └─ div (contentClassName): podcast, quiz, boards
+ * └─ section (listClassName): lesson list
  * ```
  *
- * Muda só classes e estilo: mover o player na árvore do React remontaria o
- * `<video>` e reiniciaria a reprodução. No modo cinema a `section` principal
- * vira `display: contents`, e seus filhos passam a ser itens da grade. A
- * largura vem do `<main>` medido, e não de `100vw`, que inclui a barra de
- * rolagem e criaria rolagem horizontal.
+ * Only classes and styles change: moving the player in the React tree would
+ * remount the `<video>` and restart playback. In cinema mode the main
+ * `section` becomes `display: contents`, and its children become grid items.
+ * The width comes from the measured `<main>`, not `100vw`, which includes the
+ * scrollbar and would cause horizontal scrolling.
  *
- * @returns Estado do modo e as classes e estilos de cada parte do layout
+ * @returns Mode state and the classes and styles for each part of the layout
  */
 export const useLessonCinemaLayout = () => {
   const isCinemaMode = useMediaPreferencesStore((s) => s.cinemaMode);
@@ -68,8 +69,8 @@ export const useLessonCinemaLayout = () => {
           marginLeft: `calc(50% - ${mainWidth / 2}px)`,
         } satisfies CSSProperties)
       : undefined,
-    // Fixa a lista na coluna direita mesmo quando a página não tem conteúdo
-    // abaixo do player.
+    // Pins the list to the right column even when the page has no content
+    // below the player.
     listClassName: isActive ? 'col-start-2' : undefined,
     contentClassName: isActive
       ? 'bg-background rounded-xl pb-2 self-start'

@@ -25,7 +25,7 @@ describe('useLessonCinemaLayout', () => {
     document.querySelector('main')?.remove();
   });
 
-  it('mantém a grade de duas colunas fora do modo cinema', () => {
+  it('keeps the two-column grid outside cinema mode', () => {
     addMain(1600);
     const { result } = renderHook(() => useLessonCinemaLayout());
 
@@ -38,7 +38,7 @@ describe('useLessonCinemaLayout', () => {
     expect(result.current.playerFrameStyle).toBeUndefined();
   });
 
-  it('estica faixa e player no main e mantém duas colunas abaixo', () => {
+  it('stretches the strip and player across main and keeps two columns below', () => {
     addMain(1600);
     const { result } = renderHook(() => useLessonCinemaLayout());
 
@@ -60,7 +60,7 @@ describe('useLessonCinemaLayout', () => {
     });
   });
 
-  it('não altera o quadro abaixo de lg', () => {
+  it('does not change the frame below lg', () => {
     addMain(800);
     useMediaPreferencesStore.setState({ cinemaMode: true });
 
@@ -70,7 +70,7 @@ describe('useLessonCinemaLayout', () => {
     expect(result.current.mainClassName).toBeUndefined();
   });
 
-  it('não falha sem main e para de observar ao desmontar', () => {
+  it('does not fail without main and stops observing on unmount', () => {
     useMediaPreferencesStore.setState({ cinemaMode: true });
     const withoutMain = renderHook(() => useLessonCinemaLayout());
     expect(withoutMain.result.current.playerFrameStyle).toBeUndefined();

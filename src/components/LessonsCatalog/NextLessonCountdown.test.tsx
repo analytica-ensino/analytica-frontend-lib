@@ -9,7 +9,7 @@ describe('NextLessonCountdown', () => {
   beforeEach(() => jest.useFakeTimers());
   afterEach(() => jest.useRealTimers());
 
-  it('mostra a próxima aula e completa uma vez ao chegar a zero', () => {
+  it('shows the next lesson and completes once when reaching zero', () => {
     const onComplete = jest.fn();
     render(
       <NextLessonCountdown
@@ -40,7 +40,7 @@ describe('NextLessonCountdown', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
-  it('usa o onComplete mais recente sem reiniciar a contagem', () => {
+  it('uses the latest onComplete without restarting the countdown', () => {
     const first = jest.fn();
     const second = jest.fn();
     const onCancel = jest.fn();
@@ -74,7 +74,7 @@ describe('NextLessonCountdown', () => {
     expect(second).toHaveBeenCalledTimes(1);
   });
 
-  it('cancela pelo botão', () => {
+  it('cancels via the button', () => {
     const onCancel = jest.fn();
     render(
       <NextLessonCountdown
@@ -90,7 +90,7 @@ describe('NextLessonCountdown', () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 
-  it('assistir agora avança na hora e só uma vez', () => {
+  it('watch now advances immediately and only once', () => {
     const onComplete = jest.fn();
     render(
       <NextLessonCountdown
@@ -109,7 +109,7 @@ describe('NextLessonCountdown', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
-  it('mostra matéria e subtema acima do título, como o card do painel', () => {
+  it('shows subject and subtopic above the title, like the dashboard card', () => {
     const { rerender } = render(
       <NextLessonCountdown
         title="Função horária"
@@ -145,7 +145,7 @@ describe('NextLessonCountdown', () => {
     ).toBe('');
   });
 
-  it('mostra o frame inicial só quando existe', () => {
+  it('shows the first frame only when it exists', () => {
     const { container, rerender } = render(
       <NextLessonCountdown
         title="A"

@@ -45,6 +45,7 @@ import {
   LessonVideoSection,
   LessonPodcastSection,
   LessonBoardImagesSection,
+  type LessonVideoData,
 } from '../shared/LessonMediaSections';
 import type { WhiteboardImage } from '../Whiteboard/Whiteboard';
 import type { VideoEndControls } from '../VideoPlayer/VideoPlayer';
@@ -59,7 +60,7 @@ import { LessonQueueControls } from './LessonQueueControls';
 
 type VideoEndAction = 'replay' | 'rewind' | 'advance' | 'restart-queue';
 
-/** Único ponto que decide o fim do vídeo, na ordem de prioridade da AE-3308. */
+/** Single place that decides the end of the video, in AE-3308 priority order. */
 const resolveVideoEndAction = ({
   endBehavior,
   isInQueue,
@@ -77,7 +78,7 @@ const resolveVideoEndAction = ({
   return repeatList ? 'restart-queue' : 'rewind';
 };
 
-/** Embaralha a fila com `firstId` na frente (Fisher-Yates no restante). */
+/** Shuffles the queue with `firstId` first (Fisher-Yates on the rest). */
 const buildShuffledIds = (
   queue: LessonDetails[],
   firstId: string
@@ -90,15 +91,15 @@ const buildShuffledIds = (
   return [firstId, ...rest];
 };
 
-/** Item agendado pela contagem; `order` só existe ao reembaralhar a fila. */
+/** Item scheduled by the countdown; `order` only exists when reshuffling the queue. */
 interface PendingLesson {
   lesson: LessonDetails;
   order?: string[];
 }
 
 /**
- * Leva a página ao topo. No desktop quem rola é o `<main>` do layout; no
- * mobile ele não tem altura fixa e quem rola é a janela.
+ * Scrolls the page to the top. On desktop the layout's `<main>` scrolls; on
+ * mobile it has no fixed height and the window scrolls.
  */
 const scrollPageToTop = () => {
   document.querySelector('main')?.scrollTo?.({ top: 0, behavior: 'smooth' });
@@ -106,8 +107,8 @@ const scrollPageToTop = () => {
 };
 
 /**
- * Próximo item reproduzível da fila, ou null no fim dela. Recebe a fila pronta
- * para servir a qualquer origem: hoje o subtópico, depois as playlists.
+ * Next playable item in the queue, or null at its end. Takes the ready-made
+ * queue to serve any source: the subtopic today, playlists later.
  */
 const getNextQueuedLesson = (
   queue: LessonDetails[],
@@ -284,17 +285,17 @@ export function LessonViewPage({
 
   // Refs to track if progress has been marked for each step
   const hasMarkedVideo = useRef(false);
-  // Gravação do vídeo em andamento: o avanço automático espera por ela.
+  // Video progress save in flight: auto-advance waits for it.
   const videoCompletionRef = useRef<Promise<void> | null>(null);
   const [pendingLesson, setPendingLesson] = useState<PendingLesson | null>(
     null
   );
   const [autoPlayLessonId, setAutoPlayLessonId] = useState<string | null>(null);
-  // Aulas já gravadas nesta visita: rever na fila não conta nova conclusão.
+  // Lessons already saved this visit: rewatching in the queue is not a new completion.
   const completedVideosRef = useRef(new Set<string>());
   const [shuffledIds, setShuffledIds] = useState<string[] | null>(null);
   const shuffleOrderKeyRef = useRef<string | null>(null);
-  // Aula que a fila embaralhada espera; qualquer outra refaz o sorteio.
+  // Lesson the shuffled queue expects; any other one reshuffles.
   const expectedShuffledLessonRef = useRef<string | null>(null);
   const queueShuffle = useMediaPreferencesStore((s) => s.queueShuffle);
   const queueRepeatList = useMediaPreferencesStore((s) => s.queueRepeatList);
@@ -381,6 +382,47 @@ export function LessonViewPage({
     [currentLesson, getPodcastData, getBoardImages]
   );
 
+  /**
+   * What the player is showing. It only moves to a newly opened lesson once
+   * that lesson's resume point is known, so the player stays mounted from one
+   * lesson to the next: fullscreen and picture-in-picture follow the queue
+   * instead of being dropped with the old `<video>`.
+   */
+  const [playerMedia, setPlayerMedia] = useState<{
+    lessonId: string;
+    video: LessonVideoData;
+    resumeAt: number;
+  } | null>(null);
+  const {
+    src: videoSrc,
+    hlsSrc: videoHlsSrc,
+    poster: videoPoster,
+    subtitles: videoSubtitles,
+  } = lessonData.video;
+  useEffect(() => {
+    if (!activeLessonId || playback.resumeAt === null) return;
+    setPlayerMedia({
+      lessonId: activeLessonId,
+      video: {
+        src: videoSrc,
+        hlsSrc: videoHlsSrc,
+        poster: videoPoster,
+        subtitles: videoSubtitles,
+      },
+      resumeAt: playback.resumeAt,
+    });
+  }, [
+    activeLessonId,
+    playback.resumeAt,
+    videoSrc,
+    videoHlsSrc,
+    videoPoster,
+    videoSubtitles,
+  ]);
+  // While the next lesson's resume point loads, the player still holds the
+  // previous video: its events must not be recorded against the new lesson.
+  const isPlayerOnActiveLesson = playerMedia?.lessonId === activeLessonId;
+
   const downloadContent = useMemo(
     () => getDownloadContent(currentLesson),
     [getDownloadContent, currentLesson]
@@ -462,7 +504,7 @@ export function LessonViewPage({
     }
   }, [activeLessonId, progressTracker, currentLesson, updateTimestamp]);
 
-  /** Dispara a gravação uma vez e devolve a que estiver em andamento. */
+  /** Starts the save once and returns the one in flight. */
   const handleVideoCompleteCallback = useCallback((): Promise<void> => {
     if (!activeLessonId || completedVideosRef.current.has(activeLessonId)) {
       return Promise.resolve();
@@ -622,18 +664,18 @@ export function LessonViewPage({
     [openLesson]
   );
 
-  // Só o aluno tem fila: a pré-visualização não avança sozinha.
+  // Only the student has a queue: preview does not auto-advance.
   const playableLessons = useMemo(
     () => (isPreview ? [] : lessons.filter(({ videoUrl }) => videoUrl)),
     [isPreview, lessons]
   );
-  // `updateLessonDuration` recria os objetos; só os ids definem a fila.
+  // `updateLessonDuration` recreates the objects; only the ids define the queue.
   const playableKey = playableLessons.map(({ id }) => id).join(',');
 
   /**
-   * Ao ligar, a aula atual fica na frente e o restante é sorteado. Abrir outra
-   * aula manualmente começa um novo ciclo a partir dela, para nenhuma aula
-   * repetir antes de percorrer todas. Ao desligar, vale a ordem original.
+   * When turned on, the current lesson goes first and the rest is shuffled.
+   * Opening another lesson manually starts a new cycle from it, so no lesson
+   * repeats before all are played. When turned off, the original order applies.
    */
   useEffect(() => {
     if (!queueShuffle || !activeLessonId) {
@@ -650,7 +692,7 @@ export function LessonViewPage({
     shuffleOrderKeyRef.current = playableKey;
     expectedShuffledLessonRef.current = activeLessonId;
     setShuffledIds(buildShuffledIds(playableLessons, activeLessonId));
-    // playableLessons é representado por playableKey.
+    // playableLessons is represented by playableKey.
   }, [queueShuffle, playableKey, activeLessonId]);
 
   const queue = useMemo(() => {
@@ -661,7 +703,7 @@ export function LessonViewPage({
 
   const nextLesson = getNextQueuedLesson(queue, activeLessonId);
 
-  /** Primeira aula do novo ciclo; embaralhada, nunca repete a que acabou. */
+  /** First lesson of the new cycle; when shuffled, never the one that just ended. */
   const buildRestartedQueue = useCallback((): PendingLesson | null => {
     if (!queueShuffle) return queue[0] ? { lesson: queue[0] } : null;
 
@@ -673,8 +715,8 @@ export function LessonViewPage({
   }, [queueShuffle, queue, activeLessonId]);
 
   /**
-   * O fim real do vídeo. Repete a gravação caso a dos 95% tenha falhado ou o
-   * aluno tenha chegado aqui sem passar por ela.
+   * The actual end of the video. Retries the save in case the 95% one failed or
+   * the student got here without going through it.
    */
   const handleVideoEnded = useCallback(
     ({ replay, rewind }: VideoEndControls) => {
@@ -708,11 +750,11 @@ export function LessonViewPage({
   const handleCountdownComplete = useCallback(async () => {
     if (!pendingLesson) return;
 
-    // Fecha a contagem antes de esperar: não há mais como cancelar a partir daqui.
+    // Close the countdown before waiting: it can no longer be canceled from here.
     setPendingLesson(null);
     await videoCompletionRef.current;
 
-    // O aluno pode ter escolhido outra aula enquanto a gravação terminava.
+    // The student may have picked another lesson while the save finished.
     if (useLessonsStore.getState().currentLesson?.id !== activeLessonId) return;
 
     const { lesson, order } = pendingLesson;
@@ -981,31 +1023,38 @@ export function LessonViewPage({
           )}
           style={playerFrameStyle}
         >
-          {/* Keyed by lesson: the player only rearms its completion flag when
-              `src` changes, so switching between two lessons that share the
-              same video file would leave it flagged as already completed and
-              onVideoComplete would never fire again.
+          {/* Not keyed by lesson: remounting would drop fullscreen and
+              picture-in-picture on every lesson change. The player resets its
+              per-media state (completion flag, resume, autoplay) when `src` or
+              `storageKey` changes, and `storageKey` is unique per lesson, so
+              two lessons sharing one video file still count separately.
 
-              Mounted only once the resume point is known: the player applies
-              its start position once per video, so a point arriving after it
-              had started would be ignored. The position comes from the backend
-              alone (`persistProgress` off), so no local copy competes with it. */}
-          {playback.resumeAt === null ? (
+              The media only switches once the resume point is known (see
+              `playerMedia`): the player applies its start position once per
+              video, so a point arriving after it had started would be
+              ignored. The position comes from the backend alone
+              (`persistProgress` off), so no local copy competes with it. */}
+          {playerMedia === null ? (
             <SkeletonCard
               className="w-full h-full aspect-video rounded-b-xl"
               data-testid="lesson-video-loading"
             />
           ) : (
             <LessonVideoSection
-              key={activeLessonId}
-              video={lessonData.video}
-              onTimeUpdate={handleVideoTimeUpdate}
-              onPause={playback.handlePause}
-              onVideoComplete={handleVideoCompleteCallback}
-              onEnded={handleVideoEnded}
+              video={playerMedia.video}
+              onTimeUpdate={
+                isPlayerOnActiveLesson ? handleVideoTimeUpdate : undefined
+              }
+              onPause={
+                isPlayerOnActiveLesson ? playback.handlePause : undefined
+              }
+              onVideoComplete={
+                isPlayerOnActiveLesson ? handleVideoCompleteCallback : undefined
+              }
+              onEnded={isPlayerOnActiveLesson ? handleVideoEnded : undefined}
               isCinemaMode={isCinemaMode}
               onToggleCinemaMode={toggleCinemaMode}
-              autoPlay={autoPlayLessonId === activeLessonId}
+              autoPlay={autoPlayLessonId === playerMedia.lessonId}
               overlay={
                 pendingLesson ? (
                   <NextLessonCountdown
@@ -1038,9 +1087,9 @@ export function LessonViewPage({
                   />
                 ) : undefined
               }
-              initialTime={playback.resumeAt}
+              initialTime={playerMedia.resumeAt}
               persistProgress={false}
-              storageKey={`lesson-${currentLesson.id}`}
+              storageKey={`lesson-${playerMedia.lessonId}`}
               userId={userId}
               className="w-full h-full object-contain rounded-b-xl"
               allowPictureInPicture={allowPictureInPicture}
@@ -1120,7 +1169,7 @@ export function LessonViewPage({
           listClassName
         )}
       >
-        {/* Controles da fila logo abaixo do título (Figma AE-3308). */}
+        {/* Queue controls right below the title (Figma AE-3308). */}
         <div className="mb-2 flex flex-col gap-3">
           <Text size="lg" weight="bold" className="text-text-950">
             Aulas

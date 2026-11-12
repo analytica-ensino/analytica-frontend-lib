@@ -31,10 +31,10 @@ const QueueToggle = ({
       active={active}
       disabled={disabled}
       className={cn(
-        // Figma AE-3308: círculo branco com borda e ícone na cor primária.
+        // Figma AE-3308: white circle with a border and a primary-colored icon.
         'rounded-full! border border-primary-950 bg-background text-primary-950 hover:bg-background-100! hover:text-primary-950',
         active && 'border-transparent',
-        // Desabilitado: borda e ícone cinza-claro, sem a opacidade padrão.
+        // Disabled: light-gray border and icon, without the default opacity.
         'disabled:opacity-100! disabled:border-border-200 disabled:text-text-300'
       )}
     />
@@ -42,10 +42,10 @@ const QueueToggle = ({
 );
 
 /**
- * Controles do que acontece ao fim do vídeo (Figma da AE-3308).
+ * Controls for what happens at the end of the video (Figma AE-3308).
  *
- * "Repetir vídeo" e "Voltar ao início da lista" não ficam ativos juntos:
- * com um ligado, o outro fica desabilitado.
+ * "Repetir vídeo" and "Voltar ao início da lista" are never active together:
+ * with one on, the other is disabled.
  */
 export function LessonQueueControls() {
   const shuffle = useMediaPreferencesStore((s) => s.queueShuffle);
