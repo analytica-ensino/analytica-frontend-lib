@@ -13,11 +13,12 @@ import { PlayIcon } from '@phosphor-icons/react/dist/csr/Play';
 import { PauseIcon } from '@phosphor-icons/react/dist/csr/Pause';
 import { SpeakerHighIcon } from '@phosphor-icons/react/dist/csr/SpeakerHigh';
 import { SpeakerSlashIcon } from '@phosphor-icons/react/dist/csr/SpeakerSlash';
-import { ArrowsOutSimpleIcon } from '@phosphor-icons/react/dist/csr/ArrowsOutSimple';
-import { ArrowsInSimpleIcon } from '@phosphor-icons/react/dist/csr/ArrowsInSimple';
+import { ArrowsOutIcon } from '@phosphor-icons/react/dist/csr/ArrowsOut';
+import { ArrowsInIcon } from '@phosphor-icons/react/dist/csr/ArrowsIn';
+import { CornersOutIcon } from '@phosphor-icons/react/dist/csr/CornersOut';
+import { CornersInIcon } from '@phosphor-icons/react/dist/csr/CornersIn';
+import { GaugeIcon } from '@phosphor-icons/react/dist/csr/Gauge';
 import { ClosedCaptioningIcon } from '@phosphor-icons/react/dist/csr/ClosedCaptioning';
-import { DotsThreeVerticalIcon } from '@phosphor-icons/react/dist/csr/DotsThreeVertical';
-import { MonitorPlayIcon } from '@phosphor-icons/react/dist/csr/MonitorPlay';
 import { PictureInPictureIcon } from '@phosphor-icons/react/dist/csr/PictureInPicture';
 import { cn } from '../../utils/utils';
 import IconButton from '../IconButton/IconButton';
@@ -32,6 +33,36 @@ import DownloadButton, {
 } from '../DownloadButton/DownloadButton';
 import { useCaptionPosition } from './useCaptionPosition';
 import { useHlsSource } from './useHlsSource';
+import { Tooltip } from '../Tooltip/Tooltip';
+
+interface PlayerTooltipProps {
+  readonly label: string;
+  /** Tecla exibida como "tecla" ao lado do texto (Figma AE-3310). */
+  readonly shortcut?: string;
+  readonly children: ReactNode;
+}
+
+/**
+ * Tooltip dos botões do player, com o atalho do teclado ao lado do texto.
+ * Fica acima do botão e sem portal, para aparecer também em tela cheia.
+ */
+const PlayerTooltip = ({ label, shortcut, children }: PlayerTooltipProps) => (
+  <Tooltip
+    content={
+      <span className="flex items-center gap-2">
+        {label}
+        {shortcut && (
+          <kbd className="rounded border border-white/60 px-1.5 text-xs font-normal leading-5">
+            {shortcut}
+          </kbd>
+        )}
+      </span>
+    }
+    contentClassName="px-2 py-1 text-xs"
+  >
+    {children}
+  </Tooltip>
+);
 import QualityMenu from './QualityMenu';
 
 // Constants for timeout durations
@@ -283,23 +314,24 @@ const VolumeControls = ({
   showSlider = true,
 }: VolumeControlsProps) => (
   <div className="flex items-center gap-2">
-    <IconButton
-      icon={
-        isMuted ? (
-          <SpeakerSlashIcon size={iconSize} />
-        ) : (
-          <SpeakerHighIcon size={iconSize} />
-        )
-      }
-      onClick={onToggleMute}
-      // O rótulo diz a AÇÃO, o `aria-pressed` diz o ESTADO — e é ele que faz o
-      // leitor anunciar "botão alternar". Sem o `aria-pressed` não dá para
-      // saber se está mudo sem acionar o botão e ouvir o rótulo mudar.
-      aria-label={isMuted ? 'Ativar áudio' : 'Desativar áudio'}
-      aria-pressed={isMuted}
-      title={isMuted ? 'Ativar áudio (M)' : 'Desativar áudio (M)'}
-      className="!bg-transparent !text-white hover:!bg-white/20"
-    />
+    <PlayerTooltip label={isMuted ? 'Desmutar' : 'Mutar'} shortcut="M">
+      <IconButton
+        icon={
+          isMuted ? (
+            <SpeakerSlashIcon size={iconSize} />
+          ) : (
+            <SpeakerHighIcon size={iconSize} />
+          )
+        }
+        onClick={onToggleMute}
+        // O rótulo diz a AÇÃO, o `aria-pressed` diz o ESTADO — e é ele que faz o
+        // leitor anunciar "botão alternar". Sem o `aria-pressed` não dá para
+        // saber se está mudo sem acionar o botão e ouvir o rótulo mudar.
+        aria-label={isMuted ? 'Ativar áudio' : 'Desativar áudio'}
+        aria-pressed={isMuted}
+        className="!bg-transparent !text-white hover:!bg-white/20"
+      />
+    </PlayerTooltip>
 
     {showSlider && (
       <input
@@ -511,15 +543,17 @@ const SpeedMenu = ({
 
   return (
     <div className="relative" ref={speedMenuContainerRef}>
-      <IconButton
-        ref={buttonRef}
-        icon={<DotsThreeVerticalIcon size={iconSize} />}
-        onClick={onToggleMenu}
-        aria-label="Velocidade de reprodução"
-        aria-haspopup="menu"
-        aria-expanded={showSpeedMenu}
-        className="!bg-transparent !text-white hover:!bg-white/20"
-      />
+      <PlayerTooltip label="Velocidade de reprodução">
+        <IconButton
+          ref={buttonRef}
+          icon={<GaugeIcon size={iconSize} />}
+          onClick={onToggleMenu}
+          aria-label="Velocidade de reprodução"
+          aria-haspopup="menu"
+          aria-expanded={showSpeedMenu}
+          className="!bg-transparent !text-white hover:!bg-white/20"
+        />
+      </PlayerTooltip>
       {showSpeedMenu && (isFullscreen ? menuContent : portalContent)}
     </div>
   );
@@ -1536,13 +1570,6 @@ const VideoPlayer = ({
   };
 
   /**
-   * Calculate top controls opacity based on state
-   */
-  const getTopControlsOpacity = useCallback(() => {
-    return controlsVisible ? 'opacity-100' : 'opacity-0';
-  }, [controlsVisible]);
-
-  /**
    * Calculate bottom controls opacity based on state
    */
   const getBottomControlsOpacity = useCallback(() => {
@@ -1586,6 +1613,8 @@ const VideoPlayer = ({
    * qualquer ponto da página e também em tela cheia.
    */
   const hasOverlay = Boolean(overlay);
+  const hasValidSubtitles =
+    Boolean(subtitles) && subtitlesValidation === 'valid';
   useEffect(() => {
     const handleKeyDown = (e: globalThis.KeyboardEvent) => {
       const video = videoRef.current;
@@ -1608,6 +1637,7 @@ const VideoPlayer = ({
         m: toggleMute,
         f: toggleFullscreen,
         ...(onToggleCinemaMode && { t: onToggleCinemaMode }),
+        ...(hasValidSubtitles && { c: toggleCaptions }),
         ...(!spaceBelongsToTarget && { ' ': playback }),
       };
 
@@ -1628,6 +1658,8 @@ const VideoPlayer = ({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [
     hasOverlay,
+    hasValidSubtitles,
+    toggleCaptions,
     onToggleCinemaMode,
     showControlsWithTimer,
     togglePlayPause,
@@ -1697,7 +1729,9 @@ const VideoPlayer = ({
       {/* Video Container */}
       <section
         className={cn(
-          'relative w-full flex-1 min-h-0 bg-background overflow-hidden group',
+          'relative w-full flex-1 min-h-0 overflow-hidden group',
+          // Modo cinema: faixa preta nas laterais do vídeo (Figma AE-3309).
+          isCinemaMode ? 'bg-black' : 'bg-background',
           'rounded-b-xl',
           // Hide cursor when controls are hidden and video is playing
           isPlaying && !showControls
@@ -1772,36 +1806,6 @@ const VideoPlayer = ({
         )}
 
         {/* Top Controls */}
-        <div
-          className={cn(
-            'absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/70 to-transparent transition-opacity',
-            getTopControlsOpacity()
-          )}
-          {...controlsFocusProps}
-        >
-          <div className="flex justify-start">
-            <IconButton
-              icon={
-                isFullscreen ? (
-                  <ArrowsInSimpleIcon size={24} />
-                ) : (
-                  <ArrowsOutSimpleIcon size={24} />
-                )
-              }
-              onClick={toggleFullscreen}
-              aria-label={
-                isFullscreen ? 'Desativar tela cheia' : 'Ativar tela cheia'
-              }
-              title={
-                isFullscreen
-                  ? 'Desativar tela cheia (F)'
-                  : 'Ativar tela cheia (F)'
-              }
-              className="!bg-transparent !text-white hover:!bg-white/20"
-            />
-          </div>
-        </div>
-
         {/* Bottom Controls */}
         <div
           className={cn(
@@ -1829,19 +1833,23 @@ const VideoPlayer = ({
             {/* Left Controls */}
             <div className={cn('flex items-center', getControlsGap())}>
               {/* Play/Pause */}
-              <IconButton
-                icon={
-                  isPlaying ? (
-                    <PauseIcon size={getIconSize()} />
-                  ) : (
-                    <PlayIcon size={getIconSize()} />
-                  )
-                }
-                onClick={togglePlayPause}
-                aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
-                title={isPlaying ? 'Pausar (espaço)' : 'Reproduzir (espaço)'}
-                className="!bg-transparent !text-white hover:!bg-white/20"
-              />
+              <PlayerTooltip
+                label={isPlaying ? 'Pausar' : 'Tocar'}
+                shortcut="Espaço"
+              >
+                <IconButton
+                  icon={
+                    isPlaying ? (
+                      <PauseIcon size={getIconSize()} />
+                    ) : (
+                      <PlayIcon size={getIconSize()} />
+                    )
+                  }
+                  onClick={togglePlayPause}
+                  aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
+                  className="!bg-transparent !text-white hover:!bg-white/20"
+                />
+              </PlayerTooltip>
 
               {/* Volume */}
               <VolumeControls
@@ -1855,45 +1863,32 @@ const VideoPlayer = ({
 
               {/* Captions - Only show after validation is complete and valid */}
               {groupedSubTitleValid && (
-                <IconButton
-                  icon={<ClosedCaptioningIcon size={getIconSize()} />}
-                  onClick={toggleCaptions}
-                  // Mesma natureza do mudo: ação no rótulo, estado no
-                  // `aria-pressed` — hoje o único sinal de que as legendas
-                  // estão ligadas é a cor do ícone.
-                  aria-label={
-                    showCaptions ? 'Ocultar legendas' : 'Exibir legendas'
-                  }
-                  aria-pressed={showCaptions}
-                  className={cn(
-                    '!bg-transparent hover:!bg-white/20',
-                    showCaptions ? '!text-primary-400' : '!text-white'
-                  )}
-                />
+                <PlayerTooltip label="Legenda" shortcut="C">
+                  <IconButton
+                    icon={<ClosedCaptioningIcon size={getIconSize()} />}
+                    onClick={toggleCaptions}
+                    // Mesma natureza do mudo: ação no rótulo, estado no
+                    // `aria-pressed` — hoje o único sinal de que as legendas
+                    // estão ligadas é a cor do ícone.
+                    aria-label={
+                      showCaptions ? 'Ocultar legendas' : 'Exibir legendas'
+                    }
+                    aria-pressed={showCaptions}
+                    className={cn(
+                      '!bg-transparent hover:!bg-white/20',
+                      showCaptions ? '!text-primary-400' : '!text-white'
+                    )}
+                  />
+                </PlayerTooltip>
               )}
-
-              {/* Time Display */}
-              <Text size="sm" weight="medium" color="text-white">
-                {formatTime(currentTime)} / {formatTime(duration)}
-              </Text>
             </div>
 
             {/* Right Controls */}
             <div className="flex items-center gap-4">
-              {onToggleCinemaMode && (
-                <IconButton
-                  icon={<MonitorPlayIcon size={getIconSize()} />}
-                  onClick={onToggleCinemaMode}
-                  aria-label={
-                    isCinemaMode ? 'Sair do modo cinema' : 'Modo cinema'
-                  }
-                  title={
-                    isCinemaMode ? 'Sair do modo cinema (T)' : 'Modo cinema (T)'
-                  }
-                  aria-pressed={isCinemaMode}
-                  className="not-lg:!hidden !bg-transparent !text-white hover:!bg-white/20"
-                />
-              )}
+              {/* Time Display */}
+              <Text size="sm" weight="medium" color="text-white">
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </Text>
 
               {/* Speed Control */}
               <SpeedMenu
@@ -1916,22 +1911,65 @@ const VideoPlayer = ({
                 onOpenChange={setShowQualityMenu}
               />
 
+              {onToggleCinemaMode && (
+                <PlayerTooltip
+                  label={isCinemaMode ? 'Modo padrão' : 'Modo cinema'}
+                  shortcut="T"
+                >
+                  <IconButton
+                    icon={
+                      isCinemaMode ? (
+                        <CornersInIcon size={getIconSize()} />
+                      ) : (
+                        <CornersOutIcon size={getIconSize()} />
+                      )
+                    }
+                    onClick={onToggleCinemaMode}
+                    aria-label={isCinemaMode ? 'Modo padrão' : 'Modo cinema'}
+                    aria-pressed={isCinemaMode}
+                    className="!bg-transparent !text-white hover:!bg-white/20"
+                  />
+                </PlayerTooltip>
+              )}
+
+              <PlayerTooltip
+                label={isFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
+                shortcut="F"
+              >
+                <IconButton
+                  icon={
+                    isFullscreen ? (
+                      <ArrowsInIcon size={getIconSize()} />
+                    ) : (
+                      <ArrowsOutIcon size={getIconSize()} />
+                    )
+                  }
+                  onClick={toggleFullscreen}
+                  aria-label={
+                    isFullscreen ? 'Desativar tela cheia' : 'Ativar tela cheia'
+                  }
+                  className="!bg-transparent !text-white hover:!bg-white/20"
+                />
+              </PlayerTooltip>
+
               {/* Picture-in-picture: last button, only where supported */}
               {canPictureInPicture && (
-                <IconButton
-                  icon={<PictureInPictureIcon size={getIconSize()} />}
-                  onClick={togglePictureInPicture}
-                  aria-label={
-                    isPictureInPicture
-                      ? 'Sair da janela flutuante'
-                      : 'Abrir em janela flutuante'
-                  }
-                  aria-pressed={isPictureInPicture}
-                  className={cn(
-                    '!bg-transparent hover:!bg-white/20',
-                    isPictureInPicture ? '!text-primary-400' : '!text-white'
-                  )}
-                />
+                <PlayerTooltip label="Janela flutuante">
+                  <IconButton
+                    icon={<PictureInPictureIcon size={getIconSize()} />}
+                    onClick={togglePictureInPicture}
+                    aria-label={
+                      isPictureInPicture
+                        ? 'Sair da janela flutuante'
+                        : 'Abrir em janela flutuante'
+                    }
+                    aria-pressed={isPictureInPicture}
+                    className={cn(
+                      '!bg-transparent hover:!bg-white/20',
+                      isPictureInPicture ? '!text-primary-400' : '!text-white'
+                    )}
+                  />
+                </PlayerTooltip>
               )}
             </div>
           </div>

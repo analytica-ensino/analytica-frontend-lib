@@ -131,7 +131,9 @@ describe('VideoPlayer: atalhos e modo cinema', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Modo cinema' }));
 
     expect(onToggle).toHaveBeenCalledTimes(2);
-    expect(screen.getByTitle('Modo cinema (T)')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Modo cinema' })
+    ).toHaveAccessibleDescription('Modo cinema T');
   });
 
   it('indica quando o modo cinema está ativo', () => {
@@ -139,9 +141,58 @@ describe('VideoPlayer: atalhos e modo cinema', () => {
       <VideoPlayer src="a.mp4" isCinemaMode onToggleCinemaMode={jest.fn()} />
     );
 
-    expect(
-      screen.getByRole('button', { name: 'Sair do modo cinema' })
-    ).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Modo padrão' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+  });
+
+  it('os tooltips mostram a ação e a tecla do atalho', () => {
+    render(<VideoPlayer src="a.mp4" onToggleCinemaMode={jest.fn()} />);
+
+    const kbds = Array.from(document.querySelectorAll('[role="tooltip"]')).map(
+      (tip) => [
+        tip.firstChild?.firstChild?.textContent,
+        tip.querySelector('kbd')?.textContent,
+      ]
+    );
+
+    expect(kbds).toEqual(
+      expect.arrayContaining([
+        ['Tocar', 'Espaço'],
+        ['Mutar', 'M'],
+        ['Velocidade de reprodução', undefined],
+        ['Modo cinema', 'T'],
+        ['Tela cheia', 'F'],
+      ])
+    );
+  });
+
+  it('C liga e desliga a legenda quando ela existe', async () => {
+    const track = { mode: 'hidden' };
+    Object.defineProperty(HTMLTrackElement.prototype, 'track', {
+      configurable: true,
+      get: () => track,
+    });
+    render(<VideoPlayer src="a.mp4" subtitles="data:text/vtt,WEBVTT" />);
+
+    const captions = await screen.findByRole('button', {
+      name: 'Exibir legendas',
+    });
+    key(document.body, { key: 'c' });
+
+    expect(captions).toHaveAttribute('aria-pressed', 'true');
+    expect(track.mode).toBe('showing');
+
+    key(document.body, { key: 'C' });
+    expect(captions).toHaveAttribute('aria-pressed', 'false');
+    delete (HTMLTrackElement.prototype as { track?: unknown }).track;
+  });
+
+  it('sem legenda, C não faz nada', () => {
+    render(<VideoPlayer src="a.mp4" />);
+
+    expect(key(document.body, { key: 'c' })).toBe(true);
   });
 
   it('sem suporte da página, não há botão nem atalho T', () => {

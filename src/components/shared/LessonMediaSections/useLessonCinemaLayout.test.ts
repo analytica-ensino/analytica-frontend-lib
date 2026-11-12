@@ -30,21 +30,33 @@ describe('useLessonCinemaLayout', () => {
     const { result } = renderHook(() => useLessonCinemaLayout());
 
     expect(result.current.gridClassName).toContain('grid-cols-[1fr_430px]');
+    expect(result.current.mainClassName).toBeUndefined();
+    expect(result.current.stageClassName).toBeUndefined();
+    expect(result.current.stageStyle).toBeUndefined();
+    expect(result.current.contentClassName).toBeUndefined();
+    expect(result.current.listClassName).toBeUndefined();
     expect(result.current.playerFrameStyle).toBeUndefined();
   });
 
-  it('ocupa a largura do main e limita a altura à área visível', () => {
+  it('estica faixa e player no main e mantém duas colunas abaixo', () => {
     addMain(1600);
     const { result } = renderHook(() => useLessonCinemaLayout());
 
     act(() => result.current.toggleCinemaMode());
 
     expect(useMediaPreferencesStore.getState().cinemaMode).toBe(true);
-    expect(result.current.gridClassName).toContain('grid-cols-1');
-    expect(result.current.playerFrameStyle).toEqual({
+    expect(result.current.gridClassName).toContain('grid-cols-[1fr_430px]');
+    expect(result.current.mainClassName).toBe('contents');
+    expect(result.current.listClassName).toBe('col-start-2');
+    expect(result.current.stageClassName).toBe('col-span-full');
+    expect(result.current.stageStyle).toEqual({
       width: 1600,
       marginLeft: 'calc(50% - 800px)',
-      height: 'min(calc(100dvh - 120px), 900px)',
+    });
+    expect(result.current.contentClassName).toContain('bg-background');
+    expect(result.current.playerFrameStyle).toEqual({
+      height: 'min(calc(100dvh - 200px), 900px)',
+      backgroundColor: 'black',
     });
   });
 
@@ -55,6 +67,7 @@ describe('useLessonCinemaLayout', () => {
     const { result } = renderHook(() => useLessonCinemaLayout());
 
     expect(result.current.playerFrameStyle).toBeUndefined();
+    expect(result.current.mainClassName).toBeUndefined();
   });
 
   it('não falha sem main e para de observar ao desmontar', () => {

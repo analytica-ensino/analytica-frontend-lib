@@ -257,8 +257,17 @@ export function LessonViewPage({
   );
 
   const { isDark } = useTheme();
-  const { isCinemaMode, toggleCinemaMode, gridClassName, playerFrameStyle } =
-    useLessonCinemaLayout();
+  const {
+    isCinemaMode,
+    toggleCinemaMode,
+    gridClassName,
+    mainClassName,
+    stageClassName,
+    stageStyle,
+    contentClassName,
+    listClassName,
+    playerFrameStyle,
+  } = useLessonCinemaLayout();
   const [isOpeningQuiz, setIsOpeningQuiz] = useState(false);
   const [quizErrorMessage, setQuizErrorMessage] = useState<string | null>(null);
 
@@ -917,8 +926,13 @@ export function LessonViewPage({
   }
 
   const renderMainContent = () => (
-    <section className="flex flex-col bg-background rounded-xl pb-2 gap-2 min-w-0">
-      <div className="flex flex-col">
+    <section
+      className={cn(
+        'flex flex-col bg-background rounded-xl pb-2 gap-2 min-w-0',
+        mainClassName
+      )}
+    >
+      <div className={cn('flex flex-col', stageClassName)} style={stageStyle}>
         <span
           className={cn(
             'rounded-t-xl px-8 py-4 flex flex-row justify-between items-center gap-4',
@@ -1035,7 +1049,12 @@ export function LessonViewPage({
         </span>
       </div>
 
-      <div className="w-full px-8 h-auto flex flex-col gap-6 pt-6">
+      <div
+        className={cn(
+          'w-full px-8 h-auto flex flex-col gap-6 pt-6',
+          contentClassName
+        )}
+      >
         <LessonPodcastSection
           podcast={lessonData.podcast}
           onEnded={async () => {
@@ -1095,7 +1114,12 @@ export function LessonViewPage({
 
       {renderMainContent()}
 
-      <section className="flex flex-col bg-background rounded-xl p-6 gap-2">
+      <section
+        className={cn(
+          'flex flex-col bg-background rounded-xl p-6 gap-2',
+          listClassName
+        )}
+      >
         {/* Controles da fila logo abaixo do título (Figma AE-3308). */}
         <div className="mb-2 flex flex-col gap-3">
           <Text size="lg" weight="bold" className="text-text-950">
