@@ -31,11 +31,16 @@ const QueueToggle = ({
       active={active}
       disabled={disabled}
       className={cn(
-        // Figma AE-3308: white circle with a border and a primary-colored icon.
-        'rounded-full! border border-primary-950 bg-background text-primary-950 hover:bg-background-100! hover:text-primary-950',
-        active && 'border-transparent',
-        // Disabled: light-gray border and icon, without the default opacity.
-        'disabled:opacity-100! disabled:border-border-200 disabled:text-text-300'
+        // Colors from the design (AE-3308), per state. The background never
+        // changes on hover: only the icon and the border do.
+        'rounded-full! border',
+        active
+          ? // Selected: light fill, no border, primary-700 icon.
+            'border-transparent bg-primary-50! hover:bg-primary-50! text-primary-700! hover:text-primary-400!'
+          : // Not selected: primary-950 icon and border.
+            'border-primary-950 bg-background hover:bg-background! text-primary-950 hover:border-primary-400 hover:text-primary-400!',
+        // Disabled: text-500 icon and border, without the default opacity.
+        'disabled:opacity-100! disabled:border-text-500 disabled:text-text-500!'
       )}
     />
   </Tooltip>
@@ -44,8 +49,13 @@ const QueueToggle = ({
 /**
  * Controls for what happens at the end of the video (Figma AE-3308).
  *
- * "Repetir vídeo" and "Voltar ao início da lista" are never active together:
- * with one on, the other is disabled.
+ * Locking rules from the design:
+ * - turning "Repetir vídeo" on turns "Repetir lista" off and disables it: the
+ *   video repeats, so the list never reaches its end;
+ * - turning "Voltar ao início da lista" on disables "Repetir vídeo".
+ *
+ * "Repetir vídeo" and "Voltar ao início da lista" share one stored field, so
+ * they are never on together: turning one on replaces the other.
  */
 export function LessonQueueControls() {
   const shuffle = useMediaPreferencesStore((s) => s.queueShuffle);
@@ -70,6 +80,7 @@ export function LessonQueueControls() {
         icon={<RepeatIcon size={18} />}
         label="Repetir lista"
         active={repeatList}
+        disabled={isRepeatVideo}
         onClick={() => setRepeatList(!repeatList)}
       />
       <QueueToggle
@@ -77,13 +88,19 @@ export function LessonQueueControls() {
         label="Repetir vídeo"
         active={isRepeatVideo}
         disabled={isBackToStart}
-        onClick={() => setEndBehavior(isRepeatVideo ? 'none' : 'repeat-video')}
+        onClick={() => {
+          if (isRepeatVideo) {
+            setEndBehavior('none');
+            return;
+          }
+          setEndBehavior('repeat-video');
+          setRepeatList(false);
+        }}
       />
       <QueueToggle
         icon={<ArrowCounterClockwiseIcon size={18} />}
         label="Voltar ao início da lista"
         active={isBackToStart}
-        disabled={isRepeatVideo}
         onClick={() => setEndBehavior(isBackToStart ? 'none' : 'back-to-start')}
       />
     </div>
