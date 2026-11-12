@@ -77,6 +77,7 @@ const RecommendedLessonCreate = ({
   onRedirectToActivity,
   onCreateNewActivity,
   recipientWarning,
+  allowPictureInPicture,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
@@ -114,6 +115,12 @@ const RecommendedLessonCreate = ({
     lessonId: string;
     lessonType: RecommendedClassDraftType;
   }) => void;
+  /**
+   * Shows the picture-in-picture button and keeps the video playing on leaving
+   * the tab; off, the video pauses. Pass `hasLessonPictureInPicture` from
+   * `useModules`.
+   */
+  allowPictureInPicture?: boolean;
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -1335,6 +1342,7 @@ const RecommendedLessonCreate = ({
         onCreateNewActivity={handleCreateNewActivity}
         className="h-full overflow-y-auto"
         variant={variant}
+        allowPictureInPicture={allowPictureInPicture}
       />
     );
 
@@ -1408,6 +1416,7 @@ const RecommendedLessonCreate = ({
                 onAddLesson={handleAddLesson}
                 addedLessonIds={addedLessonIds}
                 filters={lessonBankFilters}
+                allowPictureInPicture={allowPictureInPicture}
                 variant="card"
               />
             ) : (
@@ -1497,6 +1506,7 @@ const RecommendedLessonCreate = ({
                 onAddLesson={handleAddLesson}
                 addedLessonIds={addedLessonIds}
                 filters={lessonBankFilters}
+                allowPictureInPicture={allowPictureInPicture}
               />
             )}
             {selectedView === 'preview' && (
@@ -1559,6 +1569,7 @@ const RecommendedLessonCreate = ({
             onAddLesson={handleAddLesson}
             addedLessonIds={addedLessonIds}
             filters={lessonBankFilters}
+            allowPictureInPicture={allowPictureInPicture}
           />
         </div>
 

@@ -383,11 +383,17 @@ jest.mock('../LessonBank/LessonBank', () => ({
   LessonBank: ({
     onAddLesson,
     variant,
+    allowPictureInPicture,
   }: {
     onAddLesson: (lesson: { id: string; title: string }) => void;
     variant?: string;
+    allowPictureInPicture?: boolean;
   }) => (
-    <div data-testid="lesson-bank" data-variant={variant ?? 'default'}>
+    <div
+      data-testid="lesson-bank"
+      data-variant={variant ?? 'default'}
+      data-allow-pip={String(allowPictureInPicture)}
+    >
       <button
         data-testid="add-lesson-btn"
         onClick={() => onAddLesson({ id: 'lesson-1', title: 'Test Lesson' })}
@@ -416,8 +422,10 @@ jest.mock('../LessonPreview/LessonPreview', () => ({
     onActivitySelected,
     onRemoveActivity,
     variant,
+    allowPictureInPicture,
   }: {
     variant?: string;
+    allowPictureInPicture?: boolean;
     lessons: { id: string; title: string }[];
     onRemoveAll: () => void;
     onRemoveLesson: (id: string) => void;
@@ -427,7 +435,11 @@ jest.mock('../LessonPreview/LessonPreview', () => ({
     onActivitySelected?: (activity: { id: string; title: string }) => void;
     onRemoveActivity?: () => void;
   }) => (
-    <div data-testid="lesson-preview" data-variant={variant}>
+    <div
+      data-testid="lesson-preview"
+      data-variant={variant}
+      data-allow-pip={String(allowPictureInPicture)}
+    >
       <span data-testid="lessons-count">{lessons.length}</span>
       <button data-testid="remove-all-btn" onClick={onRemoveAll}>
         Remove All
@@ -679,6 +691,27 @@ describe('RecommendedLessonCreate', () => {
 
       expect(screen.getByTestId('lesson-preview')).toBeInTheDocument();
     });
+
+    it.each([true, false])(
+      'should pass allowPictureInPicture=%s to the lesson bank and the preview',
+      async (allowPictureInPicture) => {
+        await renderWithDesktopLayout(
+          <RecommendedLessonCreate
+            {...defaultProps}
+            allowPictureInPicture={allowPictureInPicture}
+          />
+        );
+
+        expect(screen.getByTestId('lesson-bank')).toHaveAttribute(
+          'data-allow-pip',
+          String(allowPictureInPicture)
+        );
+        expect(screen.getByTestId('lesson-preview')).toHaveAttribute(
+          'data-allow-pip',
+          String(allowPictureInPicture)
+        );
+      }
+    );
 
     it('should render filter button on desktop', async () => {
       await renderWithDesktopLayout(

@@ -7,6 +7,20 @@ import { SubjectEnum } from '../../enums/SubjectEnum';
 // External mock for handleSort to allow verification in tests
 const mockHandleSort = jest.fn();
 
+// Records the props the lesson modal receives, and still renders the real one
+const mockViewModalProps = jest.fn();
+jest.mock('./components', () => {
+  const actual = jest.requireActual('./components');
+  const React = jest.requireActual('react');
+  return {
+    ...actual,
+    RecommendedLessonViewModal: (props: Record<string, unknown>) => {
+      mockViewModalProps(props);
+      return React.createElement(actual.RecommendedLessonViewModal, props);
+    },
+  };
+});
+
 // Mock the SubjectInfo to avoid dependency issues
 jest.mock('../SubjectInfo/SubjectInfo', () => ({
   getSubjectInfo: (subject: string) => ({
@@ -313,6 +327,26 @@ describe('RecommendedLessonDetails', () => {
   });
 
   describe('Callbacks', () => {
+    it.each([true, false])(
+      'should pass allowPictureInPicture=%s to the lesson modal',
+      (allowPictureInPicture) => {
+        mockViewModalProps.mockClear();
+        render(
+          <RecommendedLessonDetails
+            data={mockLessonData}
+            mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+            allowPictureInPicture={allowPictureInPicture}
+          />
+        );
+
+        fireEvent.click(screen.getByText('Ver aula'));
+
+        expect(mockViewModalProps).toHaveBeenLastCalledWith(
+          expect.objectContaining({ isOpen: true, allowPictureInPicture })
+        );
+      }
+    );
+
     it('should call onViewLesson when Ver aula button is clicked', () => {
       const mockOnViewLesson = jest.fn();
 

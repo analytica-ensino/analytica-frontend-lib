@@ -37,6 +37,12 @@ export interface RecommendedLessonViewModalProps {
   data: LessonDetailsData;
   /** API client for fetching full lesson data */
   apiClient?: BaseApiClient;
+  /**
+   * Shows the picture-in-picture button and keeps the video playing on leaving
+   * the tab; off, the video pauses. Pass `hasLessonPictureInPicture` from
+   * `useModules`.
+   */
+  allowPictureInPicture?: boolean;
 }
 
 /**
@@ -81,11 +87,13 @@ const LessonContent = ({
   apiClient,
   cachedLessons,
   onLessonLoaded,
+  allowPictureInPicture,
 }: {
   lessonId: string;
   apiClient?: BaseApiClient;
   cachedLessons: Record<string, Lesson>;
   onLessonLoaded: (lessonId: string, lesson: Lesson) => void;
+  allowPictureInPicture?: boolean;
 }) => {
   const [loading, setLoading] = useState(!cachedLessons[lessonId]);
   const [error, setError] = useState<string | null>(null);
@@ -161,6 +169,7 @@ const LessonContent = ({
           poster={lesson.urlCover}
           subtitles={lesson.urlSubtitle}
           className="w-full rounded-lg"
+          allowPictureInPicture={allowPictureInPicture}
         />
       ) : (
         <div className="p-4 bg-background-50 rounded-lg">
@@ -223,11 +232,13 @@ const LessonAccordionItem = ({
   apiClient,
   cachedLessons,
   onLessonLoaded,
+  allowPictureInPicture,
 }: {
   lessonItem: RecommendedClassLessonsItem;
   apiClient?: BaseApiClient;
   cachedLessons: Record<string, Lesson>;
   onLessonLoaded: (lessonId: string, lesson: Lesson) => void;
+  allowPictureInPicture?: boolean;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { isDark } = useTheme();
@@ -284,6 +295,7 @@ const LessonAccordionItem = ({
             apiClient={apiClient}
             cachedLessons={cachedLessons}
             onLessonLoaded={onLessonLoaded}
+            allowPictureInPicture={allowPictureInPicture}
           />
         )}
       </CardAccordation>
@@ -300,6 +312,7 @@ export const RecommendedLessonViewModal = ({
   onClose,
   data,
   apiClient,
+  allowPictureInPicture,
 }: RecommendedLessonViewModalProps) => {
   const [cachedLessons, setCachedLessons] = useState<Record<string, Lesson>>(
     {}
@@ -391,6 +404,7 @@ export const RecommendedLessonViewModal = ({
                   apiClient={apiClient}
                   cachedLessons={cachedLessons}
                   onLessonLoaded={handleLessonLoaded}
+                  allowPictureInPicture={allowPictureInPicture}
                 />
               ))}
             </div>

@@ -76,6 +76,12 @@ interface LessonPreviewProps {
   /** User ID used to scope video-progress localStorage keys per user */
   userId?: string;
   /**
+   * Shows the picture-in-picture button and keeps the video playing on leaving
+   * the tab; off, the video pauses. Pass `hasLessonPictureInPicture` from
+   * `useModules`.
+   */
+  allowPictureInPicture?: boolean;
+  /**
    * Callback when create new activity is clicked
    */
   onCreateNewActivity?: () => void;
@@ -119,6 +125,7 @@ export const LessonPreview = ({
   onPodcastEnded,
   getInitialTimestamp,
   userId,
+  allowPictureInPicture,
   onCreateNewActivity,
   apiClient,
   onActivitySelected,
@@ -552,6 +559,7 @@ export const LessonPreview = ({
           'Assistir Aula'
         }
         userId={userId}
+        allowPictureInPicture={allowPictureInPicture}
         getVideoData={getVideoData}
         getInitialTimestampValue={getInitialTimestampValue}
         handleVideoTimeUpdate={handleVideoTimeUpdate}

@@ -53,6 +53,12 @@ export interface RecommendedLessonDetailsProps {
   labels?: Partial<LessonDetailsLabels>;
   /** Additional CSS classes */
   className?: string;
+  /**
+   * Shows the picture-in-picture button and keeps the video playing on leaving
+   * the tab; off, the video pauses. Pass `hasLessonPictureInPicture` from
+   * `useModules`.
+   */
+  allowPictureInPicture?: boolean;
 }
 
 /**
@@ -89,6 +95,7 @@ const RecommendedLessonDetails = ({
   breadcrumbs,
   labels: customLabels,
   className,
+  allowPictureInPicture,
 }: RecommendedLessonDetailsProps) => {
   const labels = useMemo(
     () => ({ ...DEFAULT_LABELS, ...customLabels }),
@@ -302,6 +309,7 @@ const RecommendedLessonDetails = ({
         onClose={handleCloseViewLessonModal}
         data={data}
         apiClient={apiClient}
+        allowPictureInPicture={allowPictureInPicture}
       />
     </>
   );
