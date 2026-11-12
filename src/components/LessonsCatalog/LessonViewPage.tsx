@@ -45,70 +45,14 @@ import {
   LessonVideoSection,
   LessonPodcastSection,
   LessonBoardImagesSection,
-  type LessonVideoData,
 } from '../shared/LessonMediaSections';
 import type { WhiteboardImage } from '../Whiteboard/Whiteboard';
-import type { VideoEndControls } from '../VideoPlayer/VideoPlayer';
-import {
-  useMediaPreferencesStore,
-  type VideoEndBehavior,
-} from '../../store/mediaPreferencesStore';
 import { useLessonCinemaLayout } from '../shared/LessonMediaSections/useLessonCinemaLayout';
+import { useStagedPlayerMedia } from '../shared/LessonMediaSections/useStagedPlayerMedia';
 import IconRender from '../IconRender/IconRender';
 import { NextLessonCountdown } from './NextLessonCountdown';
+import { useLessonQueue } from './useLessonQueue';
 import { LessonQueueControls } from './LessonQueueControls';
-
-type VideoEndAction =
-  | 'replay'
-  | 'rewind'
-  | 'advance'
-  | 'restart-queue'
-  | 'open-list-start';
-
-/** Single place that decides the end of the video, in AE-3308 priority order. */
-const resolveVideoEndAction = ({
-  endBehavior,
-  isInQueue,
-  isOnListStart,
-  hasNext,
-  repeatList,
-}: {
-  endBehavior: VideoEndBehavior;
-  isInQueue: boolean;
-  /** The lesson that ended is already the first one of the list. */
-  isOnListStart: boolean;
-  hasNext: boolean;
-  repeatList: boolean;
-}): VideoEndAction => {
-  if (endBehavior === 'repeat-video') return 'replay';
-  // "Voltar ao início da lista" (Figma): go back to the list's first lesson,
-  // stopped, waiting for play. On that lesson already, it just rewinds.
-  if (endBehavior === 'back-to-start') {
-    return isInQueue && !isOnListStart ? 'open-list-start' : 'rewind';
-  }
-  if (!isInQueue) return 'rewind';
-  if (hasNext) return 'advance';
-  return repeatList ? 'restart-queue' : 'rewind';
-};
-
-/** Shuffles the queue with `firstId` first (Fisher-Yates on the rest). */
-const buildShuffledIds = (
-  queue: LessonDetails[],
-  firstId: string
-): string[] => {
-  const rest = queue.map(({ id }) => id).filter((id) => id !== firstId);
-  for (let i = rest.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [rest[i], rest[j]] = [rest[j], rest[i]];
-  }
-  return [firstId, ...rest];
-};
-
-/** Item scheduled by the countdown; `order` only exists when reshuffling the queue. */
-interface PendingLesson {
-  lesson: LessonDetails;
-  order?: string[];
-}
 
 /**
  * Scrolls the page to the top. On desktop the layout's `<main>` scrolls; on
@@ -117,19 +61,6 @@ interface PendingLesson {
 const scrollPageToTop = () => {
   document.querySelector('main')?.scrollTo?.({ top: 0, behavior: 'smooth' });
   globalThis.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
-/**
- * Next playable item in the queue, or null at its end. Takes the ready-made
- * queue to serve any source: the subtopic today, playlists later.
- */
-const getNextQueuedLesson = (
-  queue: LessonDetails[],
-  currentLessonId: string | undefined
-): LessonDetails | null => {
-  const currentIndex = queue.findIndex(({ id }) => id === currentLessonId);
-  if (currentIndex === -1) return null;
-  return queue.slice(currentIndex + 1).find(({ videoUrl }) => videoUrl) ?? null;
 };
 
 export interface LessonViewPageProps {
@@ -300,19 +231,8 @@ export function LessonViewPage({
   const hasMarkedVideo = useRef(false);
   // Video progress save in flight: auto-advance waits for it.
   const videoCompletionRef = useRef<Promise<void> | null>(null);
-  const [pendingLesson, setPendingLesson] = useState<PendingLesson | null>(
-    null
-  );
-  const [autoPlayLessonId, setAutoPlayLessonId] = useState<string | null>(null);
   // Lessons already saved this visit: rewatching in the queue is not a new completion.
   const completedVideosRef = useRef(new Set<string>());
-  const [shuffledIds, setShuffledIds] = useState<string[] | null>(null);
-  const shuffleOrderKeyRef = useRef<string | null>(null);
-  // Lesson the shuffled queue expects; any other one reshuffles.
-  const expectedShuffledLessonRef = useRef<string | null>(null);
-  const queueShuffle = useMediaPreferencesStore((s) => s.queueShuffle);
-  const queueRepeatList = useMediaPreferencesStore((s) => s.queueRepeatList);
-  const videoEndBehavior = useMediaPreferencesStore((s) => s.videoEndBehavior);
   const hasMarkedPodcast = useRef(false);
   const hasMarkedQuiz = useRef(false);
   const hasMarkedInitialFrame = useRef(false);
@@ -354,7 +274,6 @@ export function LessonViewPage({
   useEffect(() => {
     hasMarkedVideo.current = false;
     videoCompletionRef.current = null;
-    setPendingLesson(null);
     hasMarkedPodcast.current = false;
     hasMarkedQuiz.current = false;
     hasMarkedInitialFrame.current = false;
@@ -401,40 +320,11 @@ export function LessonViewPage({
    * lesson to the next: fullscreen and picture-in-picture follow the queue
    * instead of being dropped with the old `<video>`.
    */
-  const [playerMedia, setPlayerMedia] = useState<{
-    lessonId: string;
-    video: LessonVideoData;
-    resumeAt: number;
-  } | null>(null);
-  const {
-    src: videoSrc,
-    hlsSrc: videoHlsSrc,
-    poster: videoPoster,
-    subtitles: videoSubtitles,
-  } = lessonData.video;
-  useEffect(() => {
-    if (!activeLessonId || playback.resumeAt === null) return;
-    setPlayerMedia({
-      lessonId: activeLessonId,
-      video: {
-        src: videoSrc,
-        hlsSrc: videoHlsSrc,
-        poster: videoPoster,
-        subtitles: videoSubtitles,
-      },
-      resumeAt: playback.resumeAt,
-    });
-  }, [
+  const { playerMedia, isPlayerOnActiveLesson } = useStagedPlayerMedia(
     activeLessonId,
-    playback.resumeAt,
-    videoSrc,
-    videoHlsSrc,
-    videoPoster,
-    videoSubtitles,
-  ]);
-  // While the next lesson's resume point loads, the player still holds the
-  // previous video: its events must not be recorded against the new lesson.
-  const isPlayerOnActiveLesson = playerMedia?.lessonId === activeLessonId;
+    lessonData.video,
+    playback.resumeAt
+  );
 
   const downloadContent = useMemo(
     () => getDownloadContent(currentLesson),
@@ -669,134 +559,37 @@ export function LessonViewPage({
     [selectLesson, setSearchParams]
   );
 
-  const handleLessonClick = useCallback(
-    (lesson: LessonDetails) => {
-      setAutoPlayLessonId(null);
-      openLesson(lesson);
-    },
-    [openLesson]
-  );
-
   // Only the student has a queue: preview does not auto-advance.
   const playableLessons = useMemo(
-    () => (isPreview ? [] : lessons.filter(({ videoUrl }) => videoUrl)),
-    [isPreview, lessons]
+    () => lessons.filter(({ videoUrl }) => videoUrl),
+    [lessons]
   );
-  // `updateLessonDuration` recreates the objects; only the ids define the queue.
-  const playableKey = playableLessons.map(({ id }) => id).join(',');
 
-  /**
-   * When turned on, the current lesson goes first and the rest is shuffled.
-   * Opening another lesson manually starts a new cycle from it, so no lesson
-   * repeats before all are played. When turned off, the original order applies.
-   */
-  useEffect(() => {
-    if (!queueShuffle || !activeLessonId) {
-      shuffleOrderKeyRef.current = null;
-      setShuffledIds(null);
-      return;
-    }
-    if (
-      shuffleOrderKeyRef.current === playableKey &&
-      expectedShuffledLessonRef.current === activeLessonId
-    ) {
-      return;
-    }
-    shuffleOrderKeyRef.current = playableKey;
-    expectedShuffledLessonRef.current = activeLessonId;
-    setShuffledIds(buildShuffledIds(playableLessons, activeLessonId));
-    // playableLessons is represented by playableKey.
-  }, [queueShuffle, playableKey, activeLessonId]);
+  const lessonQueue = useLessonQueue({
+    items: playableLessons,
+    activeId: activeLessonId,
+    openItem: openLesson,
+    // The actual end of the video retries the save, in case the 95% one
+    // failed or the student got here without going through it.
+    onVideoEnd: isPreview ? undefined : handleVideoCompleteCallback,
+    disabled: isPreview,
+  });
+  const {
+    handleVideoEnded,
+    pendingItem: pendingLesson,
+    completeCountdown,
+    cancelCountdown,
+    autoPlayId,
+    clearAutoPlay,
+  } = lessonQueue;
 
-  const queue = useMemo(() => {
-    if (!shuffledIds) return playableLessons;
-    const byId = new Map(playableLessons.map((l) => [l.id, l]));
-    return shuffledIds.flatMap((id) => byId.get(id) ?? []);
-  }, [shuffledIds, playableLessons]);
-
-  const nextLesson = getNextQueuedLesson(queue, activeLessonId);
-
-  /** First lesson as the list shows it, whatever the shuffled order. */
-  const listStartLesson = playableLessons[0];
-
-  /**
-   * Opens the list's first lesson without playing it. Waits for the video
-   * completion save, like the countdown, so the progress lands on the lesson
-   * that ended.
-   */
-  const openListStart = useCallback(async () => {
-    if (!listStartLesson) return;
-    await videoCompletionRef.current;
-    // The student may have picked another lesson while the save finished.
-    if (useLessonsStore.getState().currentLesson?.id !== activeLessonId) return;
-    openLesson(listStartLesson);
-  }, [listStartLesson, activeLessonId, openLesson]);
-
-  /** First lesson of the new cycle; when shuffled, never the one that just ended. */
-  const buildRestartedQueue = useCallback((): PendingLesson | null => {
-    if (!queueShuffle) return queue[0] ? { lesson: queue[0] } : null;
-
-    const others = queue.filter(({ id }) => id !== activeLessonId);
-    const lesson = others[Math.floor(Math.random() * others.length)];
-    return lesson
-      ? { lesson, order: buildShuffledIds(queue, lesson.id) }
-      : null;
-  }, [queueShuffle, queue, activeLessonId]);
-
-  /**
-   * The actual end of the video. Retries the save in case the 95% one failed or
-   * the student got here without going through it.
-   */
-  const handleVideoEnded = useCallback(
-    ({ replay, rewind }: VideoEndControls) => {
-      if (!isPreview) handleVideoCompleteCallback();
-
-      const action = resolveVideoEndAction({
-        endBehavior: isPreview ? 'none' : videoEndBehavior,
-        isInQueue: queue.length > 1,
-        isOnListStart: listStartLesson?.id === activeLessonId,
-        hasNext: Boolean(nextLesson),
-        repeatList: queueRepeatList,
-      });
-
-      if (action === 'replay') replay();
-      if (action === 'rewind') rewind();
-      if (action === 'open-list-start') void openListStart();
-      if (action === 'advance' && nextLesson) {
-        setPendingLesson({ lesson: nextLesson });
-      }
-      if (action === 'restart-queue') setPendingLesson(buildRestartedQueue());
+  const handleLessonClick = useCallback(
+    (lesson: LessonDetails) => {
+      clearAutoPlay();
+      openLesson(lesson);
     },
-    [
-      isPreview,
-      handleVideoCompleteCallback,
-      videoEndBehavior,
-      queue.length,
-      nextLesson,
-      queueRepeatList,
-      buildRestartedQueue,
-      listStartLesson,
-      activeLessonId,
-      openListStart,
-    ]
+    [clearAutoPlay, openLesson]
   );
-
-  const handleCountdownComplete = useCallback(async () => {
-    if (!pendingLesson) return;
-
-    // Close the countdown before waiting: it can no longer be canceled from here.
-    setPendingLesson(null);
-    await videoCompletionRef.current;
-
-    // The student may have picked another lesson while the save finished.
-    if (useLessonsStore.getState().currentLesson?.id !== activeLessonId) return;
-
-    const { lesson, order } = pendingLesson;
-    expectedShuffledLessonRef.current = lesson.id;
-    if (order) setShuffledIds(order);
-    openLesson(lesson);
-    setAutoPlayLessonId(lesson.id);
-  }, [pendingLesson, activeLessonId, openLesson]);
 
   /**
    * Handle download complete - register lesson download
@@ -1088,17 +881,14 @@ export function LessonViewPage({
               onEnded={isPlayerOnActiveLesson ? handleVideoEnded : undefined}
               isCinemaMode={isCinemaMode}
               onToggleCinemaMode={toggleCinemaMode}
-              autoPlay={autoPlayLessonId === playerMedia.lessonId}
+              autoPlay={autoPlayId === playerMedia.lessonId}
               overlay={
                 pendingLesson ? (
                   <NextLessonCountdown
-                    title={
-                      pendingLesson.lesson.description ||
-                      pendingLesson.lesson.title
-                    }
+                    title={pendingLesson.description || pendingLesson.title}
                     imageUrl={
-                      pendingLesson.lesson.urlInitialFrame ||
-                      pendingLesson.lesson.thumbnailUrl ||
+                      pendingLesson.urlInitialFrame ||
+                      pendingLesson.thumbnailUrl ||
                       undefined
                     }
                     icon={
@@ -1116,8 +906,8 @@ export function LessonViewPage({
                     subtitle={[subjectName, topicName]
                       .filter(Boolean)
                       .join(' • ')}
-                    onComplete={handleCountdownComplete}
-                    onCancel={() => setPendingLesson(null)}
+                    onComplete={completeCountdown}
+                    onCancel={cancelCountdown}
                   />
                 ) : undefined
               }

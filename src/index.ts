@@ -1507,12 +1507,22 @@ export {
   LessonTopicsPage,
   LessonViewPage,
   LessonResultsSection,
+  useLessonQueue,
+  resolveVideoEndAction,
+  NextLessonCountdown,
+  NEXT_LESSON_COUNTDOWN_SECONDS,
+  LessonQueueControls,
 } from './components/LessonsCatalog';
 export type {
   LessonsCatalogPageProps,
   LessonTopicsPageProps,
   LessonViewPageProps,
   LessonResultsSectionProps,
+  LessonQueueItem,
+  UseLessonQueueOptions,
+  UseLessonQueueReturn,
+  VideoEndAction,
+  NextLessonCountdownProps,
 } from './components/LessonsCatalog';
 export {
   LessonVideoSection,
@@ -1526,7 +1536,14 @@ export type {
   LessonPodcastSectionProps,
   LessonBoardImagesSectionProps,
 } from './components/shared/LessonMediaSections';
-export { useLessonCinemaLayout } from './components/shared/LessonMediaSections';
+export {
+  useLessonCinemaLayout,
+  useStagedPlayerMedia,
+} from './components/shared/LessonMediaSections';
+export type {
+  StagedPlayerMedia,
+  UseStagedPlayerMediaReturn,
+} from './components/shared/LessonMediaSections';
 export { createUseClassesCatalog } from './hooks/useClassesCatalog';
 export {
   createUseClassTopics,
