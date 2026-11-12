@@ -240,20 +240,22 @@ test.describe('Lesson queue: list controls', () => {
     expect(await activeLesson(page)).toContain('Aula 1');
   });
 
-  test('"Voltar ao início da lista" rewinds and waits for play', async ({
+  test('"Voltar ao início da lista" opens the first lesson, stopped', async ({
     page,
   }) => {
     await openStory(page);
     await toggle(page, 'Voltar ao início da lista').click();
     await expect(toggle(page, 'Repetir vídeo')).toBeDisabled();
+    await openLessonFromList(page, 'Aula 3');
+    await expect.poll(() => activeLesson(page)).toContain('Aula 3');
 
     await playToEnd(page);
 
-    await expect.poll(() => videoTime(page)).toBe(0);
+    await expect.poll(() => activeLesson(page)).toContain('Aula 1');
+    await expect(countdown(page)).toHaveCount(0);
     await page.waitForTimeout(1_000);
     expect(await isPaused(page)).toBe(true);
-    await expect(countdown(page)).toHaveCount(0);
-    expect(await activeLesson(page)).toContain('Aula 1');
+    expect(await videoTime(page)).toBe(0);
   });
 
   test('"Repetir lista" goes from the last lesson back to the first', async ({

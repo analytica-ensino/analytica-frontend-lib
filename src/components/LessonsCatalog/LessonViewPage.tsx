@@ -58,22 +58,35 @@ import IconRender from '../IconRender/IconRender';
 import { NextLessonCountdown } from './NextLessonCountdown';
 import { LessonQueueControls } from './LessonQueueControls';
 
-type VideoEndAction = 'replay' | 'rewind' | 'advance' | 'restart-queue';
+type VideoEndAction =
+  | 'replay'
+  | 'rewind'
+  | 'advance'
+  | 'restart-queue'
+  | 'open-list-start';
 
 /** Single place that decides the end of the video, in AE-3308 priority order. */
 const resolveVideoEndAction = ({
   endBehavior,
   isInQueue,
+  isOnListStart,
   hasNext,
   repeatList,
 }: {
   endBehavior: VideoEndBehavior;
   isInQueue: boolean;
+  /** The lesson that ended is already the first one of the list. */
+  isOnListStart: boolean;
   hasNext: boolean;
   repeatList: boolean;
 }): VideoEndAction => {
   if (endBehavior === 'repeat-video') return 'replay';
-  if (endBehavior === 'back-to-start' || !isInQueue) return 'rewind';
+  // "Voltar ao início da lista" (Figma): go back to the list's first lesson,
+  // stopped, waiting for play. On that lesson already, it just rewinds.
+  if (endBehavior === 'back-to-start') {
+    return isInQueue && !isOnListStart ? 'open-list-start' : 'rewind';
+  }
+  if (!isInQueue) return 'rewind';
   if (hasNext) return 'advance';
   return repeatList ? 'restart-queue' : 'rewind';
 };
@@ -703,6 +716,22 @@ export function LessonViewPage({
 
   const nextLesson = getNextQueuedLesson(queue, activeLessonId);
 
+  /** First lesson as the list shows it, whatever the shuffled order. */
+  const listStartLesson = playableLessons[0];
+
+  /**
+   * Opens the list's first lesson without playing it. Waits for the video
+   * completion save, like the countdown, so the progress lands on the lesson
+   * that ended.
+   */
+  const openListStart = useCallback(async () => {
+    if (!listStartLesson) return;
+    await videoCompletionRef.current;
+    // The student may have picked another lesson while the save finished.
+    if (useLessonsStore.getState().currentLesson?.id !== activeLessonId) return;
+    openLesson(listStartLesson);
+  }, [listStartLesson, activeLessonId, openLesson]);
+
   /** First lesson of the new cycle; when shuffled, never the one that just ended. */
   const buildRestartedQueue = useCallback((): PendingLesson | null => {
     if (!queueShuffle) return queue[0] ? { lesson: queue[0] } : null;
@@ -725,12 +754,14 @@ export function LessonViewPage({
       const action = resolveVideoEndAction({
         endBehavior: isPreview ? 'none' : videoEndBehavior,
         isInQueue: queue.length > 1,
+        isOnListStart: listStartLesson?.id === activeLessonId,
         hasNext: Boolean(nextLesson),
         repeatList: queueRepeatList,
       });
 
       if (action === 'replay') replay();
       if (action === 'rewind') rewind();
+      if (action === 'open-list-start') void openListStart();
       if (action === 'advance' && nextLesson) {
         setPendingLesson({ lesson: nextLesson });
       }
@@ -744,6 +775,9 @@ export function LessonViewPage({
       nextLesson,
       queueRepeatList,
       buildRestartedQueue,
+      listStartLesson,
+      activeLessonId,
+      openListStart,
     ]
   );
 

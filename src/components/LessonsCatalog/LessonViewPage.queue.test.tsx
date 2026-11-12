@@ -303,14 +303,53 @@ describe('LessonViewPage: queue and end of video', () => {
     expect(progressWrites(api)).toHaveLength(1);
   });
 
-  it('back to start takes priority over advancing', async () => {
+  it('back to start opens the first lesson of the list, stopped', async () => {
+    useMediaPreferencesStore.setState({ videoEndBehavior: 'back-to-start' });
+    const api = makeApi([lesson('a'), lesson('b'), lesson('c')]);
+    await renderPage(api, { aula: 'b' });
+
+    await endVideo();
+
+    await waitFor(() => expect(currentId()).toBe('a'));
+    expect(screen.queryByTestId('countdown-done')).not.toBeInTheDocument();
+    expect(screen.getByTestId('ended')).toHaveAttribute(
+      'data-autoplay',
+      'false'
+    );
+    expect(mockRewind).not.toHaveBeenCalled();
+    expect(progressWrites(api)).toHaveLength(1);
+  });
+
+  it('back to start on the first lesson just rewinds it', async () => {
     useMediaPreferencesStore.setState({ videoEndBehavior: 'back-to-start' });
     await renderPage(makeApi([lesson('a'), lesson('b')]));
 
     await endVideo();
 
     expect(mockRewind).toHaveBeenCalledTimes(1);
+    expect(currentId()).toBe('a');
     expect(screen.queryByTestId('countdown-done')).not.toBeInTheDocument();
+  });
+
+  it('back to start does not override a lesson picked meanwhile', async () => {
+    useMediaPreferencesStore.setState({ videoEndBehavior: 'back-to-start' });
+    let resolveWrite: (value: unknown) => void = () => undefined;
+    const api = makeApi([lesson('a'), lesson('b'), lesson('c')]);
+    api.patch.mockImplementation((url: string) =>
+      String(url).includes('/progress')
+        ? new Promise((resolve) => {
+            resolveWrite = resolve as (value: unknown) => void;
+          })
+        : Promise.resolve(progressResponse)
+    );
+    await renderPage(api, { aula: 'b' });
+
+    await endVideo();
+    fireEvent.click(screen.getByText('Conteúdo c'));
+    await waitFor(() => expect(currentId()).toBe('c'));
+    await act(async () => resolveWrite(progressResponse));
+
+    expect(currentId()).toBe('c');
   });
 
   it('preview has no queue, controls or progress saving', async () => {
