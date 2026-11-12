@@ -47,8 +47,20 @@ jest.mock('../../Modal/Modal', () => ({
 // Mock VideoPlayer component
 jest.mock('../../VideoPlayer/VideoPlayer', () => ({
   __esModule: true,
-  default: ({ src, hlsSrc }: { src: string; hlsSrc?: string }) => (
-    <div data-testid="video-player" data-hls-src={String(hlsSrc)}>
+  default: ({
+    src,
+    hlsSrc,
+    allowPictureInPicture,
+  }: {
+    src: string;
+    hlsSrc?: string;
+    allowPictureInPicture?: boolean;
+  }) => (
+    <div
+      data-testid="video-player"
+      data-hls-src={String(hlsSrc)}
+      data-allow-pip={String(allowPictureInPicture)}
+    >
       Video: {src}
     </div>
   ),
@@ -437,6 +449,27 @@ describe('RecommendedLessonViewModal', () => {
         expect(apiClient.get).toHaveBeenCalledWith('/lesson/lesson-1');
       });
     });
+
+    it.each([true, false])(
+      'should pass allowPictureInPicture=%s to the lesson player',
+      async (allowPictureInPicture) => {
+        const apiClient = createMockApiClient();
+        render(
+          <RecommendedLessonViewModal
+            {...defaultProps}
+            apiClient={apiClient}
+            allowPictureInPicture={allowPictureInPicture}
+          />
+        );
+
+        fireEvent.click(screen.getByText('Equações do 1º Grau'));
+
+        expect(await screen.findByTestId('video-player')).toHaveAttribute(
+          'data-allow-pip',
+          String(allowPictureInPicture)
+        );
+      }
+    );
 
     it('should fetch lesson data when accordion expands', async () => {
       const apiClient = createMockApiClient();
