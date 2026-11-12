@@ -4,11 +4,11 @@ import { useMediaPreferencesStore } from '../../../store/mediaPreferencesStore';
 /** Abaixo de `lg` a lista já fica sob o player e o modo não se aplica. */
 const CINEMA_MIN_WIDTH = 1024;
 /**
- * Espaço acima do player: cabeçalho e menu do `AppLayout` (120px) mais a
- * faixa do título da aula (~80px). Sem descontar a faixa, os controles do
- * vídeo saíam da tela.
+ * Espaço acima do player com a página no topo: cabeçalho e menu do
+ * `AppLayout` (120px), breadcrumb (~90px) e faixa do título (~77px), mais
+ * folga. Medido em 287px no aluno; abaixo disso os controles saíam da tela.
  */
-const PLAYER_TOP_OFFSET = '200px';
+const PLAYER_TOP_OFFSET = '300px';
 
 /**
  * Layout das páginas de aula com modo cinema (Figma da AE-3309).

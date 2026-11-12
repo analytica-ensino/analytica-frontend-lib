@@ -1783,7 +1783,12 @@ const VideoPlayer = ({
           <img
             src={poster}
             alt={title ? `Capa: ${title}` : 'Capa do vídeo'}
-            className="absolute inset-0 w-full h-full object-cover"
+            // No modo cinema a faixa é mais larga que 16:9: a capa não pode
+            // ser cortada, e as laterais ficam pretas como no vídeo.
+            className={cn(
+              'absolute inset-0 w-full h-full',
+              isCinemaMode ? 'object-contain' : 'object-cover'
+            )}
             aria-hidden="true"
           />
         )}

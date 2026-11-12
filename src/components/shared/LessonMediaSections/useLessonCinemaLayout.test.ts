@@ -55,7 +55,7 @@ describe('useLessonCinemaLayout', () => {
     });
     expect(result.current.contentClassName).toContain('bg-background');
     expect(result.current.playerFrameStyle).toEqual({
-      height: 'min(calc(100dvh - 200px), 900px)',
+      height: 'min(calc(100dvh - 300px), 900px)',
       backgroundColor: 'black',
     });
   });
