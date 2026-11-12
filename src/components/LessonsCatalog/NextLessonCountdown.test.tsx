@@ -109,21 +109,40 @@ describe('NextLessonCountdown', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
-  it('clicar no card também abre a próxima aula', () => {
-    const onComplete = jest.fn();
-    render(
+  it('mostra matéria e subtema acima do título, como o card do painel', () => {
+    const { rerender } = render(
       <NextLessonCountdown
         title="Função horária"
-        icon={<span />}
-        progress={40}
-        onComplete={onComplete}
+        subtitle="Física • Cinemática"
+        icon={<span data-testid="icon" />}
+        color="#ff0000"
+        onComplete={jest.fn()}
         onCancel={jest.fn()}
       />
     );
 
-    fireEvent.click(screen.getByText('Função horária'));
+    expect(screen.getByText('Física • Cinemática')).toBeInTheDocument();
+    expect(screen.getByText('Função horária')).toBeInTheDocument();
+    const iconBox = screen.getByTestId('icon').parentElement;
+    expect(iconBox).toHaveStyle({ backgroundColor: '#ff0000' });
 
-    expect(onComplete).toHaveBeenCalledTimes(1);
+    rerender(
+      <NextLessonCountdown
+        title="Função horária"
+        icon={<span data-testid="icon" />}
+        color="bg-subject-1"
+        onComplete={jest.fn()}
+        onCancel={jest.fn()}
+      />
+    );
+
+    expect(screen.queryByText('Física • Cinemática')).not.toBeInTheDocument();
+    expect(screen.getByTestId('icon').parentElement).toHaveClass(
+      'bg-subject-1'
+    );
+    expect(
+      screen.getByTestId('icon').parentElement?.style.backgroundColor
+    ).toBe('');
   });
 
   it('mostra o frame inicial só quando existe', () => {

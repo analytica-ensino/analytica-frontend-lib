@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Button, CardProgress, Text } from '../../index';
+import { Button, Text } from '../../index';
 
 /** Parâmetro inicial da AE-3296, ainda a validar. */
 export const NEXT_LESSON_COUNTDOWN_SECONDS = 5;
@@ -13,8 +13,8 @@ export interface NextLessonCountdownProps {
   readonly icon: ReactNode;
   /** Cor de fundo do ícone (classe `bg-*` ou hex). */
   readonly color?: string;
-  /** Progresso da próxima aula, de 0 a 100. */
-  readonly progress?: number;
+  /** Linha de contexto acima do título, como "Matéria • Subtema". */
+  readonly subtitle?: string;
   /** Chamado uma vez: ao zerar a contagem ou em "Assistir agora". */
   readonly onComplete: () => void;
   /** Interrompe o avanço; a aula atual continua na tela, pausada. */
@@ -29,7 +29,7 @@ export function NextLessonCountdown({
   imageUrl,
   icon,
   color,
-  progress = 0,
+  subtitle,
   onComplete,
   onCancel,
 }: NextLessonCountdownProps) {
@@ -72,17 +72,35 @@ export function NextLessonCountdown({
           />
         )}
 
-        <CardProgress
-          header={title}
-          icon={icon}
-          color={color}
-          progress={progress}
-          showDates={false}
-          onClick={complete}
-          // Fica sobre o player, escuro em qualquer tema: mesmo critério dos
-          // gradientes dos controles do vídeo.
-          className="!bg-white/5 !border-white/15 hover:!bg-white/10 [&_p]:!text-white [&_span]:!text-white"
-        />
+        {/* Mesmo bloco do card "Continuar aula" do painel. */}
+        <div className="flex min-w-0 items-center gap-2">
+          <span
+            aria-hidden="true"
+            className={`flex size-8 shrink-0 items-center justify-center rounded-lg text-white ${color?.startsWith('bg-') ? color : ''}`}
+            style={
+              color && !color.startsWith('bg-')
+                ? { backgroundColor: color }
+                : undefined
+            }
+          >
+            {icon}
+          </span>
+          <span className="flex min-w-0 flex-col gap-1">
+            {subtitle && (
+              <Text size="2xs" color="text-white/70" className="truncate">
+                {subtitle}
+              </Text>
+            )}
+            <Text
+              size="xs"
+              weight="bold"
+              color="text-white"
+              className="truncate"
+            >
+              {title}
+            </Text>
+          </span>
+        </div>
 
         <div className="flex gap-3 border-t border-white/30 pt-3">
           <Button

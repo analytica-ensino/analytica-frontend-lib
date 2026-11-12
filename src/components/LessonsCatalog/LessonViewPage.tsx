@@ -1007,7 +1007,7 @@ export function LessonViewPage({
                     icon={
                       <IconRender
                         iconName={subjectIcon}
-                        size={24}
+                        size={16}
                         color="currentColor"
                       />
                     }
@@ -1016,9 +1016,9 @@ export function LessonViewPage({
                         ? subjectColor
                         : getSubjectColorWithOpacity(subjectColor, isDark)
                     }
-                    progress={
-                      lessonProgressMap.get(pendingLesson.lesson.id) || 0
-                    }
+                    subtitle={[subjectName, topicName]
+                      .filter(Boolean)
+                      .join(' • ')}
                     onComplete={handleCountdownComplete}
                     onCancel={() => setPendingLesson(null)}
                   />
