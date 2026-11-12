@@ -317,7 +317,7 @@ describe('LessonViewPage: fila e fim do vídeo', () => {
     expect(mockRewind).toHaveBeenCalledTimes(1);
     expect(mockReplay).not.toHaveBeenCalled();
     expect(
-      screen.queryByRole('button', { name: 'Ordem aleatória' })
+      screen.queryByRole('button', { name: 'Aleatório' })
     ).not.toBeInTheDocument();
     expect(progressWrites(api)).toHaveLength(0);
   });
@@ -350,7 +350,7 @@ describe('LessonViewPage: fila e fim do vídeo', () => {
       aula: 'b',
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Ordem aleatória' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Aleatório' }));
     await endVideo();
     await finishCountdown();
 

@@ -1096,7 +1096,8 @@ export function LessonViewPage({
       {renderMainContent()}
 
       <section className="flex flex-col bg-background rounded-xl p-6 gap-2">
-        <div className="mb-2 flex items-center justify-between gap-2">
+        {/* Controles da fila logo abaixo do título (Figma AE-3308). */}
+        <div className="mb-2 flex flex-col gap-3">
           <Text size="lg" weight="bold" className="text-text-950">
             Aulas
           </Text>

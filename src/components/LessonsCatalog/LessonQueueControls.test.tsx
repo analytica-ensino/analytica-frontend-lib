@@ -15,38 +15,47 @@ describe('LessonQueueControls', () => {
     render(<LessonQueueControls />);
   });
 
-  it.each(['Ordem aleatória', 'Repetir a lista'])(
-    'liga e desliga "%s"',
-    (name) => {
-      fireEvent.click(toggle(name));
-      expect(toggle(name)).toHaveAttribute('aria-pressed', 'true');
+  it.each(['Aleatório', 'Repetir lista'])('liga e desliga "%s"', (name) => {
+    fireEvent.click(toggle(name));
+    expect(toggle(name)).toHaveAttribute('aria-pressed', 'true');
 
-      fireEvent.click(toggle(name));
-      expect(toggle(name)).toHaveAttribute('aria-pressed', 'false');
-    }
-  );
-
-  it('repetir um vídeo e voltar ao início se excluem', () => {
-    fireEvent.click(toggle('Repetir um vídeo'));
-    expect(useMediaPreferencesStore.getState().videoEndBehavior).toBe(
-      'repeat-video'
-    );
-
-    fireEvent.click(toggle('Voltar ao início'));
-    expect(toggle('Voltar ao início')).toHaveAttribute('aria-pressed', 'true');
-    expect(toggle('Repetir um vídeo')).toHaveAttribute('aria-pressed', 'false');
-
-    fireEvent.click(toggle('Repetir um vídeo'));
-    expect(toggle('Voltar ao início')).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(toggle(name));
+    expect(toggle(name)).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it.each(['Repetir um vídeo', 'Voltar ao início'])(
-    'desliga "%s" no segundo clique',
-    (name) => {
-      fireEvent.click(toggle(name));
-      fireEvent.click(toggle(name));
+  it('aleatório e repetir lista ficam livres com o fim do vídeo definido', () => {
+    fireEvent.click(toggle('Repetir vídeo'));
 
-      expect(useMediaPreferencesStore.getState().videoEndBehavior).toBe('none');
-    }
-  );
+    expect(toggle('Aleatório')).toBeEnabled();
+    expect(toggle('Repetir lista')).toBeEnabled();
+  });
+
+  it.each([
+    ['Repetir vídeo', 'Voltar ao início da lista', 'repeat-video'],
+    ['Voltar ao início da lista', 'Repetir vídeo', 'back-to-start'],
+  ])('ativar "%s" desabilita "%s"', (on, blocked, behavior) => {
+    fireEvent.click(toggle(on));
+
+    expect(useMediaPreferencesStore.getState().videoEndBehavior).toBe(behavior);
+    expect(toggle(on)).toHaveAttribute('aria-pressed', 'true');
+    expect(toggle(blocked)).toBeDisabled();
+
+    fireEvent.click(toggle(on));
+
+    expect(useMediaPreferencesStore.getState().videoEndBehavior).toBe('none');
+    expect(toggle(blocked)).toBeEnabled();
+  });
+
+  it('mostra o nome da ação em tooltip', () => {
+    const texts = screen
+      .getAllByRole('tooltip', { hidden: true })
+      .map((t) => t.textContent);
+
+    expect(texts).toEqual([
+      'Aleatório',
+      'Repetir lista',
+      'Repetir vídeo',
+      'Voltar ao início da lista',
+    ]);
+  });
 });
