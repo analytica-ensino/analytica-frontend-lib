@@ -23,27 +23,65 @@ describe('LessonQueueControls', () => {
     expect(toggle(name)).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('shuffle and repeat list stay enabled with an end-of-video action set', () => {
+  it('turning on "Repetir vídeo" turns "Repetir lista" off and disables it', () => {
+    fireEvent.click(toggle('Repetir lista'));
     fireEvent.click(toggle('Repetir vídeo'));
 
+    expect(useMediaPreferencesStore.getState().videoEndBehavior).toBe(
+      'repeat-video'
+    );
+    expect(useMediaPreferencesStore.getState().queueRepeatList).toBe(false);
+    expect(toggle('Repetir lista')).toBeDisabled();
+    expect(toggle('Repetir lista')).toHaveAttribute('aria-pressed', 'false');
     expect(toggle('Aleatório')).toBeEnabled();
+    expect(toggle('Voltar ao início da lista')).toBeEnabled();
+
+    fireEvent.click(toggle('Repetir vídeo'));
+
+    expect(useMediaPreferencesStore.getState().videoEndBehavior).toBe('none');
+    expect(toggle('Repetir lista')).toBeEnabled();
+    expect(toggle('Repetir lista')).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('turning on "Voltar ao início da lista" disables "Repetir vídeo"', () => {
+    fireEvent.click(toggle('Voltar ao início da lista'));
+
+    expect(useMediaPreferencesStore.getState().videoEndBehavior).toBe(
+      'back-to-start'
+    );
+    expect(toggle('Repetir vídeo')).toBeDisabled();
+    expect(toggle('Repetir lista')).toBeEnabled();
+
+    fireEvent.click(toggle('Voltar ao início da lista'));
+
+    expect(useMediaPreferencesStore.getState().videoEndBehavior).toBe('none');
+    expect(toggle('Repetir vídeo')).toBeEnabled();
+  });
+
+  it('"Voltar ao início da lista" replaces an active "Repetir vídeo"', () => {
+    fireEvent.click(toggle('Repetir vídeo'));
+    fireEvent.click(toggle('Voltar ao início da lista'));
+
+    expect(useMediaPreferencesStore.getState().videoEndBehavior).toBe(
+      'back-to-start'
+    );
+    expect(toggle('Repetir vídeo')).toHaveAttribute('aria-pressed', 'false');
+    expect(toggle('Repetir vídeo')).toBeDisabled();
     expect(toggle('Repetir lista')).toBeEnabled();
   });
 
-  it.each([
-    ['Repetir vídeo', 'Voltar ao início da lista', 'repeat-video'],
-    ['Voltar ao início da lista', 'Repetir vídeo', 'back-to-start'],
-  ])('turning on "%s" disables "%s"', (on, blocked, behavior) => {
-    fireEvent.click(toggle(on));
+  it('uses the design colors for selected and not selected', () => {
+    fireEvent.click(toggle('Aleatório'));
 
-    expect(useMediaPreferencesStore.getState().videoEndBehavior).toBe(behavior);
-    expect(toggle(on)).toHaveAttribute('aria-pressed', 'true');
-    expect(toggle(blocked)).toBeDisabled();
-
-    fireEvent.click(toggle(on));
-
-    expect(useMediaPreferencesStore.getState().videoEndBehavior).toBe('none');
-    expect(toggle(blocked)).toBeEnabled();
+    expect(toggle('Aleatório')).toHaveClass(
+      'text-primary-700!',
+      'border-transparent'
+    );
+    expect(toggle('Repetir lista')).toHaveClass(
+      'text-primary-950',
+      'border-primary-950',
+      'hover:text-primary-400!'
+    );
   });
 
   it('shows the action name in a tooltip', () => {

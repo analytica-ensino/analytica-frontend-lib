@@ -229,7 +229,7 @@ test.describe('Lesson queue: list controls', () => {
   test('"Repetir vídeo" replays the same lesson', async ({ page }) => {
     await openStory(page);
     await toggle(page, 'Repetir vídeo').click();
-    await expect(toggle(page, 'Voltar ao início da lista')).toBeDisabled();
+    await expect(toggle(page, 'Repetir lista')).toBeDisabled();
 
     await seekToEnd(page);
     await page.waitForTimeout(1_500);
@@ -272,10 +272,16 @@ test.describe('Lesson queue: list controls', () => {
     await expect.poll(() => activeLesson(page)).toContain('Aula 1');
   });
 
-  test('"Repetir vídeo" wins over "Repetir lista"', async ({ page }) => {
+  test('"Repetir vídeo" turns "Repetir lista" off, even on the last lesson', async ({
+    page,
+  }) => {
     await openStory(page);
     await toggle(page, 'Repetir lista').click();
     await toggle(page, 'Repetir vídeo').click();
+    await expect(toggle(page, 'Repetir lista')).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
     await openLessonFromList(page, 'Aula 3');
     await expect.poll(() => activeLesson(page)).toContain('Aula 3');
 
