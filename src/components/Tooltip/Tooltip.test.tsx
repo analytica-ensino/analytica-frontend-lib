@@ -67,7 +67,9 @@ describe('Tooltip', () => {
 
       const button = screen.getByText('Hover me');
       // Parent should not be the tooltip wrapper div
-      expect(button.parentElement?.classList.contains('group/tooltip')).toBe(false);
+      expect(button.parentElement?.classList.contains('group/tooltip')).toBe(
+        false
+      );
     });
 
     it('renders tooltip when disabled is false', () => {
