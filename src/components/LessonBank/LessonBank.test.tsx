@@ -148,6 +148,8 @@ jest.mock('../VideoPlayer/VideoPlayer', () => ({
     className,
     autoSave,
     storageKey,
+    allowPictureInPicture,
+    pauseOnBackground,
   }: {
     src: string;
     poster?: string;
@@ -158,9 +160,13 @@ jest.mock('../VideoPlayer/VideoPlayer', () => ({
     className?: string;
     autoSave?: boolean;
     storageKey?: string;
+    allowPictureInPicture?: boolean;
+    pauseOnBackground?: boolean;
   }) => (
     <div
       data-testid="video-player"
+      data-allow-pip={String(allowPictureInPicture)}
+      data-pause-on-background={String(pauseOnBackground)}
       data-src={src}
       data-poster={poster}
       data-subtitles={subtitles}
@@ -614,6 +620,41 @@ describe('LessonBank', () => {
         );
       });
     });
+
+    it.each([
+      { allowPictureInPicture: true, pauseOnBackground: 'false' },
+      { allowPictureInPicture: false, pauseOnBackground: 'true' },
+    ])(
+      'should pass allowPictureInPicture=$allowPictureInPicture to the lesson player',
+      async ({ allowPictureInPicture, pauseOnBackground }) => {
+        const apiClient = createMockApiClient();
+        render(
+          <LessonBank
+            apiClient={apiClient}
+            filters={defaultFilters}
+            allowPictureInPicture={allowPictureInPicture}
+          />
+        );
+
+        await waitFor(() => {
+          expect(
+            screen.getByText('Introdução à Álgebra Linear')
+          ).toBeInTheDocument();
+        });
+        fireEvent.click(screen.getAllByText('Assistir')[0]);
+
+        const player = await screen.findByTestId('video-player');
+        expect(player).toHaveAttribute(
+          'data-allow-pip',
+          String(allowPictureInPicture)
+        );
+        // The floating window needs the video to keep playing off the tab
+        expect(player).toHaveAttribute(
+          'data-pause-on-background',
+          pauseOnBackground
+        );
+      }
+    );
 
     it('should not render VideoPlayer when lesson has no video', async () => {
       const lessonWithoutVideo = [

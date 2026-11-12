@@ -40,6 +40,12 @@ interface LessonBankProps {
    * the white rounded card used by the compact (<= 1024px) layout.
    */
   variant?: 'default' | 'card';
+  /**
+   * Shows the picture-in-picture button and keeps the video playing on leaving
+   * the tab; off, the video pauses. Pass `hasLessonPictureInPicture` from
+   * `useModules`.
+   */
+  allowPictureInPicture?: boolean;
 }
 
 /**
@@ -59,6 +65,7 @@ export const LessonBank = ({
   onVideoComplete,
   onPodcastEnded,
   filters,
+  allowPictureInPicture,
   variant = 'default',
 }: LessonBankProps) => {
   // Toast notifications
@@ -395,6 +402,7 @@ export const LessonBank = ({
           'Assistir Aula'
         }
         userId={userId}
+        allowPictureInPicture={allowPictureInPicture}
         getVideoData={getVideoData}
         getInitialTimestampValue={getInitialTimestampValue}
         handleVideoTimeUpdate={handleVideoTimeUpdate}

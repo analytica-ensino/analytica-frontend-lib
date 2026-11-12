@@ -169,6 +169,7 @@ jest.mock('../shared/LessonWatchModal', () => ({
     handleVideoCompleteCallback,
     onPodcastEnded,
     selectedLesson,
+    allowPictureInPicture,
   }: {
     isOpen: boolean;
     onClose: () => void;
@@ -189,6 +190,7 @@ jest.mock('../shared/LessonWatchModal', () => ({
     handleVideoCompleteCallback?: () => void;
     onPodcastEnded?: () => void | Promise<void>;
     selectedLesson?: { id: string } | null;
+    allowPictureInPicture?: boolean;
   }) => {
     if (!isOpen) return null;
 
@@ -217,6 +219,7 @@ jest.mock('../shared/LessonWatchModal', () => ({
     return (
       <div
         data-testid="lesson-watch-modal"
+        data-allow-pip={String(allowPictureInPicture)}
         data-video-src={videoData?.src}
         data-video-hls-src={String(videoData?.hlsSrc)}
       >
@@ -523,6 +526,25 @@ describe('LessonPreview', () => {
 
       expect(screen.getByTestId('lesson-watch-modal')).toBeInTheDocument();
     });
+
+    it.each([true, false])(
+      'should pass allowPictureInPicture=%s to the watch modal',
+      (allowPictureInPicture) => {
+        render(
+          <LessonPreview
+            {...defaultProps}
+            allowPictureInPicture={allowPictureInPicture}
+          />
+        );
+
+        fireEvent.click(screen.getAllByTestId(/button-Assistir aula/)[0]);
+
+        expect(screen.getByTestId('lesson-watch-modal')).toHaveAttribute(
+          'data-allow-pip',
+          String(allowPictureInPicture)
+        );
+      }
+    );
 
     it('should close watch modal when close button is clicked', () => {
       render(<LessonPreview {...defaultProps} />);
