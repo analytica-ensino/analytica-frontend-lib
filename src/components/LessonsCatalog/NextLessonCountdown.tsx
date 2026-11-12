@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Button, Text } from '../../index';
+import Button from '../Button/Button';
+import Text from '../Text/Text';
 
 /** Parâmetro inicial da AE-3296, ainda a validar. */
 export const NEXT_LESSON_COUNTDOWN_SECONDS = 5;
@@ -85,7 +86,7 @@ export function NextLessonCountdown({
           >
             {icon}
           </span>
-          <span className="flex min-w-0 flex-col gap-1">
+          <div className="flex min-w-0 flex-col gap-1">
             {subtitle && (
               <Text size="2xs" color="text-white/70" className="truncate">
                 {subtitle}
@@ -99,7 +100,7 @@ export function NextLessonCountdown({
             >
               {title}
             </Text>
-          </span>
+          </div>
         </div>
 
         <div className="flex gap-3 border-t border-white/30 pt-3">

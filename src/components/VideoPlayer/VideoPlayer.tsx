@@ -49,14 +49,21 @@ interface PlayerTooltipProps {
 const PlayerTooltip = ({ label, shortcut, children }: PlayerTooltipProps) => (
   <Tooltip
     content={
-      <span className="flex items-center gap-2">
+      // Sem `color`, o Text aplicaria `text-text-950` e apagaria o branco do
+      // tooltip.
+      <Text
+        as="span"
+        size="xs"
+        color="text-white"
+        className="flex items-center gap-2"
+      >
         {label}
         {shortcut && (
           <kbd className="rounded border border-white/60 px-1.5 text-xs font-normal leading-5">
             {shortcut}
           </kbd>
         )}
-      </span>
+      </Text>
     }
     contentClassName="px-2 py-1 text-xs"
   >
