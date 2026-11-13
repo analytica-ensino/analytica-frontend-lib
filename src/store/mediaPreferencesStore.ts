@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { getBrowserStorage } from './browserStorage';
 import { KEYS } from '../utils/keys';
 
 /** Volume usado enquanto o usuário nunca mexeu no controle. */
@@ -109,7 +110,7 @@ export const useMediaPreferencesStore = create<MediaPreferencesState>()(
     }),
     {
       name: KEYS.MEDIA_PREFERENCES_STORAGE,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(getBrowserStorage),
       partialize: (state) => ({
         volume: state.volume,
         isMuted: state.isMuted,

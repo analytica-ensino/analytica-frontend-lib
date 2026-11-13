@@ -60,6 +60,11 @@ export interface UseModulesReturn {
   // back from HLS without a deploy (institution-wide). Off by default.
   hasLessonVideoMp4Only: boolean;
 
+  // Authored ebooks: library, reader, ebooks attached to activities and
+  // recommended lessons, and their reports (institution-wide, every profile).
+  // Off by default.
+  hasEbooks: boolean;
+
   // AI correction of dissertative answers (institution-wide). Off by default:
   // an institution that wants its teachers to be the only graders must be able
   // to say so, and with it off the essays keep landing in the manual queue.
@@ -179,6 +184,10 @@ export const useModules = (): UseModulesReturn => {
     // lesson has it). Only a real `true` switches it on — see
     // `isLessonVideoMp4Only`.
     hasLessonVideoMp4Only: isLessonVideoMp4Only(modules),
+
+    // Authored ebooks (opt-in per institution, defaults off). Only a real
+    // `true` switches it on.
+    hasEbooks: modules.ebooks === true,
 
     // AI correction of dissertative answers (opt-in per institution, defaults
     // off — with it off only the teacher grades an essay)

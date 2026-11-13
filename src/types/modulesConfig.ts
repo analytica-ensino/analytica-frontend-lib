@@ -242,6 +242,16 @@ export interface ModulesConfig {
    */
   lessonVideoMp4Only: boolean;
 
+  /**
+   * Authored ebooks (opt-in per institution, off by default; a B2C student
+   * gets it from the plan). Gates the library, the reader, ebooks attached to
+   * activities and recommended lessons, and the ebook reports, for every
+   * profile. Only a real `true` switches it on: a missing key (an older
+   * backend, an older persisted state) reads as off. Consumed via
+   * `useModules().hasEbooks`.
+   */
+  ebooks: boolean;
+
   // Nested configurations
   exams: boolean;
   simulations: SimulationsConfig;
@@ -304,6 +314,9 @@ export const DEFAULT_MODULES: ModulesConfig = {
 
   // Lesson videos play their HLS when they have one; `true` forces the MP4
   lessonVideoMp4Only: false,
+
+  // Authored ebooks off by default (opt-in per institution)
+  ebooks: false,
 
   // Nested configurations
   exams: DEFAULT_EXAMS,
