@@ -367,6 +367,12 @@ export interface UseHlsSourceParams {
    * Defaults to `NATIVE_STALL_TIMEOUT_MS`.
    */
   stallTimeoutMs?: number;
+  /**
+   * Identity of the media (the lesson). Another key is another media: speed
+   * and captions carry over, position and play state do not. The same key
+   * with another source (the MP4 flag switched at runtime) keeps them.
+   */
+  mediaKey?: string;
 }
 
 export interface UseHlsSourceResult {
@@ -409,7 +415,12 @@ export const useHlsSource = ({
   src,
   hlsSrc,
   stallTimeoutMs = NATIVE_STALL_TIMEOUT_MS,
+  mediaKey,
 }: UseHlsSourceParams): UseHlsSourceResult => {
+  const mediaKeyRef = useRef(mediaKey);
+  mediaKeyRef.current = mediaKey;
+  /** Media the last source started for. */
+  const startedMediaKeyRef = useRef<string | undefined>(undefined);
   const key = `${src}\n${hlsSrc ?? ''}`;
   const [stored, setStored] = useState<SourceState>(() =>
     initialState(key, hlsSrc)
@@ -532,6 +543,9 @@ export const useHlsSource = ({
       update({ engine: 'mp4', qualities: [], selected: AUTO_QUALITY });
     };
 
+    const isNewMedia = startedMediaKeyRef.current !== mediaKeyRef.current;
+    startedMediaKeyRef.current = mediaKeyRef.current;
+
     const context: StartContext = {
       video,
       hlsSrc,
@@ -539,8 +553,8 @@ export const useHlsSource = ({
       isActive: () => !cancelled,
       update,
       beginSourceChange,
-      // Starting this source is a new media, not a switch of the previous one.
-      beginNewMedia,
+      // Same media from another source (the MP4 flag switched): a switch.
+      beginNewMedia: isNewMedia ? beginNewMedia : beginSourceChange,
       fallBackToMp4,
     };
     const engine = pickPlaybackEngine(video);

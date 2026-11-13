@@ -85,14 +85,16 @@ const mockCaptionTrack = (video: HTMLVideoElement, mode: string) => {
 const Harness = ({
   src,
   hlsSrc,
+  mediaKey,
   onResult,
 }: Readonly<{
   src: string;
   hlsSrc?: string;
+  mediaKey?: string;
   onResult: (result: UseHlsSourceResult) => void;
 }>) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const result = useHlsSource({ videoRef, src, hlsSrc });
+  const result = useHlsSource({ videoRef, src, hlsSrc, mediaKey });
   onResult(result);
   return (
     <video ref={videoRef} src={result.videoSrc}>
@@ -114,9 +116,14 @@ const renderSource = (hlsSrc?: string, src = MP4) => {
     ...view,
     video,
     result: () => latest as UseHlsSourceResult,
-    rerenderWith: (nextHls?: string, nextSrc = src) =>
+    rerenderWith: (nextHls?: string, nextSrc = src, mediaKey?: string) =>
       view.rerender(
-        <Harness src={nextSrc} hlsSrc={nextHls} onResult={onResult} />
+        <Harness
+          src={nextSrc}
+          hlsSrc={nextHls}
+          mediaKey={mediaKey}
+          onResult={onResult}
+        />
       ),
   };
 };
@@ -606,7 +613,7 @@ describe('useHlsSource', () => {
       Object.assign(media, { currentTime: 7, paused: false, playbackRate: 2 });
       const nextHls = 'https://cdn.example.com/hls/other/master.m3u8';
 
-      rerenderWith(nextHls);
+      rerenderWith(nextHls, undefined, 'lesson-2');
       await waitFor(() => expect(video.getAttribute('src')).toBe(nextHls));
       Object.assign(media, { currentTime: 0, paused: true, playbackRate: 1 });
       track.mode = 'disabled';

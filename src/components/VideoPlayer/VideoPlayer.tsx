@@ -605,7 +605,12 @@ const VideoPlayer = ({
   allowPictureInPicture = false,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const hlsSource = useHlsSource({ videoRef, src, hlsSrc });
+  const hlsSource = useHlsSource({
+    videoRef,
+    src,
+    hlsSrc,
+    mediaKey: storageKey ?? src,
+  });
   const { isSwitchingSource } = hlsSource;
   const { isUltraSmallMobile, isTinyMobile } = useMobile();
   const [isPlaying, setIsPlaying] = useState(false);
