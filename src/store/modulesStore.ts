@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { getBrowserStorage } from './browserStorage';
 import { KEYS } from '../utils/keys';
 import { useAuthStore } from './authStore';
 import type { AxiosInstance } from 'axios';
@@ -340,7 +341,7 @@ export const useModulesStore = create<ModulesState>()(
     }),
     {
       name: KEYS.MODULES_STORAGE,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(getBrowserStorage),
       partialize: (state) => ({
         modules: state.modules,
         ownerInstitutionId: state.ownerInstitutionId,
