@@ -806,18 +806,23 @@ describe('useAppContent', () => {
       expect(getPreviousSession()).toBeUndefined();
     });
 
-    it('forgets the session set aside once the hand-off succeeds', async () => {
+    it('does not bring back the session the exchange revoked when the session fetch fails', () => {
+      const checkAuth = jest.fn().mockResolvedValue(true);
+      mockUseAuth.mockReturnValue({ sessionInfo: null, checkAuth });
+      jest.spyOn(console, 'error').mockImplementation(() => undefined);
       mockHasTokenInUrl = true;
       mockGetState.mockReturnValue({ ...storedSession, signOut: mockSignOut });
       renderHook(() => useAppContent(defaultConfig));
 
-      const { onAuthHydrated, onError, getPreviousSession } =
+      const { onCodeExchanged, onError, getPreviousSession } =
         mockUseUrlAuthentication.mock.calls[0][0];
-      await onAuthHydrated();
-      onError(new Error('later'));
+      onCodeExchanged();
+      onError(new Error('session-info 500'));
 
       expect(getPreviousSession()).toBeUndefined();
       expect(useAuthStore.setState).not.toHaveBeenCalled();
+      expect(checkAuth).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
     });
 
     it('drops it once: re-renders during the exchange keep the new session', () => {

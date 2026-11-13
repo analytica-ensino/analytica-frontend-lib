@@ -128,7 +128,8 @@ export function useAppContent(config: UseAppContentConfig) {
   // refresh failed and sent the user back to login mid-exchange (logging in
   // twice). Layout effect, so it runs before every passive effect that fetches.
   // The exchange hands it to the backend, which revokes it only once the code
-  // is traded; if the code fails (an old link), it comes back.
+  // is traded; if the code fails (an old link), it comes back. Once traded it
+  // is gone for good, even if fetching the new session fails afterwards.
   const { hasTokenInUrl } = useTokenInUrl();
   const setAsideRef = useRef<StoredSession | null>(null);
   useLayoutEffect(() => {
@@ -155,9 +156,14 @@ export function useAppContent(config: UseAppContentConfig) {
     };
   }, []);
 
+  // Revoked by the exchange
+  const handleCodeExchanged = useCallback(() => {
+    setAsideRef.current = null;
+  }, []);
+
   const handleError = useCallback(
     (error: unknown) => {
-      // The hand-off failed: the session set aside is still valid
+      // The code was not traded: the session set aside is still valid
       if (setAsideRef.current) {
         useAuthStore.setState(setAsideRef.current);
         setAsideRef.current = null;
@@ -176,8 +182,6 @@ export function useAppContent(config: UseAppContentConfig) {
   // Re-runs the AuthProvider check after tokens are written into the store,
   // so guards re-evaluate before URL params are cleared (fixes first-login race).
   const handleAuthHydrated = useCallback(async () => {
-    // Revoked by the exchange
-    setAsideRef.current = null;
     await checkAuth();
   }, [checkAuth]);
 
@@ -190,6 +194,7 @@ export function useAppContent(config: UseAppContentConfig) {
       api: apiConfig,
       endpoint,
       getPreviousSession,
+      onCodeExchanged: handleCodeExchanged,
       clearParamsFromURL: handleClearParamsFromURL,
       maxRetries,
       retryDelay,
@@ -203,6 +208,7 @@ export function useAppContent(config: UseAppContentConfig) {
       apiConfig,
       endpoint,
       getPreviousSession,
+      handleCodeExchanged,
       handleClearParamsFromURL,
       maxRetries,
       retryDelay,

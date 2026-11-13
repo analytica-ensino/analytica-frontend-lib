@@ -23,6 +23,8 @@ import { takeHandOffVerifier } from '../../utils/handOffVerifier';
  * @property {string} [exchangeEndpoint] - Endpoint that trades the ?authCode= for tokens (default: '/auth/exchange')
  * @property {() => PreviousSession | undefined} [getPreviousSession] - The session the app held before the
  *   hand-off. The backend revokes it once the code is traded, and only then.
+ * @property {() => void} [onCodeExchanged] - Called once the code is traded, before the session is fetched.
+ *   From here on the previous session is revoked: a later failure must not bring it back.
  * @property {(searchParams: URLSearchParams) => object} [extractParams] - Custom parameter extraction function
  * @property {() => void} [clearParamsFromURL] - Function to clear URL parameters after processing
  * @property {number} [maxRetries] - Maximum number of retry attempts (default: 3)
@@ -53,6 +55,7 @@ export interface UseUrlAuthOptions<
   endpoint: string;
   exchangeEndpoint?: string;
   getPreviousSession?: () => PreviousSession | undefined;
+  onCodeExchanged?: () => void;
   extractParams?: (searchParams: URLSearchParams) => UrlAuthParams;
   clearParamsFromURL?: () => void;
   maxRetries?: number;
@@ -284,6 +287,7 @@ export function useUrlAuthentication<
           options.exchangeEndpoint ?? '/auth/exchange',
           options.getPreviousSession?.()
         );
+        options.onCodeExchanged?.();
 
         // Session-info runs with the URL's token before anything is stored,
         // so a session that fails never replaces the current one
@@ -354,6 +358,7 @@ export function useUrlAuthentication<
     options.endpoint,
     options.exchangeEndpoint,
     options.getPreviousSession,
+    options.onCodeExchanged,
     options.extractParams,
     options.clearParamsFromURL,
     options.maxRetries,

@@ -1251,5 +1251,71 @@ describe('useUrlAuthentication', () => {
       expect(mockOnAuthHydrated).not.toHaveBeenCalled();
       consoleErrorSpy.mockRestore();
     });
+
+    it('não avisa que o código foi trocado quando a troca falha', async () => {
+      const onCodeExchanged = jest.fn();
+      const onError = jest.fn();
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockApi.post.mockRejectedValue(new Error('400'));
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              onCodeExchanged,
+              onError,
+            }),
+          { wrapper: codeWrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(onError).toHaveBeenCalledWith(new Error('400'));
+      });
+      expect(onCodeExchanged).not.toHaveBeenCalled();
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('avisa que o código foi trocado antes de consultar a sessão, mesmo se a consulta falhar', async () => {
+      const callOrder: string[] = [];
+      const onCodeExchanged = jest.fn(() => callOrder.push('onCodeExchanged'));
+      const onError = jest.fn(() => callOrder.push('onError'));
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const api = {
+        get: jest.fn(() => {
+          callOrder.push('session-info');
+          return Promise.reject(new Error('500'));
+        }),
+        post: jest.fn().mockResolvedValue({ data: { data: exchangedTokens } }),
+      };
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              api,
+              endpoint: '/auth/session-info',
+              maxRetries: 1,
+              onCodeExchanged,
+              onError,
+            }),
+          { wrapper: codeWrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(onError).toHaveBeenCalledWith(new Error('500'));
+      });
+      expect(callOrder).toEqual(['onCodeExchanged', 'session-info', 'onError']);
+      consoleErrorSpy.mockRestore();
+      consoleWarnSpy.mockRestore();
+    });
   });
 });
