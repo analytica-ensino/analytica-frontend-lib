@@ -67,7 +67,9 @@ describe('Tooltip', () => {
 
       const button = screen.getByText('Hover me');
       // Parent should not be the tooltip wrapper div
-      expect(button.parentElement?.classList.contains('group')).toBe(false);
+      expect(button.parentElement?.classList.contains('group/tooltip')).toBe(
+        false
+      );
     });
 
     it('renders tooltip when disabled is false', () => {
@@ -234,8 +236,8 @@ describe('Tooltip', () => {
       expect(tooltip).toHaveClass('opacity-0');
       expect(tooltip).toHaveClass('invisible');
       // Has hover classes for visibility
-      expect(tooltip).toHaveClass('group-hover:opacity-100');
-      expect(tooltip).toHaveClass('group-hover:visible');
+      expect(tooltip).toHaveClass('group-hover/tooltip:opacity-100');
+      expect(tooltip).toHaveClass('group-hover/tooltip:visible');
     });
 
     it('applies CSS focus-within classes for accessibility', () => {
@@ -246,8 +248,8 @@ describe('Tooltip', () => {
       );
 
       const tooltip = screen.getByRole('tooltip');
-      expect(tooltip).toHaveClass('group-focus-within:opacity-100');
-      expect(tooltip).toHaveClass('group-focus-within:visible');
+      expect(tooltip).toHaveClass('group-focus-within/tooltip:opacity-100');
+      expect(tooltip).toHaveClass('group-focus-within/tooltip:visible');
     });
 
     it('applies transition classes', () => {
@@ -274,7 +276,7 @@ describe('Tooltip', () => {
       const wrapper = screen.getByText('Hover me').parentElement!;
       expect(wrapper).toHaveClass('relative');
       expect(wrapper).toHaveClass('inline-flex');
-      expect(wrapper).toHaveClass('group');
+      expect(wrapper).toHaveClass('group/tooltip');
     });
 
     it('uses div element for wrapper', () => {

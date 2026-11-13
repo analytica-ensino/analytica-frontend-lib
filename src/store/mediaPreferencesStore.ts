@@ -13,10 +13,28 @@ export const DEFAULT_MEDIA_VOLUME = 1;
 export const UNMUTE_FALLBACK_VOLUME = 0.5;
 
 /**
- * Preferências de áudio compartilhadas por todos os players da plataforma
- * (videoaula e podcast).
+ * What to do at the end of each video, taking precedence over queue advance.
+ * A single field ensures "repeat video" and "back to start" are never active
+ * at the same time.
+ */
+export type VideoEndBehavior = 'none' | 'repeat-video' | 'back-to-start';
+
+/**
+ * Audio and queue preferences shared by the platform's players
+ * (video lesson and podcast).
  */
 export interface MediaPreferencesState {
+  /** Shuffled order of the lesson queue */
+  queueShuffle: boolean;
+  /** Restarts the queue after the last lesson ends */
+  queueRepeatList: boolean;
+  videoEndBehavior: VideoEndBehavior;
+  /** Player at full width on the lesson page */
+  cinemaMode: boolean;
+  setCinemaMode: (cinemaMode: boolean) => void;
+  setQueueShuffle: (queueShuffle: boolean) => void;
+  setQueueRepeatList: (queueRepeatList: boolean) => void;
+  setVideoEndBehavior: (videoEndBehavior: VideoEndBehavior) => void;
   /** Volume normalizado entre 0 e 1 */
   volume: number;
   /** Estado de mudo */
@@ -51,6 +69,26 @@ export const useMediaPreferencesStore = create<MediaPreferencesState>()(
     (set) => ({
       volume: DEFAULT_MEDIA_VOLUME,
       isMuted: false,
+      queueShuffle: false,
+      queueRepeatList: false,
+      videoEndBehavior: 'none',
+      cinemaMode: false,
+
+      setCinemaMode: (cinemaMode: boolean): void => {
+        set({ cinemaMode });
+      },
+
+      setQueueShuffle: (queueShuffle: boolean): void => {
+        set({ queueShuffle });
+      },
+
+      setQueueRepeatList: (queueRepeatList: boolean): void => {
+        set({ queueRepeatList });
+      },
+
+      setVideoEndBehavior: (videoEndBehavior: VideoEndBehavior): void => {
+        set({ videoEndBehavior });
+      },
 
       /**
        * Salva o volume escolhido pelo usuário
@@ -73,7 +111,14 @@ export const useMediaPreferencesStore = create<MediaPreferencesState>()(
     {
       name: KEYS.MEDIA_PREFERENCES_STORAGE,
       storage: createJSONStorage(getBrowserStorage),
-      partialize: (state) => ({ volume: state.volume, isMuted: state.isMuted }),
+      partialize: (state) => ({
+        volume: state.volume,
+        isMuted: state.isMuted,
+        queueShuffle: state.queueShuffle,
+        queueRepeatList: state.queueRepeatList,
+        videoEndBehavior: state.videoEndBehavior,
+        cinemaMode: state.cinemaMode,
+      }),
       merge: (persisted, current) => {
         const saved = (persisted ?? {}) as Partial<MediaPreferencesState>;
         return {
@@ -83,6 +128,14 @@ export const useMediaPreferencesStore = create<MediaPreferencesState>()(
               ? current.volume
               : clampVolume(Number(saved.volume)),
           isMuted: saved.isMuted === true,
+          cinemaMode: saved.cinemaMode === true,
+          queueShuffle: saved.queueShuffle === true,
+          queueRepeatList: saved.queueRepeatList === true,
+          videoEndBehavior:
+            saved.videoEndBehavior === 'repeat-video' ||
+            saved.videoEndBehavior === 'back-to-start'
+              ? saved.videoEndBehavior
+              : 'none',
         };
       },
     }

@@ -47,6 +47,21 @@ import {
   LessonBoardImagesSection,
 } from '../shared/LessonMediaSections';
 import type { WhiteboardImage } from '../Whiteboard/Whiteboard';
+import { useLessonCinemaLayout } from '../shared/LessonMediaSections/useLessonCinemaLayout';
+import { useStagedPlayerMedia } from '../shared/LessonMediaSections/useStagedPlayerMedia';
+import IconRender from '../IconRender/IconRender';
+import { NextLessonCountdown } from './NextLessonCountdown';
+import { useLessonQueue } from './useLessonQueue';
+import { LessonQueueControls } from './LessonQueueControls';
+
+/**
+ * Scrolls the page to the top. On desktop the layout's `<main>` scrolls; on
+ * mobile it has no fixed height and the window scrolls.
+ */
+const scrollPageToTop = () => {
+  document.querySelector('main')?.scrollTo?.({ top: 0, behavior: 'smooth' });
+  globalThis.scrollTo({ top: 0, behavior: 'smooth' });
+};
 
 export interface LessonViewPageProps {
   /** API client used to load the subtopic's lessons and record progress. */
@@ -187,6 +202,17 @@ export function LessonViewPage({
   );
 
   const { isDark } = useTheme();
+  const {
+    isCinemaMode,
+    toggleCinemaMode,
+    gridClassName,
+    mainClassName,
+    stageClassName,
+    stageStyle,
+    contentClassName,
+    listClassName,
+    playerFrameStyle,
+  } = useLessonCinemaLayout();
   const [isOpeningQuiz, setIsOpeningQuiz] = useState(false);
   const [quizErrorMessage, setQuizErrorMessage] = useState<string | null>(null);
 
@@ -203,6 +229,10 @@ export function LessonViewPage({
 
   // Refs to track if progress has been marked for each step
   const hasMarkedVideo = useRef(false);
+  // Video progress save in flight: auto-advance waits for it.
+  const videoCompletionRef = useRef<Promise<void> | null>(null);
+  // Lessons already saved this visit: rewatching in the queue is not a new completion.
+  const completedVideosRef = useRef(new Set<string>());
   const hasMarkedPodcast = useRef(false);
   const hasMarkedQuiz = useRef(false);
   const hasMarkedInitialFrame = useRef(false);
@@ -243,6 +273,7 @@ export function LessonViewPage({
   // Reset all progress tracking refs when lesson changes
   useEffect(() => {
     hasMarkedVideo.current = false;
+    videoCompletionRef.current = null;
     hasMarkedPodcast.current = false;
     hasMarkedQuiz.current = false;
     hasMarkedInitialFrame.current = false;
@@ -281,6 +312,18 @@ export function LessonViewPage({
       boardImages: getBoardImages(currentLesson),
     }),
     [currentLesson, getPodcastData, getBoardImages]
+  );
+
+  /**
+   * What the player is showing. It only moves to a newly opened lesson once
+   * that lesson's resume point is known, so the player stays mounted from one
+   * lesson to the next: fullscreen and picture-in-picture follow the queue
+   * instead of being dropped with the old `<video>`.
+   */
+  const { playerMedia, isPlayerOnActiveLesson } = useStagedPlayerMedia(
+    activeLessonId,
+    lessonData.video,
+    playback.resumeAt
   );
 
   const downloadContent = useMemo(
@@ -339,10 +382,8 @@ export function LessonViewPage({
     [activeLessonId, progressTracker, currentLesson]
   );
 
-  const handleVideoCompleteCallback = useCallback(async () => {
-    if (!activeLessonId || hasMarkedVideo.current) return;
-
-    hasMarkedVideo.current = true;
+  const recordVideoComplete = useCallback(async () => {
+    if (!activeLessonId) return;
 
     const progress = await progressTracker.markVideoComplete(activeLessonId);
 
@@ -360,10 +401,25 @@ export function LessonViewPage({
     // of them. `markVideoComplete` already mirrored the consolidated result
     // into the store; flagging the lesson complete here would overwrite it and
     // show a lesson as done while criteria are still pending.
+    completedVideosRef.current.add(activeLessonId);
     if (currentLesson) {
       updateTimestamp(currentLesson.id, currentLesson.videoDuration);
     }
   }, [activeLessonId, progressTracker, currentLesson, updateTimestamp]);
+
+  /** Starts the save once and returns the one in flight. */
+  const handleVideoCompleteCallback = useCallback((): Promise<void> => {
+    if (!activeLessonId || completedVideosRef.current.has(activeLessonId)) {
+      return Promise.resolve();
+    }
+    if (hasMarkedVideo.current && videoCompletionRef.current) {
+      return videoCompletionRef.current;
+    }
+
+    hasMarkedVideo.current = true;
+    videoCompletionRef.current = recordVideoComplete();
+    return videoCompletionRef.current;
+  }, [activeLessonId, recordVideoComplete]);
 
   /**
    * Extract navigation data from API response when not available from
@@ -409,6 +465,9 @@ export function LessonViewPage({
     }
   }, [rawApiData, currentLesson, extractNavigationDataFromAPI]);
 
+  /** Last lesson this page opened, to open each one once. */
+  const openedLessonIdRef = useRef<string | null>(null);
+
   /**
    * Auto-select the lesson pinned by the URL or by navigation state.
    */
@@ -435,9 +494,14 @@ export function LessonViewPage({
       );
     }
 
-    if (targetLesson) {
+    // Already opened: selecting it again would record the visit and reload
+    // its resume point for nothing (this also reruns when `lessons` is
+    // rebuilt). Not the store's lesson: loading the list puts one there
+    // without recording the visit.
+    if (targetLesson && targetLesson.id !== openedLessonIdRef.current) {
+      openedLessonIdRef.current = targetLesson.id;
       selectLesson(targetLesson);
-      globalThis.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollPageToTop();
     }
   }, [aulaParam, selectedLessonId, selectedContentId, lessons, selectLesson]);
 
@@ -484,11 +548,14 @@ export function LessonViewPage({
     navigate(routes.root);
   };
 
-  const handleLessonClick = useCallback(
+  const openLesson = useCallback(
     (lesson: LessonDetails) => {
-      selectLesson(lesson);
-      // Reflect the chosen lesson in the URL so it can be reloaded/shared and
-      // the back button walks through previously viewed lessons. Preserve any
+      // Only the URL changes here: the auto-select effect above then opens the
+      // lesson. Selecting it here as well raced with that effect, which still
+      // saw the previous `?aula=` and briefly reopened the previous lesson —
+      // reshuffling the queue and recording a visit and a resume read for the
+      // wrong lesson. The URL also lets the lesson be reloaded/shared, and the
+      // back button walks through previously viewed lessons. Preserve any
       // other existing query params.
       setSearchParams(
         (prev) => {
@@ -498,9 +565,40 @@ export function LessonViewPage({
         },
         { replace: false }
       );
-      globalThis.scrollTo({ top: 0, behavior: 'smooth' });
     },
-    [selectLesson, setSearchParams]
+    [setSearchParams]
+  );
+
+  // Only the student has a queue: preview does not auto-advance.
+  const playableLessons = useMemo(
+    () => lessons.filter(({ videoUrl }) => videoUrl),
+    [lessons]
+  );
+
+  const lessonQueue = useLessonQueue({
+    items: playableLessons,
+    activeId: activeLessonId,
+    openItem: openLesson,
+    // The actual end of the video retries the save, in case the 95% one
+    // failed or the student got here without going through it.
+    onVideoEnd: isPreview ? undefined : handleVideoCompleteCallback,
+    disabled: isPreview,
+  });
+  const {
+    handleVideoEnded,
+    pendingItem: pendingLesson,
+    completeCountdown,
+    cancelCountdown,
+    autoPlayId,
+    clearAutoPlay,
+  } = lessonQueue;
+
+  const handleLessonClick = useCallback(
+    (lesson: LessonDetails) => {
+      clearAutoPlay();
+      openLesson(lesson);
+    },
+    [clearAutoPlay, openLesson]
   );
 
   /**
@@ -707,8 +805,13 @@ export function LessonViewPage({
   }
 
   const renderMainContent = () => (
-    <section className="flex flex-col bg-background rounded-xl pb-2 gap-2 min-w-0">
-      <div className="flex flex-col">
+    <section
+      className={cn(
+        'flex flex-col bg-background rounded-xl pb-2 gap-2 min-w-0',
+        mainClassName
+      )}
+    >
+      <div className={cn('flex flex-col', stageClassName)} style={stageStyle}>
         <span
           className={cn(
             'rounded-t-xl px-8 py-4 flex flex-row justify-between items-center gap-4',
@@ -755,31 +858,72 @@ export function LessonViewPage({
             'max-sm:bg-transparent max-sm:h-auto',
             'sm:bg-gray-100 sm:aspect-video'
           )}
+          style={playerFrameStyle}
         >
-          {/* Keyed by lesson: the player only rearms its completion flag when
-              `src` changes, so switching between two lessons that share the
-              same video file would leave it flagged as already completed and
-              onVideoComplete would never fire again.
+          {/* Not keyed by lesson: remounting would drop fullscreen and
+              picture-in-picture on every lesson change. The player resets its
+              per-media state (completion flag, resume, autoplay) when `src` or
+              `storageKey` changes, and `storageKey` is unique per lesson, so
+              two lessons sharing one video file still count separately.
 
-              Mounted only once the resume point is known: the player applies
-              its start position once per video, so a point arriving after it
-              had started would be ignored. The position comes from the backend
-              alone (`persistProgress` off), so no local copy competes with it. */}
-          {playback.resumeAt === null ? (
+              The media only switches once the resume point is known (see
+              `playerMedia`): the player applies its start position once per
+              video, so a point arriving after it had started would be
+              ignored. The position comes from the backend alone
+              (`persistProgress` off), so no local copy competes with it. */}
+          {playerMedia === null ? (
             <SkeletonCard
               className="w-full h-full aspect-video rounded-b-xl"
               data-testid="lesson-video-loading"
             />
           ) : (
             <LessonVideoSection
-              key={activeLessonId}
-              video={lessonData.video}
-              onTimeUpdate={handleVideoTimeUpdate}
-              onPause={playback.handlePause}
-              onVideoComplete={handleVideoCompleteCallback}
-              initialTime={playback.resumeAt}
+              video={playerMedia.video}
+              onTimeUpdate={
+                isPlayerOnActiveLesson ? handleVideoTimeUpdate : undefined
+              }
+              onPause={
+                isPlayerOnActiveLesson ? playback.handlePause : undefined
+              }
+              onVideoComplete={
+                isPlayerOnActiveLesson ? handleVideoCompleteCallback : undefined
+              }
+              onEnded={isPlayerOnActiveLesson ? handleVideoEnded : undefined}
+              isCinemaMode={isCinemaMode}
+              onToggleCinemaMode={toggleCinemaMode}
+              autoPlay={autoPlayId === playerMedia.lessonId}
+              overlay={
+                pendingLesson ? (
+                  <NextLessonCountdown
+                    title={pendingLesson.description || pendingLesson.title}
+                    imageUrl={
+                      pendingLesson.urlInitialFrame ||
+                      pendingLesson.thumbnailUrl ||
+                      undefined
+                    }
+                    icon={
+                      <IconRender
+                        iconName={subjectIcon}
+                        size={16}
+                        color="currentColor"
+                      />
+                    }
+                    color={
+                      subjectColor.startsWith('bg-')
+                        ? subjectColor
+                        : getSubjectColorWithOpacity(subjectColor, isDark)
+                    }
+                    subtitle={[subjectName, topicName]
+                      .filter(Boolean)
+                      .join(' • ')}
+                    onComplete={completeCountdown}
+                    onCancel={cancelCountdown}
+                  />
+                ) : undefined
+              }
+              initialTime={playerMedia.resumeAt}
               persistProgress={false}
-              storageKey={`lesson-${currentLesson.id}`}
+              storageKey={`lesson-${playerMedia.lessonId}`}
               userId={userId}
               className="w-full h-full object-contain rounded-b-xl"
               allowPictureInPicture={allowPictureInPicture}
@@ -788,7 +932,12 @@ export function LessonViewPage({
         </span>
       </div>
 
-      <div className="w-full px-8 h-auto flex flex-col gap-6 pt-6">
+      <div
+        className={cn(
+          'w-full px-8 h-auto flex flex-col gap-6 pt-6',
+          contentClassName
+        )}
+      >
         <LessonPodcastSection
           podcast={lessonData.podcast}
           onEnded={async () => {
@@ -832,7 +981,7 @@ export function LessonViewPage({
   );
 
   return (
-    <div className="w-full h-full grid grid-cols-[1fr_430px] not-lg:grid-cols-1 gap-3">
+    <div className={gridClassName}>
       <div className="col-span-full">
         <Menu
           value="current-page"
@@ -848,11 +997,18 @@ export function LessonViewPage({
 
       {renderMainContent()}
 
-      <section className="flex flex-col bg-background rounded-xl p-6 gap-2">
-        <div className="mb-2">
+      <section
+        className={cn(
+          'flex flex-col bg-background rounded-xl p-6 gap-2',
+          listClassName
+        )}
+      >
+        {/* Queue controls right below the title (Figma AE-3308). */}
+        <div className="mb-2 flex flex-col gap-3">
           <Text size="lg" weight="bold" className="text-text-950">
             Aulas
           </Text>
+          {!isPreview && <LessonQueueControls />}
         </div>
         <div className="space-y-2">{memoizedLessonCards}</div>
       </section>
