@@ -18,7 +18,9 @@ import type {
  * Every write to the fake API is appended to `window.__lessonApiWrites`, so
  * the browser tests can check what was recorded and in which order. The
  * `patchDelay` query parameter (milliseconds) holds back each progress write,
- * to show that the page waits for it before opening the next lesson.
+ * to show that the page waits for it before opening the next lesson, and
+ * `playbackDelay` holds back each read of a saved position, as the network
+ * does: until it arrives, the player keeps the previous lesson.
  */
 
 const FIXTURE_MP4 = 'fixtures/video/sample.mp4';
@@ -119,7 +121,8 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 function makeApi(
   patchDelay: number,
   lessons: ApiLessonData[] = LESSONS,
-  playback: Record<string, number> = {}
+  playback: Record<string, number> = {},
+  playbackDelay = 0
 ): BaseApiClient {
   const writes: LessonApiWrite[] = [];
   globalThis.window.__lessonApiWrites = writes;
@@ -152,6 +155,7 @@ function makeApi(
         return { data: { message: 'ok', data: lessons } as T };
       }
       const lessonId = /^\/lesson\/([^/]+)\/playback$/.exec(url)?.[1];
+      if (lessonId && playbackDelay > 0) await wait(playbackDelay);
       const position = lessonId ? playback[lessonId] : undefined;
       return {
         data: {
@@ -177,15 +181,15 @@ const QueuePage = ({
   lessons?: ApiLessonData[];
   playback?: Record<string, number>;
 }) => {
-  const [api] = useState(() =>
-    makeApi(
-      Number(
-        new URLSearchParams(globalThis.location.search).get('patchDelay') ?? 0
-      ),
+  const [api] = useState(() => {
+    const params = new URLSearchParams(globalThis.location.search);
+    return makeApi(
+      Number(params.get('patchDelay') ?? 0),
       lessons,
-      playback
-    )
-  );
+      playback,
+      Number(params.get('playbackDelay') ?? 0)
+    );
+  });
 
   return (
     <MemoryRouter
