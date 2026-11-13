@@ -19,14 +19,9 @@ export function useTokenInUrl() {
   const location = useLocation();
 
   const hasTokenInUrl = useMemo(() => {
-    const searchParams = new URLSearchParams(location.search);
-    // Single-use hand-off code sent by the login app and the backoffice
-    const code = searchParams.get('authCode');
-    const token = searchParams.get('token');
-    const refreshToken = searchParams.get('refreshToken');
-    const sessionId = searchParams.get('sessionId');
-
-    return !!(code || (token && refreshToken && sessionId));
+    // Single-use hand-off code sent by the login app and the backoffice.
+    // Tokens in the URL are no longer accepted (useUrlAuthentication)
+    return new URLSearchParams(location.search).has('authCode');
   }, [location.search]);
 
   return { hasTokenInUrl };

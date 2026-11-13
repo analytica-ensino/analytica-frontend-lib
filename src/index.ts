@@ -2311,6 +2311,10 @@ export {
   buildLoginUrlWithReturnTo,
   markExplicitLogout,
 } from './utils/domainUtils';
+export {
+  createHandOffChallenge,
+  takeHandOffVerifier,
+} from './utils/handOffVerifier';
 
 // Report Export Utils
 export { downloadExcel } from './utils/exportExcel';

@@ -503,6 +503,7 @@ export default defineConfig({
     'utils/latexMath/index': 'src/utils/latexMath.ts', // buildMathSpan, findDollarMath, isCurrencyDollar, looksLikeMath, replaceDollarMath
     'utils/profileImageA11y/index': 'src/utils/profileImageA11y.ts', // profileImageLabel
     'utils/domainUtils/index': 'src/utils/domainUtils.ts', // resolveRootHostname, extractSubdomainSlug, buildLoginUrlWithReturnTo
+    'utils/handOffVerifier/index': 'src/utils/handOffVerifier.ts', // createHandOffChallenge, takeHandOffVerifier
     'utils/examFilterHelpers/index': 'src/utils/examFilterHelpers.ts', // EXAM_STATUS_OPTIONS
     'utils/lessonAvailabilityUtils/index':
       'src/utils/lessonAvailabilityUtils.ts', // checkLessonAvailability
