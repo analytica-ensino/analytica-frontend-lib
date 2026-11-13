@@ -20,8 +20,9 @@ interface ApiWrite {
   body: Record<string, unknown> | null;
 }
 
-const openStory = async (page: Page) => {
-  await page.goto(`?story=${STORY}&mode=preview`);
+/** `query` adds the story's own parameters, such as `&playbackDelay=500`. */
+const openStory = async (page: Page, query = '') => {
+  await page.goto(`?story=${STORY}&mode=preview${query}`);
   await page.locator('video').waitFor({ state: 'attached' });
 };
 
@@ -46,17 +47,16 @@ const resumedAt = async (page: Page, min: number, max: number) => {
   return time >= min && time < max;
 };
 
+const playButton = (page: Page) =>
+  page.getByRole('button', { name: 'Reproduzir vídeo' });
+
 /**
- * Clicks play until the video plays: a click that lands while a freshly opened
- * HLS lesson is still attaching its stream can be dropped.
+ * A single click, as the student does: one pressed while a freshly opened
+ * lesson is still loading must play it once it loads.
  */
 const play = async (page: Page) => {
-  await expect(async () => {
-    if (await isPaused(page)) {
-      await page.getByRole('button', { name: 'Reproduzir vídeo' }).click();
-    }
-    await expect.poll(() => isPaused(page), { timeout: 3_000 }).toBe(false);
-  }).toPass();
+  await playButton(page).click();
+  await expect.poll(() => isPaused(page)).toBe(false);
 };
 
 /** Seeks `fromEnd` seconds before the end, once the media has a duration. */
@@ -108,6 +108,9 @@ const openLessonFromList = (page: Page, title: string) =>
     .first()
     .click();
 
+const currentSrc = (page: Page) =>
+  video(page).evaluate((element: HTMLVideoElement) => element.currentSrc);
+
 const writes = (page: Page) =>
   page.evaluate(
     () =>
@@ -116,6 +119,61 @@ const writes = (page: Page) =>
   );
 
 test.describe('Lesson queue with different media', () => {
+  // Until the new lesson's media loads, the player still holds the previous
+  // one: while the page reads the saved position (here held back 500 ms, as
+  // the network does), then while an HLS stream attaches. A play pressed in
+  // between is for the new lesson.
+  for (const { label, query, target, from, to } of [
+    {
+      label: 'its saved position is read',
+      query: '&playbackDelay=500',
+      target: 'Aula 6',
+      from: 4.5,
+      to: 9,
+    },
+    {
+      label: 'its HLS stream attaches',
+      query: '',
+      target: 'Aula 7',
+      from: 0,
+      to: 3,
+    },
+  ]) {
+    test(`play pressed while ${label} plays the new lesson`, async ({
+      page,
+    }) => {
+      await openStory(page, query);
+      await openLessonFromList(page, 'Aula 3');
+      await expect.poll(() => currentSrc(page)).toContain('?v=3');
+
+      await openLessonFromList(page, target);
+      await playButton(page).click();
+
+      await expect.poll(() => currentSrc(page)).not.toContain('?v=3');
+      await expect.poll(() => isPaused(page)).toBe(false);
+      // From its own saved position, not from where the old video was.
+      await expect.poll(() => resumedAt(page, from, to)).toBe(true);
+      expect(await activeLesson(page)).toContain(target);
+    });
+  }
+
+  test('pressing play again before the new lesson loads cancels it', async ({
+    page,
+  }) => {
+    await openStory(page, '&playbackDelay=1000');
+    await openLessonFromList(page, 'Aula 3');
+    await expect.poll(() => currentSrc(page)).toContain('?v=3');
+
+    await openLessonFromList(page, 'Aula 6');
+    await playButton(page).click();
+    await page.getByRole('button', { name: 'Pausar' }).click();
+
+    await expect.poll(() => resumedAt(page, 4.5, 5.5)).toBe(true);
+    await page.waitForTimeout(1_000);
+    expect(await isPaused(page)).toBe(true);
+    expect(await videoTime(page)).toBeLessThan(5.5);
+  });
+
   test('an HLS lesson opened mid-video starts from its own beginning', async ({
     page,
   }) => {

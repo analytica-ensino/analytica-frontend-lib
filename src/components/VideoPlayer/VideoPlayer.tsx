@@ -136,6 +136,12 @@ interface VideoPlayerProps {
    * the player stays paused with its center play button visible.
    */
   autoPlay?: boolean;
+  /**
+   * The page is about to swap the media (it is still reading the next item's
+   * resume point). A play pressed meanwhile is meant for the next item: it
+   * waits for it instead of starting the current one.
+   */
+  mediaPending?: boolean;
   /** Rendered over the video, inside the container that goes fullscreen */
   overlay?: ReactNode;
   /** Whether the page is showing the player in cinema mode */
@@ -589,6 +595,7 @@ const VideoPlayer = ({
   onVideoComplete,
   onEnded,
   autoPlay = false,
+  mediaPending = false,
   overlay,
   isCinemaMode = false,
   onToggleCinemaMode,
@@ -649,6 +656,16 @@ const VideoPlayer = ({
    * comes back, so the next lesson never starts playing unseen.
    */
   const pendingAutoPlayRef = useRef(false);
+  /**
+   * Play pressed while the element still holds the previous media: starting
+   * it would play the old video, and loading the new one would drop the play
+   * anyway. It runs once the new media loads (see `handleLoadedMetadata`).
+   */
+  const requestedPlayRef = useRef(false);
+  const mediaPendingRef = useRef(mediaPending);
+  useEffect(() => {
+    mediaPendingRef.current = mediaPending;
+  }, [mediaPending]);
 
   // Reset completion flag when changing videos.
   //
@@ -665,8 +682,9 @@ const VideoPlayer = ({
     pendingAutoPlayRef.current = false;
     // The page may swap the media without remounting (lesson queue): loading a
     // new source pauses the element without a `pause` event, so the playback
-    // state would keep showing the previous video.
-    setIsPlaying(false);
+    // state would keep showing the previous video. A play the student already
+    // asked for this media keeps showing until it runs.
+    setIsPlaying(requestedPlayRef.current);
     setCurrentTime(0);
     setDuration(0);
     // Mídia nova, retomada nova: é a troca de mídia — e só ela — que libera
@@ -1094,8 +1112,27 @@ const VideoPlayer = ({
     const video = videoRef.current;
     if (!video) return;
 
+    // Pressed again before the new media loaded: the student changed their
+    // mind.
+    if (requestedPlayRef.current) {
+      requestedPlayRef.current = false;
+      setIsPlaying(false);
+      return;
+    }
+
     if (!video.paused) {
       video.pause();
+      return;
+    }
+
+    // The page is swapping the media, or the new HLS source has not attached
+    // yet (`src` already gone, the previous media still loaded).
+    const holdsPreviousMedia =
+      mediaPendingRef.current ||
+      (video.readyState >= 1 && !video.getAttribute('src'));
+    if (holdsPreviousMedia) {
+      requestedPlayRef.current = true;
+      setIsPlaying(true);
       return;
     }
 
@@ -1317,6 +1354,15 @@ const VideoPlayer = ({
     // Agora existe linha de tempo: é aqui que o seek de retomada realmente
     // pega, e é a última vez que ele acontece nesta mídia.
     applyResumeTime();
+
+    // The play the student pressed while this media was on its way, after
+    // resuming like the autoplay below (which it replaces).
+    if (requestedPlayRef.current) {
+      requestedPlayRef.current = false;
+      autoPlayAttemptedRef.current = true;
+      togglePlayPause();
+      return;
+    }
 
     // After resuming, so it doesn't start from zero and then jump. If the
     // browser blocks it, `togglePlayPause` absorbs the rejection and the

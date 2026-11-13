@@ -45,6 +45,11 @@ export interface LessonVideoSectionProps {
   onEnded?: (controls: VideoEndControls) => void;
   /** Tries to start playback as soon as the video is ready. */
   autoPlay?: boolean;
+  /**
+   * The page is about to swap the video: a play pressed meanwhile waits for
+   * the next one. See `VideoPlayer`'s `mediaPending`.
+   */
+  mediaPending?: boolean;
   /** Rendered over the video, inside the player. */
   overlay?: ReactNode;
   /** Whether the page is showing the player in cinema mode. */
@@ -88,6 +93,7 @@ export const LessonVideoSection = ({
   onVideoComplete,
   onEnded,
   autoPlay,
+  mediaPending,
   overlay,
   isCinemaMode,
   onToggleCinemaMode,
@@ -123,6 +129,7 @@ export const LessonVideoSection = ({
         onVideoComplete={onVideoComplete}
         onEnded={onEnded}
         autoPlay={autoPlay}
+        mediaPending={mediaPending}
         overlay={overlay}
         isCinemaMode={isCinemaMode}
         onToggleCinemaMode={onToggleCinemaMode}
