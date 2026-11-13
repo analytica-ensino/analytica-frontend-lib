@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { getBrowserStorage } from './browserStorage';
 import { KEYS } from '@/utils/keys';
 
 /**
@@ -64,7 +65,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: KEYS.APP_STORAGE,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(getBrowserStorage),
     }
   )
 );

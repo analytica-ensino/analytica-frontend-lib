@@ -6,16 +6,19 @@ import {
   MouseEvent,
   KeyboardEvent,
   FocusEvent,
+  ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { PlayIcon } from '@phosphor-icons/react/dist/csr/Play';
 import { PauseIcon } from '@phosphor-icons/react/dist/csr/Pause';
 import { SpeakerHighIcon } from '@phosphor-icons/react/dist/csr/SpeakerHigh';
 import { SpeakerSlashIcon } from '@phosphor-icons/react/dist/csr/SpeakerSlash';
-import { ArrowsOutSimpleIcon } from '@phosphor-icons/react/dist/csr/ArrowsOutSimple';
-import { ArrowsInSimpleIcon } from '@phosphor-icons/react/dist/csr/ArrowsInSimple';
+import { ArrowsOutIcon } from '@phosphor-icons/react/dist/csr/ArrowsOut';
+import { ArrowsInIcon } from '@phosphor-icons/react/dist/csr/ArrowsIn';
+import { CornersOutIcon } from '@phosphor-icons/react/dist/csr/CornersOut';
+import { CornersInIcon } from '@phosphor-icons/react/dist/csr/CornersIn';
+import { GaugeIcon } from '@phosphor-icons/react/dist/csr/Gauge';
 import { ClosedCaptioningIcon } from '@phosphor-icons/react/dist/csr/ClosedCaptioning';
-import { DotsThreeVerticalIcon } from '@phosphor-icons/react/dist/csr/DotsThreeVertical';
 import { PictureInPictureIcon } from '@phosphor-icons/react/dist/csr/PictureInPicture';
 import { cn } from '../../utils/utils';
 import IconButton from '../IconButton/IconButton';
@@ -30,12 +33,57 @@ import DownloadButton, {
 } from '../DownloadButton/DownloadButton';
 import { useCaptionPosition } from './useCaptionPosition';
 import { useHlsSource } from './useHlsSource';
+import { Tooltip } from '../Tooltip/Tooltip';
+
+interface PlayerTooltipProps {
+  readonly label: string;
+  /** Key shown as a keycap next to the text (Figma AE-3310). */
+  readonly shortcut?: string;
+  readonly children: ReactNode;
+}
+
+/**
+ * Tooltip for the player buttons, with the keyboard shortcut next to the text.
+ * Sits above the button without a portal, so it also shows in fullscreen.
+ */
+const PlayerTooltip = ({ label, shortcut, children }: PlayerTooltipProps) => (
+  <Tooltip
+    content={
+      // Without `color`, Text would apply `text-text-950` and override the
+      // tooltip's white.
+      <Text
+        as="span"
+        size="xs"
+        color="text-white"
+        className="flex items-center gap-2"
+      >
+        {label}
+        {shortcut && (
+          <kbd className="rounded border border-white/60 px-1.5 text-xs font-normal leading-5">
+            {shortcut}
+          </kbd>
+        )}
+      </Text>
+    }
+    contentClassName="px-2 py-1 text-xs"
+  >
+    {children}
+  </Tooltip>
+);
 import QualityMenu from './QualityMenu';
 
 // Constants for timeout durations
 const CONTROLS_HIDE_TIMEOUT = 3000; // 3 seconds for normal control hiding
 const LEAVE_HIDE_TIMEOUT = 1000; // 1 second when mouse leaves the video area
 const INIT_DELAY = 100; // ms delay to initialize controls on mount
+
+/** Actions available to whoever decides what happens at the end of the video. */
+export interface VideoEndControls {
+  /** Plays the same video again from the start. */
+  replay: () => void;
+  /** Goes back to 0:00 and waits for play. */
+  rewind: () => void;
+}
 
 /**
  * VideoPlayer component props interface
@@ -81,6 +129,19 @@ interface VideoPlayerProps {
   onPause?: (seconds: number, duration: number) => void;
   /** Callback fired when video completes (>95% watched) */
   onVideoComplete?: () => void;
+  /** Callback fired when playback actually reaches the end of the video */
+  onEnded?: (controls: VideoEndControls) => void;
+  /**
+   * Tries to start playback once the media is ready. If the browser blocks it,
+   * the player stays paused with its center play button visible.
+   */
+  autoPlay?: boolean;
+  /** Rendered over the video, inside the container that goes fullscreen */
+  overlay?: ReactNode;
+  /** Whether the page is showing the player in cinema mode */
+  isCinemaMode?: boolean;
+  /** Offers the cinema mode button and the T shortcut when provided */
+  onToggleCinemaMode?: () => void;
   /** Additional CSS classes */
   className?: string;
   /** Auto-save progress to localStorage */
@@ -113,6 +174,53 @@ interface VideoPlayerProps {
    */
   allowPictureInPicture?: boolean;
 }
+
+const SPACE_ACTIVATED_SELECTOR = [
+  'button',
+  'a[href]',
+  'summary',
+  'label',
+  ...[
+    'button',
+    'link',
+    'radio',
+    'checkbox',
+    'switch',
+    'tab',
+    'option',
+    'menuitem',
+    'menuitemradio',
+  ].map((role) => `[role="${role}"]`),
+].join(',');
+
+/**
+ * Shortcuts work across the whole page, except while typing, on browser or
+ * accessibility key combinations, and behind a modal without the player.
+ * Sliders don't count as typing: only the arrows belong to them.
+ */
+const shouldIgnoreShortcut = (
+  event: globalThis.KeyboardEvent,
+  video: HTMLVideoElement
+): boolean => {
+  if (
+    event.defaultPrevented ||
+    event.ctrlKey ||
+    event.metaKey ||
+    event.altKey
+  ) {
+    return true;
+  }
+
+  const target = event.target as Element;
+  const isEditing = target.closest?.(
+    'input:not([type="range"]),textarea,select,[contenteditable=""],[contenteditable="true"]'
+  );
+  if (isEditing) return true;
+
+  return Array.from(document.querySelectorAll('[aria-modal="true"]')).some(
+    (modal) => !modal.contains(video)
+  );
+};
 
 /** Vendor (Safari) presentation-mode API on the video element. */
 type PresentationModeVideo = HTMLVideoElement & {
@@ -213,22 +321,25 @@ const VolumeControls = ({
   showSlider = true,
 }: VolumeControlsProps) => (
   <div className="flex items-center gap-2">
-    <IconButton
-      icon={
-        isMuted ? (
-          <SpeakerSlashIcon size={iconSize} />
-        ) : (
-          <SpeakerHighIcon size={iconSize} />
-        )
-      }
-      onClick={onToggleMute}
-      // O rótulo diz a AÇÃO, o `aria-pressed` diz o ESTADO — e é ele que faz o
-      // leitor anunciar "botão alternar". Sem o `aria-pressed` não dá para
-      // saber se está mudo sem acionar o botão e ouvir o rótulo mudar.
-      aria-label={isMuted ? 'Ativar áudio' : 'Desativar áudio'}
-      aria-pressed={isMuted}
-      className="!bg-transparent !text-white hover:!bg-white/20"
-    />
+    <PlayerTooltip label={isMuted ? 'Desmutar' : 'Mutar'} shortcut="M">
+      <IconButton
+        icon={
+          isMuted ? (
+            <SpeakerSlashIcon size={iconSize} />
+          ) : (
+            <SpeakerHighIcon size={iconSize} />
+          )
+        }
+        onClick={onToggleMute}
+        // The label states the ACTION, `aria-pressed` states the STATE — and it is
+        // what makes screen readers announce a "toggle button". Without
+        // `aria-pressed` there's no way to tell if it's muted without pressing
+        // the button and hearing the label change.
+        aria-label={isMuted ? 'Ativar áudio' : 'Desativar áudio'}
+        aria-pressed={isMuted}
+        className="!bg-transparent !text-white hover:!bg-white/20"
+      />
+    </PlayerTooltip>
 
     {showSlider && (
       <input
@@ -440,15 +551,17 @@ const SpeedMenu = ({
 
   return (
     <div className="relative" ref={speedMenuContainerRef}>
-      <IconButton
-        ref={buttonRef}
-        icon={<DotsThreeVerticalIcon size={iconSize} />}
-        onClick={onToggleMenu}
-        aria-label="Velocidade de reprodução"
-        aria-haspopup="menu"
-        aria-expanded={showSpeedMenu}
-        className="!bg-transparent !text-white hover:!bg-white/20"
-      />
+      <PlayerTooltip label="Velocidade de reprodução">
+        <IconButton
+          ref={buttonRef}
+          icon={<GaugeIcon size={iconSize} />}
+          onClick={onToggleMenu}
+          aria-label="Velocidade de reprodução"
+          aria-haspopup="menu"
+          aria-expanded={showSpeedMenu}
+          className="!bg-transparent !text-white hover:!bg-white/20"
+        />
+      </PlayerTooltip>
       {showSpeedMenu && (isFullscreen ? menuContent : portalContent)}
     </div>
   );
@@ -474,6 +587,11 @@ const VideoPlayer = ({
   onProgress,
   onPause,
   onVideoComplete,
+  onEnded,
+  autoPlay = false,
+  overlay,
+  isCinemaMode = false,
+  onToggleCinemaMode,
   className,
   autoSave = true,
   storageKey = 'video-progress',
@@ -487,7 +605,12 @@ const VideoPlayer = ({
   allowPictureInPicture = false,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const hlsSource = useHlsSource({ videoRef, src, hlsSrc });
+  const hlsSource = useHlsSource({
+    videoRef,
+    src,
+    hlsSrc,
+    mediaKey: storageKey ?? src,
+  });
   const { isSwitchingSource } = hlsSource;
   const { isUltraSmallMobile, isTinyMobile } = useMobile();
   const [isPlaying, setIsPlaying] = useState(false);
@@ -519,6 +642,13 @@ const VideoPlayer = ({
   const resumeStateRef = useRef<'pending' | 'done'>('pending');
   /** Espelho de `hasStarted` legível de dentro dos callbacks de mídia. */
   const hasStartedRef = useRef(false);
+  /** Ensures a single autoplay attempt per media. */
+  const autoPlayAttemptedRef = useRef(false);
+  /**
+   * Autoplay held back because the tab was hidden: it runs when the student
+   * comes back, so the next lesson never starts playing unseen.
+   */
+  const pendingAutoPlayRef = useRef(false);
 
   // Reset completion flag when changing videos.
   //
@@ -531,6 +661,14 @@ const VideoPlayer = ({
     setHasCompleted(false);
     setHasStarted(false);
     hasStartedRef.current = false;
+    autoPlayAttemptedRef.current = false;
+    pendingAutoPlayRef.current = false;
+    // The page may swap the media without remounting (lesson queue): loading a
+    // new source pauses the element without a `pause` event, so the playback
+    // state would keep showing the previous video.
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
     // Mídia nova, retomada nova: é a troca de mídia — e só ela — que libera
     // um novo restore de posição.
     resumeStateRef.current = 'pending';
@@ -890,6 +1028,11 @@ const VideoPlayer = ({
     const video = videoRef.current;
     if (!video || resumeStateRef.current === 'done') return;
 
+    // Media swap in progress: the old media is still loaded but `src` is
+    // already gone (the HLS source is not attached yet). A seek now would land
+    // on the old media and mark the resume as done; wait for the new one.
+    if (video.readyState >= 1 && !video.getAttribute('src')) return;
+
     // Depois que o aluno deu play, a posição dele é a que vale — não a salva.
     if (hasStartedRef.current) {
       resumeStateRef.current = 'done';
@@ -1162,10 +1305,99 @@ const VideoPlayer = ({
     if (!videoRef.current) return;
 
     setDuration(videoRef.current.duration);
+    // Loading a media sets the element back to 1x; the speed the student
+    // picked carries over to the next one, as the menu still shows it. Only
+    // when the load did reset it: a quality switch restores its own.
+    if (
+      videoRef.current.playbackRate === videoRef.current.defaultPlaybackRate &&
+      videoRef.current.playbackRate !== playbackRate
+    ) {
+      videoRef.current.playbackRate = playbackRate;
+    }
     // Agora existe linha de tempo: é aqui que o seek de retomada realmente
     // pega, e é a última vez que ele acontece nesta mídia.
     applyResumeTime();
-  }, [applyResumeTime]);
+
+    // After resuming, so it doesn't start from zero and then jump. If the
+    // browser blocks it, `togglePlayPause` absorbs the rejection and the
+    // center play button stays visible.
+    if (autoPlay && !autoPlayAttemptedRef.current) {
+      autoPlayAttemptedRef.current = true;
+      // In picture-in-picture the student still sees the video, so it plays.
+      if (document.hidden && !document.pictureInPictureElement) {
+        pendingAutoPlayRef.current = true;
+      } else {
+        togglePlayPause();
+      }
+    }
+  }, [applyResumeTime, autoPlay, togglePlayPause, playbackRate]);
+
+  const handleLoadedMetadataRef = useRef(handleLoadedMetadata);
+  useEffect(() => {
+    handleLoadedMetadataRef.current = handleLoadedMetadata;
+  }, [handleLoadedMetadata]);
+
+  // A new item can reuse the file already loaded (two lessons built from the
+  // same recording). Setting the same `src` does not reload the element, so no
+  // `loadedmetadata` comes: start the new item from the beginning and run the
+  // same start-up (resume, autoplay) here. A different `src` resets
+  // `readyState` before this runs, and the real event takes over.
+  const isFirstMediaRef = useRef(true);
+  useEffect(() => {
+    if (isFirstMediaRef.current) {
+      isFirstMediaRef.current = false;
+      return;
+    }
+    const video = videoRef.current;
+    // Only when the element really keeps the media it has. With HLS the source
+    // is decided after this runs: meanwhile React has removed `src`, but the
+    // element still holds the previous lesson's media, which must not take
+    // the new lesson's resume point and autoplay.
+    if (!video || video.readyState < 1 || !video.getAttribute('src')) return;
+    video.currentTime = 0;
+    setCurrentTime(0);
+    setDuration(video.duration);
+    handleLoadedMetadataRef.current();
+  }, [src, storageKey]);
+
+  // Runs the autoplay held back while the tab was hidden, unless the student
+  // already started the video some other way.
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden || !pendingAutoPlayRef.current) return;
+      pendingAutoPlayRef.current = false;
+      if (videoRef.current?.paused && !hasStartedRef.current) {
+        togglePlayPause();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () =>
+      document.removeEventListener('visibilitychange', handleVisibility);
+  }, [togglePlayPause]);
+
+  /**
+   * Hands the end-of-video actions to the consumer. `hasCompleted` is not
+   * reset: replaying does not fire `onVideoComplete` again.
+   */
+  const handleEnded = useCallback(() => {
+    const rewind = () => {
+      const video = videoRef.current;
+      if (!video) return;
+      video.pause();
+      video.currentTime = 0;
+      setCurrentTime(0);
+    };
+    const replay = async () => {
+      rewind();
+      try {
+        await videoRef.current?.play();
+      } catch {
+        // Blocked by the browser: the center play button stays visible.
+      }
+    };
+
+    onEnded?.({ replay, rewind });
+  }, [onEnded]);
 
   /**
    * Validate subtitles URL before showing the button
@@ -1425,13 +1657,6 @@ const VideoPlayer = ({
   };
 
   /**
-   * Calculate top controls opacity based on state
-   */
-  const getTopControlsOpacity = useCallback(() => {
-    return controlsVisible ? 'opacity-100' : 'opacity-0';
-  }, [controlsVisible]);
-
-  /**
    * Calculate bottom controls opacity based on state
    */
   const getBottomControlsOpacity = useCallback(() => {
@@ -1471,47 +1696,67 @@ const VideoPlayer = ({
   }, [handleVolumeChange, volume]);
 
   /**
-   * Handle video element keyboard events
+   * Single shortcut listener, on `document`, so it works with focus anywhere
+   * on the page and also in fullscreen.
    */
-  const handleVideoKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (!e.key) return;
+  const hasOverlay = Boolean(overlay);
+  const hasValidSubtitles =
+    Boolean(subtitles) && subtitlesValidation === 'valid';
+  useEffect(() => {
+    const handleKeyDown = (e: globalThis.KeyboardEvent) => {
+      const video = videoRef.current;
+      if (!video || shouldIgnoreShortcut(e, video)) return;
 
-      // Prevent bubbling to parent handlers to avoid double toggles
-      e.stopPropagation();
-      showControlsWithTimer();
+      const target = e.target as Element;
+      const isOnVideo = target === video;
+      // The countdown covers the player: playing now would restart the video behind it.
+      const playback = hasOverlay ? () => undefined : togglePlayPause;
+      const spaceBelongsToTarget = target.closest?.(SPACE_ACTIVATED_SELECTOR);
 
-      // Map of key handlers for better maintainability and reduced complexity
-      const keyHandlers: Record<string, () => void | Promise<void>> = {
-        ' ': togglePlayPause,
-        Enter: togglePlayPause,
+      const videoFocusKeys: Record<string, () => void | Promise<void>> = {
+        Enter: playback,
         ArrowLeft: seekBackward,
         ArrowRight: seekForward,
         ArrowUp: increaseVolume,
         ArrowDown: decreaseVolume,
+      };
+      const pageKeys: Record<string, () => void | Promise<void>> = {
         m: toggleMute,
-        M: toggleMute,
         f: toggleFullscreen,
-        F: toggleFullscreen,
+        ...(onToggleCinemaMode && { t: onToggleCinemaMode }),
+        ...(hasValidSubtitles && { c: toggleCaptions }),
+        ...(!spaceBelongsToTarget && { ' ': playback }),
       };
 
-      const handler = keyHandlers[e.key];
-      if (handler) {
-        e.preventDefault();
-        handler();
-      }
-    },
-    [
-      showControlsWithTimer,
-      togglePlayPause,
-      seekBackward,
-      seekForward,
-      increaseVolume,
-      decreaseVolume,
-      toggleMute,
-      toggleFullscreen,
-    ]
-  );
+      const handler =
+        (isOnVideo ? videoFocusKeys[e.key] : undefined) ??
+        pageKeys[e.key.toLowerCase()];
+      if (!handler) return;
+
+      e.preventDefault();
+      // Holding a key only repeats the arrows, never toggles play or fullscreen.
+      if (e.repeat && !e.key.startsWith('Arrow')) return;
+
+      showControlsWithTimer();
+      handler();
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [
+    hasOverlay,
+    hasValidSubtitles,
+    toggleCaptions,
+    onToggleCinemaMode,
+    showControlsWithTimer,
+    togglePlayPause,
+    seekBackward,
+    seekForward,
+    increaseVolume,
+    decreaseVolume,
+    toggleMute,
+    toggleFullscreen,
+  ]);
 
   const groupedSubTitleValid = subtitles && subtitlesValidation === 'valid';
   const showPoster = Boolean(poster) && !hasStarted;
@@ -1571,7 +1816,9 @@ const VideoPlayer = ({
       {/* Video Container */}
       <section
         className={cn(
-          'relative w-full bg-background overflow-hidden group',
+          'relative w-full flex-1 min-h-0 overflow-hidden group',
+          // Cinema mode: black bars on the sides of the video (Figma AE-3309).
+          isCinemaMode ? 'bg-black' : 'bg-background',
           'rounded-b-xl',
           // Hide cursor when controls are hidden and video is playing
           isPlaying && !showControls
@@ -1596,8 +1843,8 @@ const VideoPlayer = ({
           playsInline
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
+          onEnded={handleEnded}
           onClick={togglePlayPause}
-          onKeyDown={handleVideoKeyDown}
           tabIndex={0}
           aria-label={title ? `Vídeo: ${title}` : 'Vídeo'}
         >
@@ -1623,7 +1870,12 @@ const VideoPlayer = ({
           <img
             src={poster}
             alt={title ? `Capa: ${title}` : 'Capa do vídeo'}
-            className="absolute inset-0 w-full h-full object-cover"
+            // In cinema mode the strip is wider than 16:9: the poster must not
+            // be cropped, and the sides stay black as in the video.
+            className={cn(
+              'absolute inset-0 w-full h-full',
+              isCinemaMode ? 'object-contain' : 'object-cover'
+            )}
             aria-hidden="true"
           />
         )}
@@ -1646,31 +1898,6 @@ const VideoPlayer = ({
         )}
 
         {/* Top Controls */}
-        <div
-          className={cn(
-            'absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/70 to-transparent transition-opacity',
-            getTopControlsOpacity()
-          )}
-          {...controlsFocusProps}
-        >
-          <div className="flex justify-start">
-            <IconButton
-              icon={
-                isFullscreen ? (
-                  <ArrowsInSimpleIcon size={24} />
-                ) : (
-                  <ArrowsOutSimpleIcon size={24} />
-                )
-              }
-              onClick={toggleFullscreen}
-              aria-label={
-                isFullscreen ? 'Desativar tela cheia' : 'Ativar tela cheia'
-              }
-              className="!bg-transparent !text-white hover:!bg-white/20"
-            />
-          </div>
-        </div>
-
         {/* Bottom Controls */}
         <div
           className={cn(
@@ -1698,18 +1925,23 @@ const VideoPlayer = ({
             {/* Left Controls */}
             <div className={cn('flex items-center', getControlsGap())}>
               {/* Play/Pause */}
-              <IconButton
-                icon={
-                  isPlaying ? (
-                    <PauseIcon size={getIconSize()} />
-                  ) : (
-                    <PlayIcon size={getIconSize()} />
-                  )
-                }
-                onClick={togglePlayPause}
-                aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
-                className="!bg-transparent !text-white hover:!bg-white/20"
-              />
+              <PlayerTooltip
+                label={isPlaying ? 'Pausar' : 'Tocar'}
+                shortcut="Espaço"
+              >
+                <IconButton
+                  icon={
+                    isPlaying ? (
+                      <PauseIcon size={getIconSize()} />
+                    ) : (
+                      <PlayIcon size={getIconSize()} />
+                    )
+                  }
+                  onClick={togglePlayPause}
+                  aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
+                  className="!bg-transparent !text-white hover:!bg-white/20"
+                />
+              </PlayerTooltip>
 
               {/* Volume */}
               <VolumeControls
@@ -1723,31 +1955,33 @@ const VideoPlayer = ({
 
               {/* Captions - Only show after validation is complete and valid */}
               {groupedSubTitleValid && (
-                <IconButton
-                  icon={<ClosedCaptioningIcon size={getIconSize()} />}
-                  onClick={toggleCaptions}
-                  // Mesma natureza do mudo: ação no rótulo, estado no
-                  // `aria-pressed` — hoje o único sinal de que as legendas
-                  // estão ligadas é a cor do ícone.
-                  aria-label={
-                    showCaptions ? 'Ocultar legendas' : 'Exibir legendas'
-                  }
-                  aria-pressed={showCaptions}
-                  className={cn(
-                    '!bg-transparent hover:!bg-white/20',
-                    showCaptions ? '!text-primary-400' : '!text-white'
-                  )}
-                />
+                <PlayerTooltip label="Legenda" shortcut="C">
+                  <IconButton
+                    icon={<ClosedCaptioningIcon size={getIconSize()} />}
+                    onClick={toggleCaptions}
+                    // Same as mute: action in the label, state in
+                    // `aria-pressed` — otherwise the only sign that subtitles
+                    // are on is the icon color.
+                    aria-label={
+                      showCaptions ? 'Ocultar legendas' : 'Exibir legendas'
+                    }
+                    aria-pressed={showCaptions}
+                    className={cn(
+                      '!bg-transparent hover:!bg-white/20',
+                      showCaptions ? '!text-primary-400' : '!text-white'
+                    )}
+                  />
+                </PlayerTooltip>
               )}
-
-              {/* Time Display */}
-              <Text size="sm" weight="medium" color="text-white">
-                {formatTime(currentTime)} / {formatTime(duration)}
-              </Text>
             </div>
 
             {/* Right Controls */}
             <div className="flex items-center gap-4">
+              {/* Time Display */}
+              <Text size="sm" weight="medium" color="text-white">
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </Text>
+
               {/* Speed Control */}
               <SpeedMenu
                 showSpeedMenu={showSpeedMenu}
@@ -1769,26 +2003,71 @@ const VideoPlayer = ({
                 onOpenChange={setShowQualityMenu}
               />
 
+              {onToggleCinemaMode && (
+                <PlayerTooltip
+                  label={isCinemaMode ? 'Modo padrão' : 'Modo cinema'}
+                  shortcut="T"
+                >
+                  <IconButton
+                    icon={
+                      isCinemaMode ? (
+                        <CornersInIcon size={getIconSize()} />
+                      ) : (
+                        <CornersOutIcon size={getIconSize()} />
+                      )
+                    }
+                    onClick={onToggleCinemaMode}
+                    aria-label={isCinemaMode ? 'Modo padrão' : 'Modo cinema'}
+                    aria-pressed={isCinemaMode}
+                    className="!bg-transparent !text-white hover:!bg-white/20"
+                  />
+                </PlayerTooltip>
+              )}
+
+              <PlayerTooltip
+                label={isFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
+                shortcut="F"
+              >
+                <IconButton
+                  icon={
+                    isFullscreen ? (
+                      <ArrowsInIcon size={getIconSize()} />
+                    ) : (
+                      <ArrowsOutIcon size={getIconSize()} />
+                    )
+                  }
+                  onClick={toggleFullscreen}
+                  aria-label={
+                    isFullscreen ? 'Desativar tela cheia' : 'Ativar tela cheia'
+                  }
+                  className="!bg-transparent !text-white hover:!bg-white/20"
+                />
+              </PlayerTooltip>
+
               {/* Picture-in-picture: last button, only where supported */}
               {canPictureInPicture && (
-                <IconButton
-                  icon={<PictureInPictureIcon size={getIconSize()} />}
-                  onClick={togglePictureInPicture}
-                  aria-label={
-                    isPictureInPicture
-                      ? 'Sair da janela flutuante'
-                      : 'Abrir em janela flutuante'
-                  }
-                  aria-pressed={isPictureInPicture}
-                  className={cn(
-                    '!bg-transparent hover:!bg-white/20',
-                    isPictureInPicture ? '!text-primary-400' : '!text-white'
-                  )}
-                />
+                <PlayerTooltip label="Janela flutuante">
+                  <IconButton
+                    icon={<PictureInPictureIcon size={getIconSize()} />}
+                    onClick={togglePictureInPicture}
+                    aria-label={
+                      isPictureInPicture
+                        ? 'Sair da janela flutuante'
+                        : 'Abrir em janela flutuante'
+                    }
+                    aria-pressed={isPictureInPicture}
+                    className={cn(
+                      '!bg-transparent hover:!bg-white/20',
+                      isPictureInPicture ? '!text-primary-400' : '!text-white'
+                    )}
+                  />
+                </PlayerTooltip>
               )}
             </div>
           </div>
         </div>
+
+        {overlay}
       </section>
     </div>
   );

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { getBrowserStorage } from './browserStorage';
 import type { ComparisonItem, ComparatorStoreState } from '../types/comparator';
 import { COMPARATOR_CHART_COLORS } from '../types/comparator';
 
@@ -59,7 +60,7 @@ export function createComparatorStore(
       }),
       {
         name: storageKey,
-        storage: createJSONStorage(() => localStorage),
+        storage: createJSONStorage(getBrowserStorage),
       }
     )
   );

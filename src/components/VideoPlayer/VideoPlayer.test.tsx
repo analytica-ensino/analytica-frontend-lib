@@ -2278,48 +2278,6 @@ describe('VideoPlayer', () => {
   });
 
   describe('Controls opacity in fullscreen', () => {
-    it('should return correct opacity class for top controls in fullscreen', () => {
-      const { container } = render(<VideoPlayer {...defaultProps} />);
-      const videoContainer = container.querySelector('.group')!;
-
-      // Enter fullscreen
-      Object.defineProperty(document, 'fullscreenElement', {
-        configurable: true,
-        value: videoContainer,
-      });
-      fireEvent(document, new Event('fullscreenchange'));
-
-      // Find top controls
-      const topControls = container.querySelector('.absolute.top-0');
-      expect(topControls).toBeInTheDocument();
-
-      // This covers lines 603-604: getTopControlsOpacity in fullscreen
-      expect(topControls?.className).toContain('opacity');
-    });
-
-    it('should handle getTopControlsOpacity when not in fullscreen and controls not shown', () => {
-      const { container } = render(<VideoPlayer {...defaultProps} />);
-      const video = container.querySelector('video') as HTMLVideoElement;
-
-      // Mock video as playing
-      Object.defineProperty(video, 'paused', {
-        configurable: true,
-        get: () => false,
-      });
-
-      // Trigger play event
-      act(() => {
-        simulateMediaEvent(video, 'play');
-      });
-
-      // Find top controls - when not in fullscreen, playing, and controls not shown
-      const topControls = container.querySelector('.absolute.top-0');
-      expect(topControls).toBeInTheDocument();
-
-      // This covers lines 606-608: getTopControlsOpacity when not fullscreen
-      expect(topControls?.className).toContain('opacity');
-    });
-
     it('should return correct opacity class for bottom controls in fullscreen', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const videoContainer = container.querySelector('.group')!;
@@ -3083,18 +3041,12 @@ describe('VideoPlayer', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
 
       // Find the controls with conditional opacity (lines 429 and 454)
-      const topControls = container.querySelector(
-        '.absolute.top-0.left-0.right-0.p-4'
-      );
       const bottomControls = container.querySelector(
         '.absolute.bottom-0.left-0.right-0'
       );
-
-      expect(topControls).toBeInTheDocument();
       expect(bottomControls).toBeInTheDocument();
 
       // Both should be visible initially (not playing, controls shown)
-      expect(topControls?.className).toContain('opacity-100');
       expect(bottomControls?.className).toContain('opacity-100');
 
       // Start playing video
@@ -3106,7 +3058,6 @@ describe('VideoPlayer', () => {
       });
 
       // Controls should still be visible due to the conditional logic
-      expect(topControls?.className).toBeDefined();
       expect(bottomControls?.className).toBeDefined();
     });
 
@@ -3122,14 +3073,10 @@ describe('VideoPlayer', () => {
       });
 
       // Find the controls containers (lines 429 and 454)
-      const topControls = container.querySelector('.absolute.top-0');
       const bottomControls = container.querySelector('.absolute.bottom-0');
-
-      expect(topControls).toBeInTheDocument();
       expect(bottomControls).toBeInTheDocument();
 
       // The controls should have conditional opacity classes based on playing state
-      expect(topControls?.className).toContain('opacity');
       expect(bottomControls?.className).toContain('opacity');
     });
 
@@ -3190,19 +3137,13 @@ describe('VideoPlayer', () => {
       });
 
       // Get the controls elements
-      const topControls = container.querySelector(
-        'div[class*="absolute"][class*="top-0"]'
-      );
       const bottomControls = container.querySelector(
         'div[class*="absolute"][class*="bottom-0"]'
       );
-
-      expect(topControls).toBeInTheDocument();
       expect(bottomControls).toBeInTheDocument();
 
       // Test both branches of the ternary operators on lines 429 and 454
       // !isPlaying || showControls ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-      expect(topControls?.className).toBeDefined();
       expect(bottomControls?.className).toBeDefined();
     });
 

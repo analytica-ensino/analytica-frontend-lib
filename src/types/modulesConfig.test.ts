@@ -124,6 +124,17 @@ describe('mergeModulesConfig — reports.enemMoment', () => {
   });
 });
 
+describe('ebooks', () => {
+  it('is off by default', () => {
+    expect(DEFAULT_MODULES.ebooks).toBe(false);
+    expect(mergeModulesConfig().ebooks).toBe(false);
+  });
+
+  it('is on when the stored row says so', () => {
+    expect(mergeModulesConfig({ ebooks: true }).ebooks).toBe(true);
+  });
+});
+
 describe('lessonVideoMp4Only', () => {
   it('is off by default: lessons play their HLS when they have one', () => {
     expect(DEFAULT_MODULES.lessonVideoMp4Only).toBe(false);

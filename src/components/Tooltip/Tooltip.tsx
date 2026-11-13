@@ -102,7 +102,7 @@ const TOOLTIP_CONTENT_CLASSES = cn(
 /**
  * Tooltip component - Displays contextual information on hover/focus
  *
- * By default uses a CSS-only approach with `group-hover` for performance.
+ * By default uses a CSS-only approach with `group-hover/tooltip` for performance.
  * When `usePortal` is true, the tooltip is rendered in a React Portal so it
  * escapes ancestors with `overflow:hidden`.
  *
@@ -293,7 +293,9 @@ export function Tooltip({
   return (
     <div
       ref={wrapperRef}
-      className={cn('relative inline-flex group', className)}
+      // Named group: with a plain `group`, any `group` ancestor (such as the
+      // video player) showed the tooltip when it was hovered.
+      className={cn('relative inline-flex group/tooltip', className)}
       aria-describedby={describableChild ? undefined : tooltipId}
     >
       {trigger}
@@ -306,8 +308,8 @@ export function Tooltip({
           'absolute z-50',
           TOOLTIP_CONTENT_CLASSES,
           'opacity-0 invisible',
-          'group-hover:opacity-100 group-hover:visible',
-          'group-focus-within:opacity-100 group-focus-within:visible',
+          'group-hover/tooltip:opacity-100 group-hover/tooltip:visible',
+          'group-focus-within/tooltip:opacity-100 group-focus-within/tooltip:visible',
           POSITION_CLASSES[position],
           dismissed && '!opacity-0 !invisible',
           contentClassName

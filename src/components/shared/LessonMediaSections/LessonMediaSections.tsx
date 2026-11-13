@@ -1,6 +1,7 @@
 import { type ReactNode, type RefObject } from 'react';
 import { Text, VideoPlayer, CardAudio, Whiteboard } from '../../../index';
 import type { WhiteboardImage } from '../../Whiteboard/Whiteboard';
+import type { VideoEndControls } from '../../VideoPlayer/VideoPlayer';
 import { useLessonVideoHlsSrc } from '../../../hooks/useLessonVideoHlsSrc';
 
 /**
@@ -40,6 +41,16 @@ export interface LessonVideoSectionProps {
   /** Receives the current second and the media duration when playback pauses. */
   onPause?: (seconds: number, duration: number) => void;
   onVideoComplete?: () => void;
+  /** Fired when playback actually reaches the end of the video. */
+  onEnded?: (controls: VideoEndControls) => void;
+  /** Tries to start playback as soon as the video is ready. */
+  autoPlay?: boolean;
+  /** Rendered over the video, inside the player. */
+  overlay?: ReactNode;
+  /** Whether the page is showing the player in cinema mode. */
+  isCinemaMode?: boolean;
+  /** Offers the cinema mode control when the page supports it. */
+  onToggleCinemaMode?: () => void;
   /**
    * Saves and restores the playback position in localStorage, scoped by
    * `storageKey` and `userId`. Set to `false` for viewers whose position must
@@ -75,6 +86,11 @@ export const LessonVideoSection = ({
   onTimeUpdate,
   onPause,
   onVideoComplete,
+  onEnded,
+  autoPlay,
+  overlay,
+  isCinemaMode,
+  onToggleCinemaMode,
   persistProgress = true,
   storageKey,
   userId,
@@ -105,6 +121,11 @@ export const LessonVideoSection = ({
         onTimeUpdate={onTimeUpdate}
         onPause={onPause}
         onVideoComplete={onVideoComplete}
+        onEnded={onEnded}
+        autoPlay={autoPlay}
+        overlay={overlay}
+        isCinemaMode={isCinemaMode}
+        onToggleCinemaMode={onToggleCinemaMode}
         initialTime={initialTime}
         className={className}
         autoSave={persistProgress}
