@@ -81,6 +81,9 @@ const mockCaptionTrack = (video: HTMLVideoElement, mode: string) => {
   return track;
 };
 
+/** Resume point the player hands the hook, per test. */
+let startTime: number | undefined;
+
 /** A `<video>` with a captions `<track>`, driven by the hook. */
 const Harness = ({
   src,
@@ -94,7 +97,13 @@ const Harness = ({
   onResult: (result: UseHlsSourceResult) => void;
 }>) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const result = useHlsSource({ videoRef, src, hlsSrc, mediaKey });
+  const result = useHlsSource({
+    videoRef,
+    src,
+    hlsSrc,
+    mediaKey,
+    getStartTime: () => startTime,
+  });
   onResult(result);
   return (
     <video ref={videoRef} src={result.videoSrc}>
@@ -359,13 +368,25 @@ describe('useHlsSource', () => {
       });
     });
 
-    it('starts loading at the position the player already set', async () => {
+    it('starts loading at the resume point, not where the element is', async () => {
+      startTime = 42;
       const { hls, media } = await renderHlsJs();
-      media.currentTime = 42;
+      // Still the previous lesson's position.
+      media.currentTime = 7;
 
       act(() => hls.parseManifest(LEVELS));
 
       expect(hls.startLoad).toHaveBeenCalledWith(42);
+      startTime = undefined;
+    });
+
+    it('starts from the beginning without a resume point', async () => {
+      const { hls, media } = await renderHlsJs();
+      media.currentTime = 7;
+
+      act(() => hls.parseManifest(LEVELS));
+
+      expect(hls.startLoad).toHaveBeenCalledWith(-1);
     });
 
     it('switches renditions from the menu and back to Automático', async () => {

@@ -605,11 +605,14 @@ const VideoPlayer = ({
   allowPictureInPicture = false,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  // Read when hls.js starts loading: by then the resume getter is set below.
+  const getStartTimeRef = useRef<() => number | undefined>(() => undefined);
   const hlsSource = useHlsSource({
     videoRef,
     src,
     hlsSrc,
     mediaKey: storageKey ?? src,
+    getStartTime: () => getStartTimeRef.current(),
   });
   const { isSwitchingSource } = hlsSource;
   const { isUltraSmallMobile, isTinyMobile } = useMobile();
@@ -1007,6 +1010,7 @@ const VideoPlayer = ({
   useEffect(() => {
     getInitialTimeRef.current = getInitialTime;
   }, [getInitialTime]);
+  getStartTimeRef.current = () => getInitialTimeRef.current();
 
   /**
    * Aplica a posição de retomada — no máximo uma vez por mídia, sempre antes
@@ -1027,10 +1031,10 @@ const VideoPlayer = ({
   const applyResumeTime = useCallback(() => {
     const video = videoRef.current;
     if (!video || resumeStateRef.current === 'done') return;
-
-    // Media swap in progress: the old media is still loaded but `src` is
-    // already gone (the HLS source is not attached yet). A seek now would land
-    // on the old media and mark the resume as done; wait for the new one.
+    // The element still holds the previous lesson's media: React already
+    // removed `src` and the HLS source of the new one attaches later. Seeking
+    // now would move the old media and use up this lesson's resume point;
+    // `loadedmetadata` of the new media applies it.
     if (video.readyState >= 1 && !video.getAttribute('src')) return;
 
     // Depois que o aluno deu play, a posição dele é a que vale — não a salva.

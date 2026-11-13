@@ -266,6 +266,8 @@ const videoSrcFor = (state: SourceState, src: string): string | undefined => {
 interface StartContext {
   video: HTMLVideoElement;
   hlsSrc: string;
+  /** Where this media starts: its resume point, or 0. */
+  startTime: () => number;
   /** Aborts the requests when the source changes or the player unmounts. */
   signal: AbortSignal;
   /** False once the source changed or the player unmounted. */
@@ -332,7 +334,10 @@ const startHlsJsPlayback = async (
 
   hls.on(HlsPlayer.Events.MANIFEST_PARSED, (_event, data) => {
     hls.startLevel = pickStartLevel(data.levels);
-    hls.startLoad(video.currentTime > 0 ? video.currentTime : -1);
+    // Not the element's `currentTime`: on a lesson switch it is still the
+    // previous lesson's position.
+    const start = context.startTime();
+    hls.startLoad(start > 0 ? start : -1);
     context.update({ qualities: qualitiesFromLevels(data.levels) });
   });
   hls.on(HlsPlayer.Events.ERROR, (_event, data) => {
@@ -373,6 +378,11 @@ export interface UseHlsSourceParams {
    * with another source (the MP4 flag switched at runtime) keeps them.
    */
   mediaKey?: string;
+  /**
+   * Where the media starts (its resume point). hls.js starts loading there;
+   * the element's own position may still belong to the previous media.
+   */
+  getStartTime?: () => number | undefined;
 }
 
 export interface UseHlsSourceResult {
@@ -416,11 +426,14 @@ export const useHlsSource = ({
   hlsSrc,
   stallTimeoutMs = NATIVE_STALL_TIMEOUT_MS,
   mediaKey,
+  getStartTime,
 }: UseHlsSourceParams): UseHlsSourceResult => {
   const mediaKeyRef = useRef(mediaKey);
   mediaKeyRef.current = mediaKey;
   /** Media the last source started for. */
   const startedMediaKeyRef = useRef<string | undefined>(undefined);
+  const getStartTimeRef = useRef(getStartTime);
+  getStartTimeRef.current = getStartTime;
   const key = `${src}\n${hlsSrc ?? ''}`;
   const [stored, setStored] = useState<SourceState>(() =>
     initialState(key, hlsSrc)
@@ -549,6 +562,7 @@ export const useHlsSource = ({
     const context: StartContext = {
       video,
       hlsSrc,
+      startTime: () => getStartTimeRef.current?.() ?? 0,
       signal: controller.signal,
       isActive: () => !cancelled,
       update,

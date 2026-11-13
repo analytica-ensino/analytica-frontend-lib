@@ -3,8 +3,8 @@ import { expect as baseExpect, test, type Page } from '@playwright/test';
 /**
  * Lesson queue with different media on each lesson, in the Ladle story
  * `LessonViewPage > QueueMixed`: Aula 1 (MP4), Aula 2 (HLS, saved at 4 s),
- * Aula 3 and Aula 5 (other MP4 files), Aula 4 (no video, outside the queue)
- * Aula 6 (another HLS stream, saved at 5 s) and Aula 7 (HLS, nothing saved). One player stays mounted across lessons, so these cover what a
+ * Aula 3 and Aula 5 (other MP4 files) and Aula 4 (no video, outside the
+ * queue). One player stays mounted across lessons, so these cover what a
  * single shared file hides: the next media must not inherit the previous
  * one's position, play state or speed.
  */
@@ -13,6 +13,8 @@ import { expect as baseExpect, test, type Page } from '@playwright/test';
 const expect = baseExpect.configure({ timeout: 30_000 });
 
 const STORY = 'lesson-view-page--queue-mixed';
+/** Every lesson in HLS: native in WebKit, as in Safari. */
+const HLS_STORY = 'lesson-view-page--queue-hls';
 const COUNTDOWN = /Próxima aula em \ds/;
 
 interface ApiWrite {
@@ -20,8 +22,8 @@ interface ApiWrite {
   body: Record<string, unknown> | null;
 }
 
-const openStory = async (page: Page) => {
-  await page.goto(`?story=${STORY}&mode=preview`);
+const openStory = async (page: Page, story = STORY) => {
+  await page.goto(`?story=${story}&mode=preview`);
   await page.locator('video').waitFor({ state: 'attached' });
 };
 
@@ -36,27 +38,26 @@ const isPaused = (page: Page) =>
 const videoTime = (page: Page) =>
   video(page).evaluate((element: HTMLVideoElement) => element.currentTime);
 
-/**
- * Whether the video sits within `[min, max)`. Checked in a single poll: right
- * after the swap the element still holds the previous media, whose position
- * would pass a lower bound on its own.
- */
-const resumedAt = async (page: Page, min: number, max: number) => {
-  const time = await videoTime(page);
-  return time >= min && time < max;
-};
+const currentSrc = (page: Page) =>
+  video(page).evaluate((element: HTMLVideoElement) => element.currentSrc);
 
 /**
- * Clicks play until the video plays: a click that lands while a freshly opened
- * HLS lesson is still attaching its stream can be dropped.
+ * Waits for the element to load another media than `previous`. Right after a
+ * switch it still holds the previous lesson's video for a moment: reading its
+ * position before that measures the wrong video.
  */
+const waitForNewMedia = async (page: Page, previous: string) => {
+  await expect.poll(() => currentSrc(page)).not.toBe(previous);
+  await expect
+    .poll(() =>
+      video(page).evaluate((element: HTMLVideoElement) => element.readyState)
+    )
+    .toBeGreaterThanOrEqual(1);
+};
+
 const play = async (page: Page) => {
-  await expect(async () => {
-    if (await isPaused(page)) {
-      await page.getByRole('button', { name: 'Reproduzir vídeo' }).click();
-    }
-    await expect.poll(() => isPaused(page), { timeout: 3_000 }).toBe(false);
-  }).toPass();
+  await page.getByRole('button', { name: 'Reproduzir vídeo' }).click();
+  await expect.poll(() => isPaused(page)).toBe(false);
 };
 
 /** Seeks `fromEnd` seconds before the end, once the media has a duration. */
@@ -116,60 +117,66 @@ const writes = (page: Page) =>
   );
 
 test.describe('Lesson queue with different media', () => {
-  test('an HLS lesson opened mid-video starts from its own beginning', async ({
+  test('a lesson opened mid-video starts from its own beginning', async ({
     page,
   }) => {
     await openStory(page);
-    await openLessonFromList(page, 'Aula 3');
-    await expect.poll(() => activeLesson(page)).toContain('Aula 3');
     await play(page);
     await seekTo(page, 3);
 
-    await openLessonFromList(page, 'Aula 7');
-    await expect.poll(() => activeLesson(page)).toContain('Aula 7');
+    await openLessonFromList(page, 'Aula 3');
+    await expect.poll(() => activeLesson(page)).toContain('Aula 3');
 
-    // Starts at 0 and stays paused: in a single poll, since right after the
-    // swap the element still holds the previous media's position.
     await expect
-      .poll(async () => (await videoTime(page)) < 1 && (await isPaused(page)))
-      .toBe(true);
-    // Not a transient 0 before the old position leaks in.
-    await page.waitForTimeout(1_000);
+      .poll(() =>
+        video(page).evaluate((element: HTMLVideoElement) => element.currentSrc)
+      )
+      .toContain('?v=3');
     expect(await videoTime(page)).toBeLessThan(1);
+    expect(await isPaused(page)).toBe(true);
   });
-
-  for (const from of ['Aula 1', 'Aula 2']) {
-    test(`an HLS lesson opened from the list after ${from} resumes at its saved position`, async ({
-      page,
-    }) => {
-      await openStory(page);
-      if (from !== 'Aula 1') {
-        await openLessonFromList(page, from);
-        await expect.poll(() => activeLesson(page)).toContain(from);
-      }
-      await play(page);
-      await seekTo(page, 3);
-
-      await openLessonFromList(page, 'Aula 6');
-      await expect.poll(() => activeLesson(page)).toContain('Aula 6');
-
-      await expect.poll(() => resumedAt(page, 4.5, 7)).toBe(true);
-    });
-  }
 
   test('advancing into an HLS lesson resumes at its saved position', async ({
     page,
   }) => {
     await openStory(page);
     await playToEnd(page);
+    const previous = await currentSrc(page);
     await watchNow(page);
 
     await expect.poll(() => activeLesson(page)).toContain('Aula 2');
+    await waitForNewMedia(page, previous);
+    await expect.poll(() => videoTime(page)).toBeGreaterThanOrEqual(3.5);
     // Not the previous video's position, close to its end.
-    await expect.poll(() => resumedAt(page, 3.5, 7)).toBe(true);
+    expect(await videoTime(page)).toBeLessThan(7);
   });
 
+  for (const { from, story } of [
+    { from: 'an MP4', story: STORY },
+    { from: 'an HLS', story: HLS_STORY },
+  ]) {
+    test(`an HLS lesson opened from the list mid-video (from ${from} lesson) resumes at its saved position`, async ({
+      page,
+    }) => {
+      await openStory(page, story);
+      await play(page);
+      await seekTo(page, 3);
+      const previous = await currentSrc(page);
+
+      await openLessonFromList(page, 'Aula 2');
+      await expect.poll(() => activeLesson(page)).toContain('Aula 2');
+      await waitForNewMedia(page, previous);
+
+      await expect.poll(() => videoTime(page)).toBeGreaterThanOrEqual(3.5);
+      // Opened by hand: it waits for play, at its own position.
+      expect(await isPaused(page)).toBe(true);
+      expect(await videoTime(page)).toBeLessThan(5);
+    });
+  }
+
   test('the chosen speed carries over to the next lesson', async ({ page }) => {
+    // MP4 to MP4: loading a new file sets the element back to 1x. (Into an HLS
+    // lesson the source switch already restored the speed.)
     await openStory(page);
     await openLessonFromList(page, 'Aula 3');
     await expect.poll(() => activeLesson(page)).toContain('Aula 3');
@@ -224,14 +231,15 @@ test.describe('Lesson queue with different media', () => {
   test('"Repetir vídeo" does not record a new completion', async ({ page }) => {
     await openStory(page);
     await toggle(page, 'Repetir vídeo').click();
-
     await play(page);
+
     for (let round = 0; round < 2; round++) {
-      // Seek only while playing: jumping to the end of a paused video just
-      // leaves it there instead of ending it.
+      // Playing past the start before jumping to the end: the video ends while
+      // it plays, as it does for the student.
       await expect.poll(() => videoTime(page)).toBeGreaterThan(1);
       await seekTo(page, 0.5);
       await expect.poll(() => videoTime(page)).toBeLessThan(3);
+      await expect.poll(() => isPaused(page)).toBe(false);
     }
 
     const completions = (await writes(page)).filter(

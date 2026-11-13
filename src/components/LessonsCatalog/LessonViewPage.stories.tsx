@@ -91,9 +91,8 @@ const LESSONS = [
 
 /**
  * Different media on each lesson, as in production: an MP4, an HLS stream,
- * two other MP4 files and a second HLS stream (the query string makes them
- * distinct sources to the browser) and a lesson without video, which the
- * queue skips.
+ * two other MP4 files (the query string makes them distinct sources to the
+ * browser) and a lesson without video, which the queue skips.
  */
 const MIXED_LESSONS = [
   lesson('lesson-1', 'Aula 1'),
@@ -101,18 +100,20 @@ const MIXED_LESSONS = [
   lesson('lesson-3', 'Aula 3', { urlVideo: `${FIXTURE_MP4}?v=3` }),
   lesson('lesson-4', 'Aula 4', { urlVideo: '' }),
   lesson('lesson-5', 'Aula 5', { urlVideo: `${FIXTURE_MP4}?v=5` }),
-  lesson('lesson-6', 'Aula 6', { urlVideoHls: `${FIXTURE_HLS}?v=6` }),
-  lesson('lesson-7', 'Aula 7', { urlVideoHls: `${FIXTURE_HLS}?v=7` }),
 ];
 
+/** Saved positions of `QueueMixed` and `QueueHls`: Aula 2 resumes at 4 s. */
+const MIXED_PLAYBACK: Record<string, number> = { 'lesson-2': 4 };
+
 /**
- * Saved positions of `QueueMixed`: Aula 2 resumes at 4 s, Aula 6 at 5 s.
- * Aula 7 (HLS) has none.
+ * HLS on every lesson, as most lessons are in production: in Safari the
+ * stream plays natively, swapping the element's `src` from lesson to lesson.
  */
-const MIXED_PLAYBACK: Record<string, number> = {
-  'lesson-2': 4,
-  'lesson-6': 5,
-};
+const HLS_LESSONS = [
+  lesson('lesson-1', 'Aula 1', { urlVideoHls: FIXTURE_HLS }),
+  lesson('lesson-2', 'Aula 2', { urlVideoHls: `${FIXTURE_HLS}?v=2` }),
+  lesson('lesson-3', 'Aula 3', { urlVideoHls: `${FIXTURE_HLS}?v=3` }),
+];
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -214,4 +215,8 @@ export const Queue: Story = () => <QueuePage />;
 
 export const QueueMixed: Story = () => (
   <QueuePage lessons={MIXED_LESSONS} playback={MIXED_PLAYBACK} />
+);
+
+export const QueueHls: Story = () => (
+  <QueuePage lessons={HLS_LESSONS} playback={MIXED_PLAYBACK} />
 );
