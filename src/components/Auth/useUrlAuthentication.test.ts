@@ -3,6 +3,15 @@ import { useUrlAuthentication } from './useUrlAuthentication';
 import { act } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import * as React from 'react';
+import { takeHandOffVerifier } from '../../utils/handOffVerifier';
+
+jest.mock('../../utils/handOffVerifier', () => ({
+  takeHandOffVerifier: jest.fn(),
+}));
+
+const mockTakeHandOffVerifier = takeHandOffVerifier as jest.MockedFunction<
+  typeof takeHandOffVerifier
+>;
 
 const mockSetTokens = jest.fn();
 const mockSetSessionInfo = jest.fn();
@@ -10,14 +19,16 @@ const mockSetSelectedProfile = jest.fn();
 const mockClearParams = jest.fn();
 const mockOnAuthHydrated = jest.fn();
 
+// post trades the ?authCode= for these tokens
 const mockApi = {
   get: jest.fn(),
+  post: jest.fn(),
 };
 
 function wrapper(props: { children?: React.ReactNode }) {
   return React.createElement(
     MemoryRouter,
-    { initialEntries: ['/?sessionId=abc&token=def&refreshToken=ghi'] },
+    { initialEntries: ['/?authCode=the-code'] },
     props.children
   );
 }
@@ -31,7 +42,7 @@ function wrapperNoParams(props: { children?: React.ReactNode }) {
 function wrapperError(props: { children?: React.ReactNode }) {
   return React.createElement(
     MemoryRouter,
-    { initialEntries: ['/?sessionId=abc&token=def&refreshToken=ghi'] },
+    { initialEntries: ['/?authCode=the-code'] },
     props.children
   );
 }
@@ -39,6 +50,10 @@ function wrapperError(props: { children?: React.ReactNode }) {
 describe('useUrlAuthentication', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockApi.post.mockResolvedValue({
+      data: { data: { sessionId: 'abc', token: 'def', refreshToken: 'ghi' } },
+    });
+    mockTakeHandOffVerifier.mockReturnValue(undefined);
   });
 
   it('deve chamar setTokens, api.get, setSessionInfo e setSelectedProfile quando params estão presentes', async () => {
@@ -131,11 +146,9 @@ describe('useUrlAuthentication', () => {
     mockApi.get.mockResolvedValue({
       data: { data: { profileId: 'p1' } },
     });
-    const mockCustomExtractParams = jest.fn().mockReturnValue({
-      sessionId: 'custom-session',
-      token: 'custom-token',
-      refreshToken: 'custom-refresh',
-    });
+    const mockCustomExtractParams = jest
+      .fn()
+      .mockReturnValue({ code: 'custom-code' });
 
     await act(async () => {
       renderHook(
@@ -157,9 +170,12 @@ describe('useUrlAuthentication', () => {
       expect(mockCustomExtractParams).toHaveBeenCalledWith(
         expect.any(URLSearchParams)
       );
+      expect(mockApi.post).toHaveBeenCalledWith('/auth/exchange', {
+        code: 'custom-code',
+      });
       expect(mockSetTokens).toHaveBeenCalledWith({
-        token: 'custom-token',
-        refreshToken: 'custom-refresh',
+        token: 'def',
+        refreshToken: 'ghi',
       });
     });
   });
@@ -996,7 +1012,7 @@ describe('useUrlAuthentication', () => {
       const { rerender } = render(
         React.createElement(
           MemoryRouter,
-          { initialEntries: ['/?sessionId=abc&token=def&refreshToken=ghi'] },
+          { initialEntries: ['/?authCode=the-code'] },
           React.createElement(TestComponent)
         )
       );
@@ -1017,7 +1033,7 @@ describe('useUrlAuthentication', () => {
       rerender(
         React.createElement(
           MemoryRouter,
-          { initialEntries: ['/?sessionId=abc&token=def&refreshToken=ghi'] },
+          { initialEntries: ['/?authCode=the-code'] },
           React.createElement(TestComponent)
         )
       );
@@ -1145,17 +1161,13 @@ describe('useUrlAuthentication', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('mantém a sessão atual e revoga a do link quando a troca é recusada', async () => {
-      const api = {
-        get: jest.fn().mockResolvedValue({
-          data: { data: { profileId: 'p1', userId: 'user-b' } },
-        }),
-        post: jest
-          .fn()
-          .mockResolvedValueOnce({ data: { data: exchangedTokens } })
-          .mockResolvedValueOnce({ data: {} }),
-      };
-      const confirmSessionReplace = jest.fn().mockResolvedValue(false);
+    it('envia o verificador deste navegador e a sessão anterior na troca', async () => {
+      mockTakeHandOffVerifier.mockReturnValue('browser-verifier');
+      mockApi.get.mockResolvedValue({ data: { data: { profileId: 'p1' } } });
+      const getPreviousSession = jest.fn().mockReturnValue({
+        sessionId: 'session-before',
+        refreshToken: 'refresh-before',
+      });
 
       await act(async () => {
         renderHook(
@@ -1163,74 +1175,33 @@ describe('useUrlAuthentication', () => {
             useUrlAuthentication({
               setTokens: mockSetTokens,
               setSessionInfo: mockSetSessionInfo,
-              setSelectedProfile: mockSetSelectedProfile,
-              api,
+              api: mockApi,
               endpoint: '/auth/session-info',
-              clearParamsFromURL: mockClearParams,
-              confirmSessionReplace,
-              onAuthHydrated: mockOnAuthHydrated,
+              getPreviousSession,
             }),
           { wrapper: codeWrapper }
         );
       });
 
       await waitFor(() => {
-        expect(confirmSessionReplace).toHaveBeenCalledWith({
-          profileId: 'p1',
-          userId: 'user-b',
+        expect(mockApi.post).toHaveBeenCalledWith('/auth/exchange', {
+          code: 'single-use-code',
+          codeVerifier: 'browser-verifier',
+          previousSession: {
+            sessionId: 'session-before',
+            refreshToken: 'refresh-before',
+          },
         });
-        expect(api.post).toHaveBeenLastCalledWith('/auth/logout', {
-          sessionId: 'session-from-code',
-          refreshToken: 'refresh-from-code',
-        });
-        expect(mockClearParams).toHaveBeenCalled();
       });
-      expect(mockSetTokens).not.toHaveBeenCalled();
-      expect(mockSetSessionInfo).not.toHaveBeenCalled();
-      expect(mockSetSelectedProfile).not.toHaveBeenCalled();
-      expect(mockOnAuthHydrated).not.toHaveBeenCalled();
     });
 
-    it('não quebra quando a revogação da sessão recusada falha', async () => {
-      const api = {
-        get: jest
-          .fn()
-          .mockResolvedValue({ data: { data: { userId: 'user-b' } } }),
-        post: jest
-          .fn()
-          .mockResolvedValueOnce({ data: { data: exchangedTokens } })
-          .mockRejectedValueOnce(new Error('network')),
-      };
-      const onError = jest.fn();
-
-      await act(async () => {
-        renderHook(
-          () =>
-            useUrlAuthentication({
-              setTokens: mockSetTokens,
-              setSessionInfo: mockSetSessionInfo,
-              api,
-              endpoint: '/auth/session-info',
-              clearParamsFromURL: mockClearParams,
-              confirmSessionReplace: () => false,
-              onError,
-            }),
-          { wrapper: codeWrapper }
+    it('ignora tokens na URL (link com a sessão de outra pessoa)', async () => {
+      const tokensWrapper = (props: { children?: React.ReactNode }) =>
+        React.createElement(
+          MemoryRouter,
+          { initialEntries: ['/?sessionId=abc&token=def&refreshToken=ghi'] },
+          props.children
         );
-      });
-
-      await waitFor(() => {
-        expect(mockClearParams).toHaveBeenCalled();
-      });
-      expect(onError).not.toHaveBeenCalled();
-      expect(mockSetTokens).not.toHaveBeenCalled();
-    });
-
-    it('troca a sessão quando confirmSessionReplace aceita', async () => {
-      mockApi.get.mockResolvedValue({
-        data: { data: { profileId: 'p1', userId: 'user-b' } },
-      });
-      const confirmSessionReplace = jest.fn().mockReturnValue(true);
 
       await act(async () => {
         renderHook(
@@ -1241,23 +1212,44 @@ describe('useUrlAuthentication', () => {
               api: mockApi,
               endpoint: '/auth/session-info',
               clearParamsFromURL: mockClearParams,
-              confirmSessionReplace,
             }),
-          { wrapper }
+          { wrapper: tokensWrapper }
+        );
+      });
+
+      expect(mockApi.post).not.toHaveBeenCalled();
+      expect(mockApi.get).not.toHaveBeenCalled();
+      expect(mockSetTokens).not.toHaveBeenCalled();
+      expect(mockClearParams).not.toHaveBeenCalled();
+    });
+
+    it('não grava nada quando a troca falha (link velho ou de outro navegador)', async () => {
+      const onError = jest.fn();
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockApi.post.mockRejectedValue(new Error('400'));
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              onError,
+              onAuthHydrated: mockOnAuthHydrated,
+            }),
+          { wrapper: codeWrapper }
         );
       });
 
       await waitFor(() => {
-        expect(confirmSessionReplace).toHaveBeenCalled();
-        expect(mockSetTokens).toHaveBeenCalledWith({
-          token: 'def',
-          refreshToken: 'ghi',
-        });
-        expect(mockSetSessionInfo).toHaveBeenCalledWith({
-          profileId: 'p1',
-          userId: 'user-b',
-        });
+        expect(onError).toHaveBeenCalledWith(new Error('400'));
       });
+      expect(mockApi.get).not.toHaveBeenCalled();
+      expect(mockSetTokens).not.toHaveBeenCalled();
+      expect(mockOnAuthHydrated).not.toHaveBeenCalled();
+      consoleErrorSpy.mockRestore();
     });
   });
 });

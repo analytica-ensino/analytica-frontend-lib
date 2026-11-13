@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
+import { takeHandOffVerifier } from '../../utils/handOffVerifier';
 
 /**
  * Options interface for the useUrlAuthentication hook
@@ -14,17 +15,15 @@ import { useLocation } from 'react-router-dom';
  * @property {(session: Session) => void} setSessionInfo - Function to set session information
  * @property {(profile: Profile) => void} [setSelectedProfile] - Optional function to set selected profile
  * @property {(user: User) => void} [setUser] - Optional function to set user data
- * @property {object} api - API instance with get (and post, for the hand-off code) methods
+ * @property {object} api - API instance with get and post methods
  * @property {(endpoint: string, config: unknown) => Promise<unknown>} api.get - API get method
  * @property {(endpoint: string, data?: unknown, config?: unknown) => Promise<unknown>} [api.post] - API post method,
- *   needed to trade the ?authCode= hand-off code and to revoke a declined session
+ *   needed to trade the ?authCode= hand-off code
  * @property {string} endpoint - API endpoint to fetch session data
  * @property {string} [exchangeEndpoint] - Endpoint that trades the ?authCode= for tokens (default: '/auth/exchange')
- * @property {string} [logoutEndpoint] - Endpoint that revokes a session (default: '/auth/logout')
+ * @property {() => PreviousSession | undefined} [getPreviousSession] - The session the app held before the
+ *   hand-off. The backend revokes it once the code is traded, and only then.
  * @property {(searchParams: URLSearchParams) => object} [extractParams] - Custom parameter extraction function
- * @property {(incomingSession: Session) => boolean | Promise<boolean>} [confirmSessionReplace] - Called with the
- *   session the URL opens, before anything is stored. Return false to keep the current session: the URL's session
- *   is revoked and dropped. Used to ask before replacing another user's session.
  * @property {() => void} [clearParamsFromURL] - Function to clear URL parameters after processing
  * @property {number} [maxRetries] - Maximum number of retry attempts (default: 3)
  * @property {number} [retryDelay] - Base delay between retries in milliseconds (default: 1000)
@@ -53,11 +52,8 @@ export interface UseUrlAuthOptions<
   };
   endpoint: string;
   exchangeEndpoint?: string;
-  logoutEndpoint?: string;
+  getPreviousSession?: () => PreviousSession | undefined;
   extractParams?: (searchParams: URLSearchParams) => UrlAuthParams;
-  confirmSessionReplace?: (
-    incomingSession: Session
-  ) => boolean | Promise<boolean>;
   clearParamsFromURL?: () => void;
   maxRetries?: number;
   retryDelay?: number;
@@ -66,14 +62,20 @@ export interface UseUrlAuthOptions<
 }
 
 /**
- * Authentication parameters a URL can carry: the single-use hand-off code
- * (current), or the tokens themselves (apps that were not migrated yet)
+ * Authentication parameters a URL can carry: the single-use hand-off code.
+ * Tokens in the URL are no longer accepted: a link carrying someone else's
+ * tokens replaced the session with no way to tell it apart from a login.
  */
 export interface UrlAuthParams {
   code?: string | null;
-  sessionId?: string | null;
-  token?: string | null;
-  refreshToken?: string | null;
+}
+
+/**
+ * The session an app held before a hand-off, proven by its refresh token
+ */
+export interface PreviousSession {
+  sessionId: string;
+  refreshToken: string;
 }
 
 /**
@@ -91,7 +93,7 @@ interface UrlSessionTokens {
  * @param {object} location - Location object with search property
  * @param {string} location.search - URL search string
  * @param {function} [extractParams] - Custom parameter extraction function
- * @returns {object} Object with code, sessionId, token, and refreshToken
+ * @returns {object} Object with the code
  *
  * @private
  */
@@ -102,86 +104,40 @@ const getAuthParams = (
   const searchParams = new URLSearchParams(location.search);
   return extractParams
     ? extractParams(searchParams)
-    : {
-        code: searchParams.get('authCode'),
-        sessionId: searchParams.get('sessionId'),
-        token: searchParams.get('token'),
-        refreshToken: searchParams.get('refreshToken'),
-      };
-};
-
-/**
- * Helper function to validate authentication parameters
- *
- * @param {UrlAuthParams} authParams - Authentication parameters object
- * @returns {boolean} True when there is a code, or all three tokens
- *
- * @private
- */
-const hasValidAuthParams = (authParams: UrlAuthParams) => {
-  return !!(
-    authParams?.code ||
-    (authParams?.sessionId && authParams?.token && authParams?.refreshToken)
-  );
+    : { code: searchParams.get('authCode') };
 };
 
 /**
  * Get the tokens of the session the URL opens
  *
  * The login app and the backoffice send a single-use code, traded here for the
- * tokens: tokens in the URL stayed in the history and in server logs. Tokens
- * are still read straight from the URL for senders not migrated yet.
+ * tokens: tokens in the URL stayed in the history and in server logs. A code
+ * from the login app only works with the verifier it left in this browser's
+ * cookie, so a code sent in a link to someone else fails there.
  *
- * @param {UrlAuthParams} authParams - Parameters read from the URL
+ * @param {string} code - Code read from the URL
  * @param {object} api - API instance
  * @param {string} exchangeEndpoint - Endpoint that trades the code
+ * @param {PreviousSession} [previousSession] - Session the backend revokes once the code is traded
  * @returns {Promise<UrlSessionTokens>} The session tokens
  *
  * @private
  */
 const resolveSessionTokens = async (
-  authParams: UrlAuthParams,
+  code: string,
   api: UseUrlAuthOptions['api'],
-  exchangeEndpoint: string
+  exchangeEndpoint: string,
+  previousSession: PreviousSession | undefined
 ): Promise<UrlSessionTokens> => {
-  if (!authParams.code) {
-    return {
-      sessionId: authParams.sessionId!,
-      token: authParams.token!,
-      refreshToken: authParams.refreshToken!,
-    };
-  }
-
   if (!api.post) {
     throw new Error('api.post é necessário para trocar o código de acesso');
   }
   const response = (await api.post(exchangeEndpoint, {
-    code: authParams.code,
+    code,
+    codeVerifier: takeHandOffVerifier(),
+    previousSession,
   })) as { data: { data: UrlSessionTokens } };
   return response.data.data;
-};
-
-/**
- * Revoke a session the user chose not to open. Best effort: a failure leaves
- * a session nobody holds the tokens of.
- *
- * @param {object} api - API instance
- * @param {string} logoutEndpoint - Endpoint that revokes a session
- * @param {UrlSessionTokens} tokens - Tokens of the declined session
- *
- * @private
- */
-const revokeDeclinedSession = (
-  api: UseUrlAuthOptions['api'],
-  logoutEndpoint: string,
-  tokens: UrlSessionTokens
-) => {
-  api
-    .post?.(logoutEndpoint, {
-      sessionId: tokens.sessionId,
-      refreshToken: tokens.refreshToken,
-    })
-    .catch(() => undefined);
 };
 
 /**
@@ -311,10 +267,10 @@ export function useUrlAuthentication<
         return;
       }
 
-      const authParams = getAuthParams(location, options.extractParams);
+      const { code } = getAuthParams(location, options.extractParams);
 
-      // Only proceed if we have all required auth parameters
-      if (!hasValidAuthParams(authParams)) {
+      // Only proceed with a hand-off code
+      if (!code) {
         return;
       }
 
@@ -323,14 +279,14 @@ export function useUrlAuthentication<
 
       try {
         const sessionTokens = await resolveSessionTokens(
-          authParams,
+          code,
           options.api,
-          options.exchangeEndpoint ?? '/auth/exchange'
+          options.exchangeEndpoint ?? '/auth/exchange',
+          options.getPreviousSession?.()
         );
 
         // Session-info runs with the URL's token before anything is stored,
-        // so a session the user declines (or one that fails) never replaces
-        // the current one
+        // so a session that fails never replaces the current one
         // Call session-info with proper error handling and retry
         const maxRetries = options.maxRetries || 3;
         const retryDelay = options.retryDelay || 1000;
@@ -365,22 +321,6 @@ export function useUrlAuthentication<
           }
         }
 
-        // A link that opens another user's session must not swap the account
-        // in use without asking (login CSRF: what the victim types would land
-        // in the attacker's account)
-        if (
-          options.confirmSessionReplace &&
-          !(await options.confirmSessionReplace(sessionData as Session))
-        ) {
-          revokeDeclinedSession(
-            options.api,
-            options.logoutEndpoint ?? '/auth/logout',
-            sessionTokens
-          );
-          options.clearParamsFromURL?.();
-          return;
-        }
-
         options.setTokens({
           token: sessionTokens.token,
           refreshToken: sessionTokens.refreshToken,
@@ -413,9 +353,8 @@ export function useUrlAuthentication<
     options.api,
     options.endpoint,
     options.exchangeEndpoint,
-    options.logoutEndpoint,
+    options.getPreviousSession,
     options.extractParams,
-    options.confirmSessionReplace,
     options.clearParamsFromURL,
     options.maxRetries,
     options.retryDelay,

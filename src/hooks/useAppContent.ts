@@ -1,9 +1,16 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { AxiosInstance } from 'axios';
-import { useAuthStore, type SessionInfo } from '../store/authStore';
+import { useAuthStore, type AuthState } from '../store/authStore';
 import { useModulesStore } from '../store/modulesStore';
 import { useApiConfig, useUrlAuthentication, useTheme, useAuth } from '..';
+import { useTokenInUrl } from '../components/Auth/useTokenInUrl';
 
 /**
  * Interface para as configurações do hook useAppContent
@@ -36,44 +43,20 @@ interface UseAppContentConfig {
   onError?: (error: unknown) => void;
   /** Callback para navegação quando página não encontrada */
   onNotFoundNavigation?: () => void;
-  /**
-   * Pergunta antes de trocar a sessão de outro usuário pela do link. Recebe o
-   * nome de quem está logado e de quem o link abre; padrão: window.confirm.
-   */
-  confirmAccountSwitch?: (accounts: {
-    current: string;
-    incoming: string;
-  }) => boolean | Promise<boolean>;
 }
 
 /**
- * Pergunta padrão antes de trocar de conta
- *
- * @param {object} accounts - Quem está logado e quem o link abre
- * @returns {boolean} Se a pessoa aceitou trocar
+ * What signOut clears: the session a login hand-off set aside
  */
-const defaultConfirmAccountSwitch = ({
-  current,
-  incoming,
-}: {
-  current: string;
-  incoming: string;
-}): boolean =>
-  globalThis.confirm(
-    `Você está conectado como ${current}. Este link entra na conta de ${incoming}. Deseja sair da sua conta e continuar?`
-  );
-
-/**
- * Nome de uma conta para a pergunta de troca
- *
- * @param {Partial<SessionInfo>} session - Sessão
- * @returns {string} Nome e e-mail, o que houver
- */
-const describeAccount = (session: Partial<SessionInfo>): string => {
-  const email = typeof session.email === 'string' ? session.email : undefined;
-  if (session.userName && email) return `${session.userName} (${email})`;
-  return session.userName || email || 'outro usuário';
-};
+type StoredSession = Pick<
+  AuthState,
+  | 'user'
+  | 'tokens'
+  | 'isAuthenticated'
+  | 'profiles'
+  | 'selectedProfile'
+  | 'sessionInfo'
+>;
 
 /**
  * Hook que encapsula toda a lógica do componente AppContent
@@ -97,7 +80,6 @@ export function useAppContent(config: UseAppContentConfig) {
     onClearParamsFromURL,
     onError,
     onNotFoundNavigation,
-    confirmAccountSwitch = defaultConfirmAccountSwitch,
   } = config;
 
   const apiConfig = useApiConfig(api);
@@ -128,22 +110,59 @@ export function useAppContent(config: UseAppContentConfig) {
       onClearParamsFromURL();
       return;
     }
-    // Strip ONLY the auth params injected by the login redirect, preserving any
+    // Strip ONLY the auth param injected by the login redirect, preserving any
     // other query the deep link carried (e.g. ?id=... on an edit page). Dropping
     // the whole query here used to lose those params after hydration.
     const params = new URLSearchParams(globalThis.location.search);
     params.delete('authCode');
-    params.delete('token');
-    params.delete('refreshToken');
-    params.delete('sessionId');
     const query = params.toString();
     navigate(`${globalThis.location.pathname}${query ? `?${query}` : ''}`, {
       replace: true,
     });
   }, [onClearParamsFromURL, navigate]);
 
+  // A login hand-off in the URL always wins over the session this browser
+  // still holds (someone who never clicked "Sair": a shared school computer, or
+  // a session expired since yesterday). Set it aside before any request goes
+  // out: left in place, the app booted with it and its requests 401ed, the
+  // refresh failed and sent the user back to login mid-exchange (logging in
+  // twice). Layout effect, so it runs before every passive effect that fetches.
+  // The exchange hands it to the backend, which revokes it only once the code
+  // is traded; if the code fails (an old link), it comes back.
+  const { hasTokenInUrl } = useTokenInUrl();
+  const setAsideRef = useRef<StoredSession | null>(null);
+  useLayoutEffect(() => {
+    if (!hasTokenInUrl) return;
+    const state = useAuthStore.getState();
+    if (!state.tokens && !state.sessionInfo) return;
+    setAsideRef.current = {
+      user: state.user,
+      tokens: state.tokens,
+      isAuthenticated: state.isAuthenticated,
+      profiles: state.profiles,
+      selectedProfile: state.selectedProfile,
+      sessionInfo: state.sessionInfo,
+    };
+    state.signOut();
+  }, [hasTokenInUrl]);
+
+  const getPreviousSession = useCallback(() => {
+    const { tokens, sessionInfo } = setAsideRef.current ?? {};
+    if (!tokens?.refreshToken || !sessionInfo?.sessionId) return undefined;
+    return {
+      sessionId: sessionInfo.sessionId,
+      refreshToken: tokens.refreshToken,
+    };
+  }, []);
+
   const handleError = useCallback(
     (error: unknown) => {
+      // The hand-off failed: the session set aside is still valid
+      if (setAsideRef.current) {
+        useAuthStore.setState(setAsideRef.current);
+        setAsideRef.current = null;
+        void checkAuth();
+      }
       if (onError) {
         onError(error);
       } else {
@@ -151,28 +170,14 @@ export function useAppContent(config: UseAppContentConfig) {
         navigate('/', { replace: true });
       }
     },
-    [navigate, onError]
-  );
-
-  // A link that opens another user's session asks before swapping the account
-  // in use: anyone could send a link to their own account and have the victim
-  // type into it (AE-3246). Same user, or nobody logged in: no question.
-  const handleConfirmSessionReplace = useCallback(
-    async (incoming: SessionInfo) => {
-      const { tokens, sessionInfo: current } = useAuthStore.getState();
-      if (!tokens?.token || !current?.userId) return true;
-      if (current.userId === incoming?.userId) return true;
-      return confirmAccountSwitch({
-        current: describeAccount(current),
-        incoming: describeAccount(incoming ?? {}),
-      });
-    },
-    [confirmAccountSwitch]
+    [navigate, onError, checkAuth]
   );
 
   // Re-runs the AuthProvider check after tokens are written into the store,
   // so guards re-evaluate before URL params are cleared (fixes first-login race).
   const handleAuthHydrated = useCallback(async () => {
+    // Revoked by the exchange
+    setAsideRef.current = null;
     await checkAuth();
   }, [checkAuth]);
 
@@ -184,12 +189,12 @@ export function useAppContent(config: UseAppContentConfig) {
       setSelectedProfile: handleSetSelectedProfile,
       api: apiConfig,
       endpoint,
+      getPreviousSession,
       clearParamsFromURL: handleClearParamsFromURL,
       maxRetries,
       retryDelay,
       onError: handleError,
       onAuthHydrated: handleAuthHydrated,
-      confirmSessionReplace: handleConfirmSessionReplace,
     }),
     [
       setTokens,
@@ -197,12 +202,12 @@ export function useAppContent(config: UseAppContentConfig) {
       handleSetSelectedProfile,
       apiConfig,
       endpoint,
+      getPreviousSession,
       handleClearParamsFromURL,
       maxRetries,
       retryDelay,
       handleError,
       handleAuthHydrated,
-      handleConfirmSessionReplace,
     ]
   );
 

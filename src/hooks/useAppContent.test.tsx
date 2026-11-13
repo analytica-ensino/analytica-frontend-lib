@@ -19,8 +19,15 @@ jest.mock('../store/authStore', () => ({
     getState: jest.fn(() => ({
       sessionInfo: { institutionId: 'test-institution-id' },
     })),
+    setState: jest.fn(),
     subscribe: jest.fn(() => jest.fn()),
   }),
+}));
+
+// Mock do useTokenInUrl
+let mockHasTokenInUrl = false;
+jest.mock('../components/Auth/useTokenInUrl', () => ({
+  useTokenInUrl: () => ({ hasTokenInUrl: mockHasTokenInUrl }),
 }));
 
 // Mock do modulesStore
@@ -328,18 +335,14 @@ describe('useAppContent', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/some/path', { replace: true });
   });
 
-  it('strips only auth params and preserves the rest of the query', () => {
-    window.history.pushState(
-      {},
-      '',
-      '/conteudo/editar?id=abc-123&token=t&refreshToken=r&sessionId=s'
-    );
+  it('strips only the auth param and preserves the rest of the query', () => {
+    window.history.pushState({}, '', '/conteudo/editar?id=abc-123&authCode=c');
     renderHook(() => useAppContent(defaultConfig));
 
     const urlAuthConfig = mockUseUrlAuthentication.mock.calls[0][0];
     urlAuthConfig.clearParamsFromURL();
 
-    // token/refreshToken/sessionId removed; id kept.
+    // authCode removed; id kept.
     expect(mockNavigate).toHaveBeenCalledWith('/conteudo/editar?id=abc-123', {
       replace: true,
     });
@@ -699,107 +702,140 @@ describe('useAppContent', () => {
       );
     });
   });
-  describe('confirmSessionReplace (AE-3246)', () => {
+  describe('login hand-off over a stored session', () => {
     const mockGetState = useAuthStore.getState as jest.Mock;
-    const incoming = {
-      ...mockSessionInfo,
-      userId: 'user-b',
-      userName: 'Bia',
-      email: 'bia@escola.com',
-    };
-
-    const getConfirm = () =>
-      mockUseUrlAuthentication.mock.calls[0][0].confirmSessionReplace as (
-        session: unknown
-      ) => Promise<boolean>;
+    const mockSignOut = jest.fn();
 
     afterEach(() => {
+      mockHasTokenInUrl = false;
       mockGetState.mockImplementation(() => ({
         sessionInfo: { institutionId: 'test-institution-id' },
       }));
     });
 
-    it('accepts without asking when nobody is logged in', async () => {
-      const confirmAccountSwitch = jest.fn();
-      mockGetState.mockReturnValue({ tokens: null, sessionInfo: null });
-      renderHook(() =>
-        useAppContent({ ...defaultConfig, confirmAccountSwitch })
-      );
-
-      await expect(getConfirm()(incoming)).resolves.toBe(true);
-      expect(confirmAccountSwitch).not.toHaveBeenCalled();
-    });
-
-    it('accepts without asking when the link opens the same user', async () => {
-      const confirmAccountSwitch = jest.fn();
+    it('keeps the stored session when the URL brings no hand-off', () => {
       mockGetState.mockReturnValue({
         tokens: { token: 't', refreshToken: 'r' },
-        sessionInfo: { ...mockSessionInfo, userId: 'user-b' },
-      });
-      renderHook(() =>
-        useAppContent({ ...defaultConfig, confirmAccountSwitch })
-      );
-
-      await expect(getConfirm()(incoming)).resolves.toBe(true);
-      expect(confirmAccountSwitch).not.toHaveBeenCalled();
-    });
-
-    it('asks before replacing another user and follows the answer', async () => {
-      const confirmAccountSwitch = jest.fn().mockResolvedValue(false);
-      mockGetState.mockReturnValue({
-        tokens: { token: 't', refreshToken: 'r' },
-        sessionInfo: {
-          ...mockSessionInfo,
-          userId: 'user-a',
-          userName: 'Ana',
-          email: 'ana@escola.com',
-        },
-      });
-      renderHook(() =>
-        useAppContent({ ...defaultConfig, confirmAccountSwitch })
-      );
-
-      await expect(getConfirm()(incoming)).resolves.toBe(false);
-      expect(confirmAccountSwitch).toHaveBeenCalledWith({
-        current: 'Ana (ana@escola.com)',
-        incoming: 'Bia (bia@escola.com)',
-      });
-    });
-
-    it('falls back to a generic name when the session has none', async () => {
-      const confirmAccountSwitch = jest.fn().mockReturnValue(true);
-      mockGetState.mockReturnValue({
-        tokens: { token: 't', refreshToken: 'r' },
-        sessionInfo: { ...mockSessionInfo, userId: 'user-a' },
-      });
-      renderHook(() =>
-        useAppContent({ ...defaultConfig, confirmAccountSwitch })
-      );
-
-      await expect(
-        getConfirm()({ ...mockSessionInfo, userId: 'user-b', email: 'b@x.com' })
-      ).resolves.toBe(true);
-      expect(confirmAccountSwitch).toHaveBeenCalledWith({
-        current: 'outro usuário',
-        incoming: 'b@x.com',
-      });
-    });
-
-    it('uses window.confirm by default', async () => {
-      const confirmSpy = jest
-        .spyOn(globalThis, 'confirm')
-        .mockReturnValue(true);
-      mockGetState.mockReturnValue({
-        tokens: { token: 't', refreshToken: 'r' },
-        sessionInfo: { ...mockSessionInfo, userId: 'user-a', userName: 'Ana' },
+        sessionInfo: mockSessionInfo,
+        signOut: mockSignOut,
       });
       renderHook(() => useAppContent(defaultConfig));
 
-      await expect(getConfirm()(incoming)).resolves.toBe(true);
-      expect(confirmSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Você está conectado como Ana')
-      );
+      expect(mockSignOut).not.toHaveBeenCalled();
+      expect(mockApi.post).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when no session is stored', () => {
+      mockHasTokenInUrl = true;
+      mockGetState.mockReturnValue({
+        tokens: null,
+        sessionInfo: null,
+        signOut: mockSignOut,
+      });
+      renderHook(() => useAppContent(defaultConfig));
+
+      expect(mockSignOut).not.toHaveBeenCalled();
+      expect(mockApi.post).not.toHaveBeenCalled();
+    });
+
+    const storedSession = {
+      user: { id: 'old-user' },
+      tokens: { token: 't', refreshToken: 'old-refresh' },
+      isAuthenticated: true,
+      profiles: [],
+      selectedProfile: { id: 'old-profile' },
+      sessionInfo: { ...mockSessionInfo, sessionId: 'old-session' },
+    };
+
+    it('sets the stored session aside before any request, without asking', () => {
+      const confirmSpy = jest.spyOn(globalThis, 'confirm');
+      mockHasTokenInUrl = true;
+      mockGetState.mockReturnValue({ ...storedSession, signOut: mockSignOut });
+      renderHook(() => useAppContent(defaultConfig));
+
+      expect(mockSignOut).toHaveBeenCalledTimes(1);
+      // Revoked by the exchange, once the code is traded: not here
+      expect(mockApi.post).not.toHaveBeenCalled();
+      expect(confirmSpy).not.toHaveBeenCalled();
       confirmSpy.mockRestore();
+    });
+
+    it('hands the session set aside to the exchange', () => {
+      mockHasTokenInUrl = true;
+      mockGetState.mockReturnValue({ ...storedSession, signOut: mockSignOut });
+      renderHook(() => useAppContent(defaultConfig));
+
+      const { getPreviousSession } = mockUseUrlAuthentication.mock.calls[0][0];
+
+      expect(getPreviousSession()).toEqual({
+        sessionId: 'old-session',
+        refreshToken: 'old-refresh',
+      });
+    });
+
+    it('hands nothing to the exchange when no session was stored', () => {
+      mockHasTokenInUrl = true;
+      mockGetState.mockReturnValue({
+        tokens: null,
+        sessionInfo: null,
+        signOut: mockSignOut,
+      });
+      renderHook(() => useAppContent(defaultConfig));
+
+      const { getPreviousSession } = mockUseUrlAuthentication.mock.calls[0][0];
+
+      expect(getPreviousSession()).toBeUndefined();
+    });
+
+    it('brings the session back when the hand-off fails', () => {
+      const checkAuth = jest.fn().mockResolvedValue(true);
+      mockUseAuth.mockReturnValue({ sessionInfo: null, checkAuth });
+      jest.spyOn(console, 'error').mockImplementation(() => undefined);
+      mockHasTokenInUrl = true;
+      mockGetState.mockReturnValue({ ...storedSession, signOut: mockSignOut });
+      renderHook(() => useAppContent(defaultConfig));
+
+      const { onError, getPreviousSession } =
+        mockUseUrlAuthentication.mock.calls[0][0];
+      onError(new Error('Código de acesso inválido ou expirado'));
+
+      expect(useAuthStore.setState).toHaveBeenCalledWith(storedSession);
+      expect(checkAuth).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+      // Restored once: a later failure has nothing to bring back
+      expect(getPreviousSession()).toBeUndefined();
+    });
+
+    it('forgets the session set aside once the hand-off succeeds', async () => {
+      mockHasTokenInUrl = true;
+      mockGetState.mockReturnValue({ ...storedSession, signOut: mockSignOut });
+      renderHook(() => useAppContent(defaultConfig));
+
+      const { onAuthHydrated, onError, getPreviousSession } =
+        mockUseUrlAuthentication.mock.calls[0][0];
+      await onAuthHydrated();
+      onError(new Error('later'));
+
+      expect(getPreviousSession()).toBeUndefined();
+      expect(useAuthStore.setState).not.toHaveBeenCalled();
+    });
+
+    it('drops it once: re-renders during the exchange keep the new session', () => {
+      mockHasTokenInUrl = true;
+      mockGetState.mockReturnValue({
+        tokens: { token: 't', refreshToken: 'r' },
+        sessionInfo: mockSessionInfo,
+        signOut: mockSignOut,
+      });
+      const { rerender } = renderHook(
+        (props: { api: typeof mockApi }) =>
+          useAppContent({ ...defaultConfig, api: props.api }),
+        { initialProps: { api: mockApi } }
+      );
+      mockUseApiConfig.mockReturnValue({ ...mockApiConfig });
+      rerender({ api: { ...mockApi } });
+
+      expect(mockSignOut).toHaveBeenCalledTimes(1);
     });
   });
 });
