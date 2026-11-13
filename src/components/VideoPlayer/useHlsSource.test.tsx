@@ -490,6 +490,18 @@ describe('useHlsSource', () => {
       expect(result().videoSrc).toBe(nextMp4);
       expect(hls.destroy).toHaveBeenCalled();
     });
+
+    it('puts the MP4 back when destroying hls.js wipes the source', async () => {
+      const { hls, video, rerenderWith } = await renderHlsJs();
+      const nextMp4 = 'https://cdn.example.com/other.mp4';
+      // hls.js detaches by removing `src`, after React already set the new one.
+      hls.destroy.mockImplementation(() => video.removeAttribute('src'));
+
+      rerenderWith(undefined, nextMp4);
+
+      expect(video.getAttribute('src')).toBe(nextMp4);
+      expect(HTMLMediaElement.prototype.load).toHaveBeenCalled();
+    });
   });
 
   describe('natively (Safari)', () => {
@@ -585,6 +597,26 @@ describe('useHlsSource', () => {
       expect(media.currentTime).toBe(12);
       expect(media.playbackRate).toBe(2);
       expect(play).toHaveBeenCalledTimes(1);
+    });
+
+    it('a new lesson keeps speed and captions but not position or play state', async () => {
+      const { video, media, play, rerenderWith } = await renderNative();
+      fire(video, 'loadedmetadata');
+      const track = mockCaptionTrack(video, 'showing');
+      Object.assign(media, { currentTime: 7, paused: false, playbackRate: 2 });
+      const nextHls = 'https://cdn.example.com/hls/other/master.m3u8';
+
+      rerenderWith(nextHls);
+      await waitFor(() => expect(video.getAttribute('src')).toBe(nextHls));
+      Object.assign(media, { currentTime: 0, paused: true, playbackRate: 1 });
+      track.mode = 'disabled';
+      fire(video, 'loadstart');
+      fire(video, 'loadedmetadata');
+
+      expect(media.playbackRate).toBe(2);
+      expect(track.mode).toBe('showing');
+      expect(media.currentTime).toBe(0);
+      expect(play).not.toHaveBeenCalled();
     });
 
     it('keeps what the user changes while the source loads', async () => {

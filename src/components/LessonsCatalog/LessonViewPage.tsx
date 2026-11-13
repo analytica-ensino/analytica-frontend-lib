@@ -465,6 +465,9 @@ export function LessonViewPage({
     }
   }, [rawApiData, currentLesson, extractNavigationDataFromAPI]);
 
+  /** Last lesson this page opened, to open each one once. */
+  const openedLessonIdRef = useRef<string | null>(null);
+
   /**
    * Auto-select the lesson pinned by the URL or by navigation state.
    */
@@ -491,7 +494,12 @@ export function LessonViewPage({
       );
     }
 
-    if (targetLesson) {
+    // Already opened: selecting it again would record the visit and reload
+    // its resume point for nothing (this also reruns when `lessons` is
+    // rebuilt). Not the store's lesson: loading the list puts one there
+    // without recording the visit.
+    if (targetLesson && targetLesson.id !== openedLessonIdRef.current) {
+      openedLessonIdRef.current = targetLesson.id;
       selectLesson(targetLesson);
       scrollPageToTop();
     }
@@ -542,9 +550,12 @@ export function LessonViewPage({
 
   const openLesson = useCallback(
     (lesson: LessonDetails) => {
-      selectLesson(lesson);
-      // Reflect the chosen lesson in the URL so it can be reloaded/shared and
-      // the back button walks through previously viewed lessons. Preserve any
+      // Only the URL changes here: the auto-select effect above then opens the
+      // lesson. Selecting it here as well raced with that effect, which still
+      // saw the previous `?aula=` and briefly reopened the previous lesson —
+      // reshuffling the queue and recording a visit and a resume read for the
+      // wrong lesson. The URL also lets the lesson be reloaded/shared, and the
+      // back button walks through previously viewed lessons. Preserve any
       // other existing query params.
       setSearchParams(
         (prev) => {
@@ -554,9 +565,8 @@ export function LessonViewPage({
         },
         { replace: false }
       );
-      scrollPageToTop();
     },
-    [selectLesson, setSearchParams]
+    [setSearchParams]
   );
 
   // Only the student has a queue: preview does not auto-advance.

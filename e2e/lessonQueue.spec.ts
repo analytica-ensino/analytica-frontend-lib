@@ -46,9 +46,30 @@ const play = async (page: Page) => {
   await expect.poll(() => isPaused(page)).toBe(false);
 };
 
-/** Jumps close to the end of the playing video. */
+/**
+ * Makes sure the video plays. Right after the queue opens a lesson it starts
+ * on its own (where the browser allows it): clicking play at that moment
+ * would land on top of the autoplay and pause it again.
+ */
+const ensurePlaying = async (page: Page) => {
+  const autoplayed = await expect
+    .poll(() => isPaused(page), { timeout: 3_000 })
+    .toBe(false)
+    .then(() => true)
+    .catch(() => false);
+  if (!autoplayed) await play(page);
+};
+
+/** Jumps close to the end of the playing video, once it has a duration. */
 const seekToEnd = async (page: Page) => {
-  if (await isPaused(page)) await play(page);
+  await ensurePlaying(page);
+  await expect
+    .poll(() =>
+      video(page).evaluate((element: HTMLVideoElement) =>
+        Number.isFinite(element.duration)
+      )
+    )
+    .toBe(true);
   await video(page).evaluate((element: HTMLVideoElement) => {
     element.currentTime = element.duration - 0.5;
   });

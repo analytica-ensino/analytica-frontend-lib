@@ -271,7 +271,10 @@ interface StartContext {
   /** False once the source changed or the player unmounted. */
   isActive: () => boolean;
   update: (patch: Partial<SourceState>) => void;
+  /** Same media, another source (recovery): keeps position and play state. */
   beginSourceChange: () => void;
+  /** First source of this media: keeps only speed and captions. */
+  beginNewMedia: () => void;
   fallBackToMp4: () => void;
 }
 
@@ -285,7 +288,7 @@ const startNativePlayback = (
   context: StartContext,
   onVariants: (urls: Map<number, string>) => void
 ): void => {
-  context.beginSourceChange();
+  context.beginNewMedia();
   context.update({ engine: 'native', nativeUrl: context.hlsSrc });
   fetchMasterPlaylist(context.hlsSrc, context.signal)
     .then((renditions) => {
@@ -346,7 +349,7 @@ const startHlsJsPlayback = async (
     context.fallBackToMp4();
   });
 
-  context.beginSourceChange();
+  context.beginNewMedia();
   hls.loadSource(hlsSrc);
   hls.attachMedia(video);
   context.update({ engine: 'hlsjs' });
@@ -420,7 +423,10 @@ export const useHlsSource = ({
   const snapshotRef = useRef<PlaybackSnapshot | null>(null);
   const switchingRef = useRef(false);
 
-  /** Records the state to put back once the next source loads. */
+  /**
+   * Records the state to put back once the next source loads: a quality
+   * switch or a fallback keeps the position and the play state.
+   */
   const beginSourceChange = useCallback(() => {
     switchingRef.current = true;
     const video = videoRef.current;
@@ -438,6 +444,21 @@ export const useHlsSource = ({
       settingsRestored: false,
     };
   }, [videoRef]);
+
+  /**
+   * Starts a different media (another lesson) in the same element. Speed and
+   * captions carry over, as the student chose them; the position and the
+   * play state do not: they belong to the previous media, and the player
+   * applies the new one's resume point and autoplay itself.
+   */
+  const beginNewMedia = useCallback(() => {
+    beginSourceChange();
+    const snapshot = snapshotRef.current;
+    if (snapshot) {
+      snapshot.time = 0;
+      snapshot.playing = false;
+    }
+  }, [beginSourceChange]);
 
   // Loading a source pauses, sets the speed back to 1x and starts at 0. Speed,
   // captions and play state come back as soon as the load starts, so whatever
@@ -518,6 +539,8 @@ export const useHlsSource = ({
       isActive: () => !cancelled,
       update,
       beginSourceChange,
+      // Starting this source is a new media, not a switch of the previous one.
+      beginNewMedia,
       fallBackToMp4,
     };
     const engine = pickPlaybackEngine(video);
@@ -546,7 +569,21 @@ export const useHlsSource = ({
       stopStallWatchdog();
       destroyHls();
     };
-  }, [key, hlsSrc, videoRef, beginSourceChange, stallTimeoutMs]);
+  }, [key, hlsSrc, videoRef, beginSourceChange, beginNewMedia, stallTimeoutMs]);
+
+  const expectedSrc = videoSrcFor(state, src);
+  // The player stays mounted from lesson to lesson. Moving from an hls.js
+  // lesson to an MP4 one, React sets the new `src` first and only then does
+  // the effect above clean up, destroying hls.js — which detaches by removing
+  // `src` and reloading the element, wiping the MP4 that just went in. Effects
+  // run after every cleanup, so this puts the source back.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !expectedSrc) return;
+    if (video.getAttribute('src') === expectedSrc) return;
+    video.setAttribute('src', expectedSrc);
+    video.load();
+  }, [videoRef, expectedSrc]);
 
   const { engine, nativeUrl } = state;
   const selectQuality = useCallback(

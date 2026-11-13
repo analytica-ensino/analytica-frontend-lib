@@ -1295,6 +1295,15 @@ const VideoPlayer = ({
     if (!videoRef.current) return;
 
     setDuration(videoRef.current.duration);
+    // Loading a media sets the element back to 1x; the speed the student
+    // picked carries over to the next one, as the menu still shows it. Only
+    // when the load did reset it: a quality switch restores its own.
+    if (
+      videoRef.current.playbackRate === videoRef.current.defaultPlaybackRate &&
+      videoRef.current.playbackRate !== playbackRate
+    ) {
+      videoRef.current.playbackRate = playbackRate;
+    }
     // Agora existe linha de tempo: é aqui que o seek de retomada realmente
     // pega, e é a última vez que ele acontece nesta mídia.
     applyResumeTime();
@@ -1311,7 +1320,7 @@ const VideoPlayer = ({
         togglePlayPause();
       }
     }
-  }, [applyResumeTime, autoPlay, togglePlayPause]);
+  }, [applyResumeTime, autoPlay, togglePlayPause, playbackRate]);
 
   const handleLoadedMetadataRef = useRef(handleLoadedMetadata);
   useEffect(() => {
@@ -1330,7 +1339,11 @@ const VideoPlayer = ({
       return;
     }
     const video = videoRef.current;
-    if (!video || video.readyState < 1) return;
+    // Only when the element really keeps the media it has. With HLS the source
+    // is decided after this runs: meanwhile React has removed `src`, but the
+    // element still holds the previous lesson's media, which must not take
+    // the new lesson's resume point and autoplay.
+    if (!video || video.readyState < 1 || !video.getAttribute('src')) return;
     video.currentTime = 0;
     setCurrentTime(0);
     setDuration(video.duration);

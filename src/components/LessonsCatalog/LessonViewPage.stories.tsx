@@ -22,6 +22,7 @@ import type {
  */
 
 const FIXTURE_MP4 = 'fixtures/video/sample.mp4';
+const FIXTURE_HLS = 'fixtures/video/hls/master.m3u8';
 
 const ROUTES: LessonsCatalogRoutes = {
   root: '/aulas',
@@ -44,7 +45,11 @@ declare global {
   }
 }
 
-const lesson = (id: string, title: string): ApiLessonData =>
+const lesson = (
+  id: string,
+  title: string,
+  video: { urlVideo?: string; urlVideoHls?: string | null } = {}
+): ApiLessonData =>
   ({
     id,
     areaKnowledgeId: 'area-1',
@@ -53,6 +58,8 @@ const lesson = (id: string, title: string): ApiLessonData =>
     subtopicId: 'subtopic-1',
     contentId: `content-${id}`,
     urlVideo: FIXTURE_MP4,
+    urlVideoHls: null,
+    ...video,
     urlPodCast: '',
     urlCover: '',
     urlInitialFrame: '',
@@ -82,9 +89,29 @@ const LESSONS = [
   lesson('lesson-3', 'Aula 3'),
 ];
 
+/**
+ * Different media on each lesson, as in production: an MP4, an HLS stream,
+ * two other MP4 files (the query string makes them distinct sources to the
+ * browser) and a lesson without video, which the queue skips.
+ */
+const MIXED_LESSONS = [
+  lesson('lesson-1', 'Aula 1'),
+  lesson('lesson-2', 'Aula 2', { urlVideoHls: FIXTURE_HLS }),
+  lesson('lesson-3', 'Aula 3', { urlVideo: `${FIXTURE_MP4}?v=3` }),
+  lesson('lesson-4', 'Aula 4', { urlVideo: '' }),
+  lesson('lesson-5', 'Aula 5', { urlVideo: `${FIXTURE_MP4}?v=5` }),
+];
+
+/** Saved positions of `QueueMixed`: Aula 2 resumes at 4 s. */
+const MIXED_PLAYBACK: Record<string, number> = { 'lesson-2': 4 };
+
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function makeApi(patchDelay: number): BaseApiClient {
+function makeApi(
+  patchDelay: number,
+  lessons: ApiLessonData[] = LESSONS,
+  playback: Record<string, number> = {}
+): BaseApiClient {
   const writes: LessonApiWrite[] = [];
   globalThis.window.__lessonApiWrites = writes;
 
@@ -111,11 +138,22 @@ function makeApi(patchDelay: number): BaseApiClient {
     };
 
   return {
-    get: async <T,>(url: string) => ({
-      data: (url.startsWith('/lesson/by-subtopic')
-        ? { message: 'ok', data: LESSONS }
-        : { message: 'ok', data: null }) as T,
-    }),
+    get: async <T,>(url: string) => {
+      if (url.startsWith('/lesson/by-subtopic')) {
+        return { data: { message: 'ok', data: lessons } as T };
+      }
+      const lessonId = /^\/lesson\/([^/]+)\/playback$/.exec(url)?.[1];
+      const position = lessonId ? playback[lessonId] : undefined;
+      return {
+        data: {
+          message: 'ok',
+          data:
+            position === undefined
+              ? null
+              : { lessonId, positionSeconds: position, durationSeconds: 10 },
+        } as T,
+      };
+    },
     patch: write('patch'),
     put: write('put'),
     post: write('post'),
@@ -123,12 +161,20 @@ function makeApi(patchDelay: number): BaseApiClient {
   } as unknown as BaseApiClient;
 }
 
-const QueuePage = () => {
+const QueuePage = ({
+  lessons,
+  playback,
+}: {
+  lessons?: ApiLessonData[];
+  playback?: Record<string, number>;
+}) => {
   const [api] = useState(() =>
     makeApi(
       Number(
         new URLSearchParams(globalThis.location.search).get('patchDelay') ?? 0
-      )
+      ),
+      lessons,
+      playback
     )
   );
 
@@ -156,3 +202,7 @@ const QueuePage = () => {
 };
 
 export const Queue: Story = () => <QueuePage />;
+
+export const QueueMixed: Story = () => (
+  <QueuePage lessons={MIXED_LESSONS} playback={MIXED_PLAYBACK} />
+);
