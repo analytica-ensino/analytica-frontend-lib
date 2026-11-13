@@ -1023,6 +1023,11 @@ const VideoPlayer = ({
     const video = videoRef.current;
     if (!video || resumeStateRef.current === 'done') return;
 
+    // Media swap in progress: the old media is still loaded but `src` is
+    // already gone (the HLS source is not attached yet). A seek now would land
+    // on the old media and mark the resume as done; wait for the new one.
+    if (video.readyState >= 1 && !video.getAttribute('src')) return;
+
     // Depois que o aluno deu play, a posição dele é a que vale — não a salva.
     if (hasStartedRef.current) {
       resumeStateRef.current = 'done';
