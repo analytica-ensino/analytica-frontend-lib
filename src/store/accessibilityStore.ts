@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
+import { createJSONStorage, devtools, persist } from 'zustand/middleware';
+import { getBrowserStorage } from './browserStorage';
 
 /**
  * Modos de contraste suportados pelo widget de acessibilidade
@@ -194,6 +195,7 @@ export const useAccessibilityStore = create<AccessibilityStore>()(
       }),
       {
         name: 'accessibility-store',
+        storage: createJSONStorage(getBrowserStorage),
         // version 1: removeu `librasEnabled` da persistência (era custoso
         // recarregar VLibras a cada refresh). A migração limpa esse valor
         // de localStorages antigos para evitar auto-load surpresa.

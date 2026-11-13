@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { getBrowserStorage } from './browserStorage';
 import type { MyDataResponse } from '../types/user';
 import { useAuthStore } from './authStore';
 
@@ -200,7 +201,7 @@ export function createUserStore(config: CreateUserStoreConfig) {
       }),
       {
         name: storageKey,
-        storage: createJSONStorage(() => localStorage),
+        storage: createJSONStorage(getBrowserStorage),
         // Persist data, cachedUserId and lastFetched (not loading/error states)
         partialize: (state) => ({
           data: state.data,

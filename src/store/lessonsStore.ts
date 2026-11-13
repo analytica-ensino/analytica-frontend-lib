@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { getBrowserStorage } from './browserStorage';
 import { KEYS } from '../utils/keys';
 import type { LessonProgress, LessonDetails } from '../types/lessonsCatalog';
 import { useAuthStore } from './authStore';
@@ -247,7 +248,7 @@ export const useLessonsStore = create<LessonsState>()(
     }),
     {
       name: KEYS.LESSONS_STORAGE,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(getBrowserStorage),
       partialize: (state) => ({
         lessonsProgress: state.lessonsProgress,
         // Resume position, one number per lesson. It has to survive a reload:

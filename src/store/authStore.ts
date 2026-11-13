@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { getBrowserStorage } from './browserStorage';
 import { KEYS } from '@/utils/keys';
 
 /**
@@ -184,7 +185,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: KEYS.AUTH_STORAGE,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(getBrowserStorage),
     }
   )
 );
