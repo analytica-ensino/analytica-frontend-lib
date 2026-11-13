@@ -4,7 +4,7 @@ import { expect as baseExpect, test, type Page } from '@playwright/test';
  * Lesson queue with different media on each lesson, in the Ladle story
  * `LessonViewPage > QueueMixed`: Aula 1 (MP4), Aula 2 (HLS, saved at 4 s),
  * Aula 3 and Aula 5 (other MP4 files), Aula 4 (no video, outside the queue)
- * and Aula 6 (another HLS stream, saved at 5 s). One player stays mounted across lessons, so these cover what a
+ * Aula 6 (another HLS stream, saved at 5 s) and Aula 7 (HLS, nothing saved). One player stays mounted across lessons, so these cover what a
  * single shared file hides: the next media must not inherit the previous
  * one's position, play state or speed.
  */
@@ -116,7 +116,7 @@ const writes = (page: Page) =>
   );
 
 test.describe('Lesson queue with different media', () => {
-  test('a lesson opened mid-video starts from its own beginning', async ({
+  test('an HLS lesson opened mid-video starts from its own beginning', async ({
     page,
   }) => {
     await openStory(page);
@@ -125,16 +125,17 @@ test.describe('Lesson queue with different media', () => {
     await play(page);
     await seekTo(page, 3);
 
-    await openLessonFromList(page, 'Aula 5');
-    await expect.poll(() => activeLesson(page)).toContain('Aula 5');
+    await openLessonFromList(page, 'Aula 7');
+    await expect.poll(() => activeLesson(page)).toContain('Aula 7');
 
+    // Starts at 0 and stays paused: in a single poll, since right after the
+    // swap the element still holds the previous media's position.
     await expect
-      .poll(() =>
-        video(page).evaluate((element: HTMLVideoElement) => element.currentSrc)
-      )
-      .toContain('?v=5');
+      .poll(async () => (await videoTime(page)) < 1 && (await isPaused(page)))
+      .toBe(true);
+    // Not a transient 0 before the old position leaks in.
+    await page.waitForTimeout(1_000);
     expect(await videoTime(page)).toBeLessThan(1);
-    expect(await isPaused(page)).toBe(true);
   });
 
   for (const from of ['Aula 1', 'Aula 2']) {

@@ -102,9 +102,13 @@ const MIXED_LESSONS = [
   lesson('lesson-4', 'Aula 4', { urlVideo: '' }),
   lesson('lesson-5', 'Aula 5', { urlVideo: `${FIXTURE_MP4}?v=5` }),
   lesson('lesson-6', 'Aula 6', { urlVideoHls: `${FIXTURE_HLS}?v=6` }),
+  lesson('lesson-7', 'Aula 7', { urlVideoHls: `${FIXTURE_HLS}?v=7` }),
 ];
 
-/** Saved positions of `QueueMixed`: Aula 2 resumes at 4 s, Aula 6 at 5 s. */
+/**
+ * Saved positions of `QueueMixed`: Aula 2 resumes at 4 s, Aula 6 at 5 s.
+ * Aula 7 (HLS) has none.
+ */
 const MIXED_PLAYBACK: Record<string, number> = {
   'lesson-2': 4,
   'lesson-6': 5,
