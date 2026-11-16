@@ -18,7 +18,9 @@ import type {
  * Every write to the fake API is appended to `window.__lessonApiWrites`, so
  * the browser tests can check what was recorded and in which order. The
  * `patchDelay` query parameter (milliseconds) holds back each progress write,
- * to show that the page waits for it before opening the next lesson.
+ * to show that the page waits for it before opening the next lesson, and
+ * `playbackDelay` holds back each read of a saved position, as the network
+ * does: until it arrives, the player keeps the previous lesson.
  */
 
 const FIXTURE_MP4 = 'fixtures/video/sample.mp4';
@@ -91,8 +93,9 @@ const LESSONS = [
 
 /**
  * Different media on each lesson, as in production: an MP4, an HLS stream,
- * two other MP4 files (the query string makes them distinct sources to the
- * browser) and a lesson without video, which the queue skips.
+ * two other MP4 files and a second HLS stream (the query string makes them
+ * distinct sources to the browser) and a lesson without video, which the
+ * queue skips.
  */
 const MIXED_LESSONS = [
   lesson('lesson-1', 'Aula 1'),
@@ -100,14 +103,23 @@ const MIXED_LESSONS = [
   lesson('lesson-3', 'Aula 3', { urlVideo: `${FIXTURE_MP4}?v=3` }),
   lesson('lesson-4', 'Aula 4', { urlVideo: '' }),
   lesson('lesson-5', 'Aula 5', { urlVideo: `${FIXTURE_MP4}?v=5` }),
+  lesson('lesson-6', 'Aula 6', { urlVideoHls: `${FIXTURE_HLS}?v=6` }),
+  lesson('lesson-7', 'Aula 7', { urlVideoHls: `${FIXTURE_HLS}?v=7` }),
 ];
 
-/** Saved positions of `QueueMixed` and `QueueHls`: Aula 2 resumes at 4 s. */
-const MIXED_PLAYBACK: Record<string, number> = { 'lesson-2': 4 };
+/**
+ * Saved positions of `QueueMixed`: Aula 2 resumes at 4 s, Aula 6 at 5 s.
+ * Aula 7 (HLS) has none.
+ */
+const MIXED_PLAYBACK: Record<string, number> = {
+  'lesson-2': 4,
+  'lesson-6': 5,
+};
 
 /**
  * HLS on every lesson, as most lessons are in production: in Safari the
  * stream plays natively, swapping the element's `src` from lesson to lesson.
+ * Aula 2 resumes at 4 s.
  */
 const HLS_LESSONS = [
   lesson('lesson-1', 'Aula 1', { urlVideoHls: FIXTURE_HLS }),
@@ -120,7 +132,8 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 function makeApi(
   patchDelay: number,
   lessons: ApiLessonData[] = LESSONS,
-  playback: Record<string, number> = {}
+  playback: Record<string, number> = {},
+  playbackDelay = 0
 ): BaseApiClient {
   const writes: LessonApiWrite[] = [];
   globalThis.window.__lessonApiWrites = writes;
@@ -153,6 +166,7 @@ function makeApi(
         return { data: { message: 'ok', data: lessons } as T };
       }
       const lessonId = /^\/lesson\/([^/]+)\/playback$/.exec(url)?.[1];
+      if (lessonId && playbackDelay > 0) await wait(playbackDelay);
       const position = lessonId ? playback[lessonId] : undefined;
       return {
         data: {
@@ -178,15 +192,15 @@ const QueuePage = ({
   lessons?: ApiLessonData[];
   playback?: Record<string, number>;
 }) => {
-  const [api] = useState(() =>
-    makeApi(
-      Number(
-        new URLSearchParams(globalThis.location.search).get('patchDelay') ?? 0
-      ),
+  const [api] = useState(() => {
+    const params = new URLSearchParams(globalThis.location.search);
+    return makeApi(
+      Number(params.get('patchDelay') ?? 0),
       lessons,
-      playback
-    )
-  );
+      playback,
+      Number(params.get('playbackDelay') ?? 0)
+    );
+  });
 
   return (
     <MemoryRouter

@@ -892,6 +892,9 @@ export function LessonViewPage({
               isCinemaMode={isCinemaMode}
               onToggleCinemaMode={toggleCinemaMode}
               autoPlay={autoPlayId === playerMedia.lessonId}
+              // Still the previous lesson while the next one's resume point is
+              // read: a play pressed now is for the lesson already open.
+              mediaPending={!isPlayerOnActiveLesson}
               overlay={
                 pendingLesson ? (
                   <NextLessonCountdown

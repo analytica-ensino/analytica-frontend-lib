@@ -441,15 +441,13 @@ describe('Auth Components', () => {
         hostname: 'backoffice.example.com',
         protocol: 'https:',
         port: '',
-        href: 'https://backoffice.example.com/protected?token=t&refreshToken=r&sessionId=s',
+        href: 'https://backoffice.example.com/protected?authCode=c',
       };
       const { restore } = mockWindowLocation(mockLocation);
       restoreLocation = restore;
 
       render(
-        <MemoryRouter
-          initialEntries={['/protected?token=t&refreshToken=r&sessionId=s']}
-        >
+        <MemoryRouter initialEntries={['/protected?authCode=c']}>
           <AuthProvider checkAuthFn={checkAuthFn}>
             <ProtectedRoute
               redirectTo="/login"
@@ -468,7 +466,7 @@ describe('Auth Components', () => {
       });
       // Must NOT have redirected while tokens are pending hydration.
       expect(mockLocation.href).toBe(
-        'https://backoffice.example.com/protected?token=t&refreshToken=r&sessionId=s'
+        'https://backoffice.example.com/protected?authCode=c'
       );
       expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
     });
@@ -480,15 +478,13 @@ describe('Auth Components', () => {
         hostname: 'backoffice.example.com',
         protocol: 'https:',
         port: '',
-        href: 'https://backoffice.example.com/protected?token=t&refreshToken=r&sessionId=s',
+        href: 'https://backoffice.example.com/protected?authCode=c',
       };
       const { restore } = mockWindowLocation(mockLocation);
       restoreLocation = restore;
 
       render(
-        <MemoryRouter
-          initialEntries={['/protected?token=t&refreshToken=r&sessionId=s']}
-        >
+        <MemoryRouter initialEntries={['/protected?authCode=c']}>
           <AuthProvider checkAuthFn={checkAuthFn}>
             <ProtectedRoute
               redirectTo="/login"
@@ -505,7 +501,7 @@ describe('Auth Components', () => {
       });
       // No redirect while tokens pending.
       expect(mockLocation.href).toBe(
-        'https://backoffice.example.com/protected?token=t&refreshToken=r&sessionId=s'
+        'https://backoffice.example.com/protected?authCode=c'
       );
     });
 
@@ -803,11 +799,7 @@ describe('Auth Components', () => {
         const checkAuthFn = jest.fn().mockResolvedValue(false);
 
         render(
-          <MemoryRouter
-            initialEntries={[
-              '/?token=abc123&refreshToken=refresh456&sessionId=session789',
-            ]}
-          >
+          <MemoryRouter initialEntries={['/?authCode=abc123']}>
             <AuthProvider checkAuthFn={checkAuthFn}>
               <PublicRoute
                 tokenValidationComponent={
@@ -876,11 +868,7 @@ describe('Auth Components', () => {
         const checkAuthFn = jest.fn().mockResolvedValue(false);
 
         render(
-          <MemoryRouter
-            initialEntries={[
-              '/?token=abc123&refreshToken=refresh456&sessionId=session789',
-            ]}
-          >
+          <MemoryRouter initialEntries={['/?authCode=abc123']}>
             <AuthProvider checkAuthFn={checkAuthFn}>
               <PublicRoute>
                 <TestComponent />
