@@ -50,6 +50,9 @@
 /* Tipografia do corpo de artigos (ArticleContent). Mesmo motivo do richEditor.css. */
 @import './components/ArticleContent/articleContent.css';
 
+/* Stage of the ebook reader (EbookReader). Same reason as richEditor.css. */
+@import './components/EbookReader/ebookReader.css';
+
 /* Safelist compacto para todas as cores do tema */
 @source inline("{bg,text,border}-{primary,secondary,tertiary,text,background,border,success,error,warning,info}-{50,{100..900..100},950}");
 

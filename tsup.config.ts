@@ -201,6 +201,7 @@ export default defineConfig({
       'src/components/SupportConversation/SupportTicketConversation.tsx',
     'types/supportConversation/index': 'src/types/supportConversation.ts',
     'ArticleContent/index': 'src/components/ArticleContent/ArticleContent.tsx',
+    'EbookReader/index': 'src/components/EbookReader/EbookReader.tsx',
     'SupportChatMessage/index':
       'src/components/SupportChat/SupportChatMessage.tsx',
     'SupportChatEvent/index': 'src/components/SupportChat/SupportChatEvent.tsx',
