@@ -116,6 +116,17 @@ const MIXED_PLAYBACK: Record<string, number> = {
   'lesson-6': 5,
 };
 
+/**
+ * HLS on every lesson, as most lessons are in production: in Safari the
+ * stream plays natively, swapping the element's `src` from lesson to lesson.
+ * Aula 2 resumes at 4 s.
+ */
+const HLS_LESSONS = [
+  lesson('lesson-1', 'Aula 1', { urlVideoHls: FIXTURE_HLS }),
+  lesson('lesson-2', 'Aula 2', { urlVideoHls: `${FIXTURE_HLS}?v=2` }),
+  lesson('lesson-3', 'Aula 3', { urlVideoHls: `${FIXTURE_HLS}?v=3` }),
+];
+
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function makeApi(
@@ -218,4 +229,8 @@ export const Queue: Story = () => <QueuePage />;
 
 export const QueueMixed: Story = () => (
   <QueuePage lessons={MIXED_LESSONS} playback={MIXED_PLAYBACK} />
+);
+
+export const QueueHls: Story = () => (
+  <QueuePage lessons={HLS_LESSONS} playback={MIXED_PLAYBACK} />
 );
