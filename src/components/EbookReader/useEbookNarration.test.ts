@@ -251,6 +251,28 @@ describe('useEbookNarration', () => {
     expect(hook.result.current.isPlaying).toBe(false);
   });
 
+  it.each([
+    'https://evil.example.com/narracao.mp3',
+    '../outro-livro/audio/narracao.mp3',
+  ])('ignores a page whose mp3 is not in the package (%s)', (file) => {
+    const { hook } = setup({ narration: [{ ...CASO, file }] });
+
+    expect(hook.result.current.hasNarration).toBe(false);
+  });
+
+  it('highlights the clip on the book as it is now, after a rebuild', async () => {
+    const { content, hook, tick } = setup({ visible: [1] });
+    await act(async () => hook.result.current.toggle());
+    const rebuilt = page(content, 1).cloneNode(true) as HTMLElement;
+    page(content, 1).replaceWith(rebuilt);
+
+    tick(24.1);
+
+    expect(
+      rebuilt.querySelector('[data-trecho="p3-2"]')?.classList.contains('lendo')
+    ).toBe(true);
+  });
+
   it('stops right away when no page on screen is narrated', async () => {
     const { hook } = setup({ visible: [0] });
 

@@ -139,19 +139,23 @@ export const EbookReader = ({
 
       <div className="relative flex min-h-0 flex-1">
         <div className="flex min-w-0 flex-1 flex-col">
-          <div
-            className="ebook-leitor ebook-reader__stage"
-            data-theme={isDark ? 'dark' : 'light'}
-            data-ds-typography={
-              material === EBOOK_MATERIAL_TYPE.TEACHER ? '' : undefined
-            }
-          >
-            <style>{content.css}</style>
+          {/* The frame keeps the book inside: the book's CSS reaches
+              `.ebook-leitor` and below, never this element. */}
+          <div className="ebook-reader__frame" data-testid="ebook-reader-frame">
             <div
-              ref={contentRef}
-              className="ebook-reader__content"
-              data-testid="ebook-reader-content"
-            />
+              className="ebook-leitor ebook-reader__stage"
+              data-theme={isDark ? 'dark' : 'light'}
+              data-ds-typography={
+                material === EBOOK_MATERIAL_TYPE.TEACHER ? '' : undefined
+              }
+            >
+              <style>{content.css}</style>
+              <div
+                ref={contentRef}
+                className="ebook-reader__content"
+                data-testid="ebook-reader-content"
+              />
+            </div>
           </div>
           {isBook && (
             <div className="h-1 w-full bg-background-200" aria-hidden="true">

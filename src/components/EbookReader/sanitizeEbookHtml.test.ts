@@ -44,6 +44,9 @@ describe('sanitizeEbookHtml', () => {
     '//evil.example.com/x.png',
     '/img/x.png',
     'data:image/png;base64,AAAA',
+    '../outro-livro/img/x.webp',
+    'img/../../x.webp',
+    'img\\..\\x.webp',
   ])('drops the image source %s, which is outside the package', (src) => {
     const safe = sanitizeEbookHtml(`<img src="${src}" alt="x">`, BASE);
 
@@ -96,5 +99,16 @@ describe('resolvePackagePath', () => {
     [`${BASE}/`, `${BASE}/audio/narracao.mp3`],
   ])('joins the path to the base %s', (base, expected) => {
     expect(resolvePackagePath('audio/narracao.mp3', base)).toBe(expected);
+  });
+
+  it.each([
+    'https://evil.example.com/x.mp3',
+    '//evil.example.com/x.mp3',
+    '/audio/x.mp3',
+    '../outro-livro/audio/narracao.mp3',
+    'audio\\..\\..\\x.mp3',
+    '',
+  ])('refuses %j, which is not a file of the package', (path) => {
+    expect(resolvePackagePath(path, BASE)).toBeNull();
   });
 });

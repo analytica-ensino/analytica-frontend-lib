@@ -91,18 +91,34 @@ let purifier: Purifier | null = null;
 /** Base of the version being sanitized; read by the hooks during one synchronous call. */
 let currentBase: string | null = null;
 
-/** True for `img/x.webp`, false for `https://…`, `//host/…`, `/abs`, `data:` and the like. */
-const isPackagePath = (value: string): boolean =>
-  value !== '' && !/^([a-z][a-z\d+.-]*:|\/)/i.test(value);
+/**
+ * True for a file inside the package (`img/x.webp`, `audio/narracao.mp3`).
+ * False for anything that would load from elsewhere: a URL with a scheme
+ * (`https:`, `data:`, `javascript:`), a host (`//host/…`), an absolute path
+ * (`/x`), a backslash (browsers read it as a slash) or a `..` step out of the
+ * version's folder.
+ * @param value - Path as written in the package
+ */
+export const isPackagePath = (value: string): boolean =>
+  value !== '' &&
+  !/^([a-z][a-z\d+.-]*:|\/)/i.test(value) &&
+  !value.includes('\\') &&
+  !value.split('/').includes('..');
+
+/** Absolute URL of a path already known to be inside the package. */
+const joinToBase = (path: string, base: string): string =>
+  new URL(path, base.endsWith('/') ? base : `${base}/`).href;
 
 /**
  * Resolves a package path against the version's base URL.
- * @param path - Path relative to the package (e.g. `img/EB40_A01.webp`)
+ * @param path - Path inside the package (e.g. `img/EB40_A01.webp`)
  * @param base - Base URL of the version's files
- * @returns Absolute URL
+ * @returns Absolute URL, or `null` when the path is not inside the package
  */
-export const resolvePackagePath = (path: string, base: string): string =>
-  new URL(path, base.endsWith('/') ? base : `${base}/`).href;
+export const resolvePackagePath = (
+  path: string,
+  base: string
+): string | null => (isPackagePath(path) ? joinToBase(path, base) : null);
 
 /**
  * Dedicated DOMPurify instance, so these hooks never leak into the global one
@@ -124,10 +140,10 @@ const getPurifier = (): Purifier => {
     if (element.tagName === 'IMG') {
       const src = element.getAttribute('src') ?? '';
       if (!isPackagePath(src)) {
-        // Every image comes from the package; an outside URL is dropped.
+        // Every image comes from the package; anything else is dropped.
         element.removeAttribute('src');
       } else if (currentBase) {
-        element.setAttribute('src', resolvePackagePath(src, currentBase));
+        element.setAttribute('src', joinToBase(src, currentBase));
       }
       return;
     }

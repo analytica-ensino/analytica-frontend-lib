@@ -18,6 +18,22 @@
   min-height: 0;
 }
 
+/*
+ * Keeps the book inside the reader. A `position: fixed` (or absolute, or a
+ * high z-index) in the book's CSS or inline styles would otherwise cover the
+ * whole platform: with layout containment this frame is the box such
+ * elements position against, and with paint containment nothing of the book
+ * is drawn outside it. The book's CSS is scoped to `.ebook-leitor` and its
+ * descendants, so it cannot undo this on the frame.
+ */
+.ebook-reader__frame {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  contain: layout paint;
+}
+
 .ebook-reader__stage {
   flex: 1;
   min-height: 0;

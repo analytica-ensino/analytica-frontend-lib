@@ -10,7 +10,6 @@ import {
   activeClips,
   audioDescriptionSkipTarget,
   hasAudioDescription as anyAudioDescription,
-  indexNarration,
   isAudioDescriptionOnly,
 } from './narration';
 import { resolvePackagePath } from './sanitizeEbookHtml';
@@ -69,6 +68,28 @@ const jump = (audio: HTMLAudioElement, to: number) => {
   audio.currentTime = to;
 };
 
+/** A narrated page whose mp3 is inside the package, with its address. */
+interface PlayablePage extends EbookNarrationPage {
+  src: string;
+}
+
+/**
+ * The pages that can play, by section. A page whose mp3 is not a file of the
+ * package (an outside URL, a step out of the version's folder) is left out,
+ * as images are.
+ */
+const playablePages = (
+  narration: EbookNarrationPage[] | null | undefined,
+  assetBaseUrl: string
+): Map<string, PlayablePage> => {
+  const pages = new Map<string, PlayablePage>();
+  for (const page of narration ?? []) {
+    const src = resolvePackagePath(page.file, assetBaseUrl);
+    if (src) pages.set(page.section, { ...page, src });
+  }
+  return pages;
+};
+
 export interface UseEbookNarrationOptions {
   /** Narration of the version, page by page, when it has one */
   narration?: EbookNarrationPage[] | null;
@@ -118,7 +139,10 @@ export const useEbookNarration = ({
   contentRef,
   book,
 }: UseEbookNarrationOptions): UseEbookNarrationReturn => {
-  const pages = useMemo(() => indexNarration(narration), [narration]);
+  const pages = useMemo(
+    () => playablePages(narration, assetBaseUrl),
+    [narration, assetBaseUrl]
+  );
   const hasNarration = pages.size > 0;
   const hasAudioDescription = useMemo(
     () => anyAudioDescription(pages.values()),
@@ -168,16 +192,12 @@ export const useEbookNarration = ({
     pauseAudio();
   }, [pauseAudio]);
 
-  const audioFor = useCallback(
-    (page: EbookNarrationPage): HTMLAudioElement => {
-      audioRef.current ??= new Audio();
-      const audio = audioRef.current;
-      const src = resolvePackagePath(page.file, assetBaseUrl);
-      if (audio.src !== src) audio.src = src;
-      return audio;
-    },
-    [assetBaseUrl]
-  );
+  const audioFor = useCallback((page: PlayablePage): HTMLAudioElement => {
+    audioRef.current ??= new Audio();
+    const audio = audioRef.current;
+    if (audio.src !== page.src) audio.src = page.src;
+    return audio;
+  }, []);
 
   const playPages = useCallback(
     (queue: HTMLElement[], run: number, onDone: () => void) => {
@@ -226,9 +246,13 @@ export const useEbookNarration = ({
           return;
         }
         clearHighlight();
+        // Looked up on the page as it is now: the book may have been rebuilt
+        // (a new size) since this page started. Clip ids are unique in a book.
         highlightedRef.current = activeClips(page, time)
           .map((clip) =>
-            pageElement.querySelector(`[data-trecho="${CSS.escape(clip.id)}"]`)
+            contentRef.current?.querySelector(
+              `[data-trecho="${CSS.escape(clip.id)}"]`
+            )
           )
           .filter((element): element is Element => !!element);
         highlightedRef.current.forEach((element) =>
@@ -257,7 +281,7 @@ export const useEbookNarration = ({
       if (audio.readyState >= HTMLMediaElement.HAVE_METADATA) begin();
       else audio.addEventListener('loadedmetadata', begin, { once: true });
     },
-    [audioFor, clearHighlight, pages, stop]
+    [audioFor, clearHighlight, contentRef, pages, stop]
   );
 
   /** Plays the pages on screen and then turns the page (or scrolls on). */

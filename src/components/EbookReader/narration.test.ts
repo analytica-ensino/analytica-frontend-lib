@@ -2,7 +2,6 @@ import {
   activeClips,
   audioDescriptionSkipTarget,
   hasAudioDescription,
-  indexNarration,
   isAudioDescriptionOnly,
 } from './narration';
 import type { EbookNarrationPage } from './types';
@@ -28,19 +27,6 @@ const COVER: EbookNarrationPage = {
   end: 9.57,
   clips: [{ id: 'p0-1', start: 0, end: 9.4 }],
 };
-
-describe('indexNarration', () => {
-  it('indexes the pages by section', () => {
-    const pages = indexNarration([COVER, CASO]);
-
-    expect([...pages.keys()]).toEqual(['capa', 'caso']);
-    expect(pages.get('caso')).toBe(CASO);
-  });
-
-  it.each([undefined, null])('returns an empty index for %s', (narration) => {
-    expect(indexNarration(narration).size).toBe(0);
-  });
-});
 
 describe('isAudioDescriptionOnly', () => {
   it('is true when every clip describes an image', () => {

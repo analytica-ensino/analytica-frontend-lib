@@ -196,6 +196,34 @@ for (const { name, size, spread } of VIEWPORTS) {
       await expect(stage).toHaveCSS('background-color', 'rgb(14, 27, 31)');
     });
 
+    test('keeps a fixed element of the book inside the reader', async ({
+      page,
+    }) => {
+      await openBook(page);
+      // A book whose CSS pins something to the screen, as `position: fixed`
+      // in its styles would.
+      await page.evaluate(() => {
+        const cover = document.createElement('div');
+        cover.dataset.testid = 'escape';
+        cover.style.cssText =
+          'position: fixed; inset: 0; z-index: 9999; background: red;';
+        document
+          .querySelector('[data-testid="ebook-reader-content"] main')
+          ?.append(cover);
+      });
+
+      const frame = await page.getByTestId('ebook-reader-frame').boundingBox();
+      const cover = await page.getByTestId('escape').boundingBox();
+      expect(cover?.y).toBeGreaterThanOrEqual(frame?.y ?? 0);
+      expect((cover?.y ?? 0) + (cover?.height ?? 0)).toBeLessThanOrEqual(
+        (frame?.y ?? 0) + (frame?.height ?? 0)
+      );
+      // The header and the controls are still the ones under the pointer.
+      await expect(headerTitle(page)).toBeVisible();
+      await page.getByRole('button', { name: 'Próxima página' }).click();
+      await expect(pageLabel(page)).toHaveText(pages(1));
+    });
+
     test('opens and closes the answer of "ver resposta"', async ({ page }) => {
       await openBook(page);
       await goToChapter(page, 'Caderno do detetive');

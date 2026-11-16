@@ -7,16 +7,6 @@ export const AD_LOOKAHEAD_S = 0.2;
 export const HIGHLIGHT_LEAD_S = 0.05;
 
 /**
- * Indexes the narration by page section (`data-secao`).
- * @param narration - Pages as stored with the version, or nothing
- * @returns Pages by `data-secao`
- */
-export const indexNarration = (
-  narration?: EbookNarrationPage[] | null
-): Map<string, EbookNarrationPage> =>
-  new Map((narration ?? []).map((page) => [page.section, page]));
-
-/**
  * True when every clip of the page is audio description, so the page is
  * skipped altogether when audio description is off.
  * @param page - Narration of the page
