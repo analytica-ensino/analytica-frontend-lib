@@ -12,7 +12,7 @@ const BLOCKED_URL = 'url("")';
 /**
  * Points the book's CSS at the version's files.
  *
- * The upload already scopes the selectors to `.ebook-leitor`; here the files
+ * The upload already scopes the selectors to `.ebook-content`; here the files
  * the CSS points at are dealt with. Inside the platform page a relative
  * `url(fonts/x.woff2)` would resolve against the platform, not the CDN, so
  * package paths are resolved against the version's files, as image sources

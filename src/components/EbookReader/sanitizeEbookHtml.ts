@@ -92,7 +92,7 @@ let purifier: Purifier | null = null;
 let currentBase: string | null = null;
 
 /**
- * True for a file inside the package (`img/x.webp`, `audio/narracao.mp3`).
+ * True for a file inside the package (`img/x.webp`, `audio/narration.mp3`).
  * False for anything that would load from elsewhere: a URL with a scheme
  * (`https:`, `data:`, `javascript:`), a host (`//host/…`), an absolute path
  * (`/x`), a backslash (browsers read it as a slash) or a `..` step out of the

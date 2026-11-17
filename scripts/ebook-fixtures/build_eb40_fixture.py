@@ -1,20 +1,22 @@
 """Builds the EbookReader fixture (AE-3321) from the EB40 package.
 
-Writes public/fixtures/ebook/eb40/{aluno,professor}/ the way the upload
+Writes public/fixtures/ebook/eb40/{student,teacher}/ the way the upload
 (AE-3318) stores a version, following backend docs/EBOOKS-FORMATO.md:
 
   content.html    the book's <main>, without scripts
-  styles.css      every <style>, scoped to `.ebook-leitor`
-  narration.json  the narration, page by page, in the reader's English fields
-                  (student book only)
+  styles.css      every <style>, scoped to `.ebook-content`
+  narration.json  the narration, page by page, in the reader's fields
+                  (EbookNarrationPage; student book only)
   metadata.json   the package's metadata, as is
   img/            the images, downscaled so the fixture stays small
   audio/          only the narration of pages "caso" and "p04" (a spread with
                   audio description clips), with page times shifted to match
 
-The fixture was built from the EB40 package ("O Caso da Couve Mordida") sent by
-the content team on 2026-11-16. Once the upload processes packages, rebuild it
-from the upload's output instead.
+The input is a package in the English format of that doc. The fixture was
+built from the EB40 package ("O Caso da Couve Mordida") sent by the content
+team on 2026-11-16, renamed to the English format by the doc's table (section
+ids and the classes the doc does not name yet unchanged). Once the upload
+processes packages, rebuild it from the upload's output instead.
 
 Usage (Python 3 with Pillow):
   python3 -I scripts/ebook-fixtures/build_eb40_fixture.py <EB40 folder> public/fixtures/ebook/eb40
@@ -27,7 +29,7 @@ import sys
 
 from PIL import Image
 
-SCOPE = '.ebook-leitor'
+SCOPE = '.ebook-content'
 KEEP_NARRATION = ['caso', 'p04']  # a spread with audio description clips
 IMAGE_MAX_WIDTH = 360
 
@@ -126,7 +128,7 @@ def cut_mp3(src, dst, t0, t1):
 
 
 def build(package, out):
-    for material in ('aluno', 'professor'):
+    for material in ('student', 'teacher'):
         src = next(os.path.join(package, d) for d in os.listdir(package) if d.endswith(f'-{material}'))
         dst = os.path.join(out, material)
         if os.path.isdir(dst):
@@ -144,30 +146,30 @@ def build(package, out):
             if image.width > IMAGE_MAX_WIDTH:
                 image = image.resize((IMAGE_MAX_WIDTH, round(image.height * IMAGE_MAX_WIDTH / image.width)))
             image.save(os.path.join(dst, 'img', name), 'WEBP', quality=50)
-        found = re.search(r'window\.NARRACAO\s*=\s*(\{.*?\});?\s*</script>', html, re.S)
+        found = re.search(r'window\.NARRATION\s*=\s*(\{.*?\});?\s*</script>', html, re.S)
         if not found:
             continue
         narration = json.loads(found.group(1))
-        pages = [p for p in narration.values() if p['secao'] in KEEP_NARRATION]
-        t0, t1 = pages[0]['ini'], pages[-1]['fim']
+        pages = [p for p in narration.values() if p['section'] in KEEP_NARRATION]
+        t0, t1 = pages[0]['start'], pages[-1]['end']
         os.makedirs(os.path.join(dst, 'audio'))
-        cut_mp3(os.path.join(src, 'audio', 'narracao.mp3'), os.path.join(dst, 'audio', 'narracao.mp3'), t0, t1)
-        # The package's map comes in Portuguese; the upload hands it over in
-        # the reader's English fields (EbookNarrationPage), as a list.
+        cut_mp3(os.path.join(src, 'audio', 'narration.mp3'), os.path.join(dst, 'audio', 'narration.mp3'), t0, t1)
+        # The upload hands the package's map over in the reader's fields
+        # (EbookNarrationPage), as a list.
         kept = [
             {
-                'section': page['secao'],
-                'file': page['arquivo'],
-                'start': round(page['ini'] - t0, 2),
-                'end': round(page['fim'] - t0, 2),
+                'section': page['section'],
+                'file': page['file'],
+                'start': round(page['start'] - t0, 2),
+                'end': round(page['end'] - t0, 2),
                 'clips': [
                     {
-                        'id': clip['trecho'],
-                        'start': clip['ini'],
-                        'end': clip['fim'],
-                        **({'audioDescription': True} if clip.get('ad') else {}),
+                        'id': segment['segment'],
+                        'start': segment['start'],
+                        'end': segment['end'],
+                        **({'audioDescription': True} if segment.get('ad') else {}),
                     }
-                    for clip in page['trechos']
+                    for segment in page['segments']
                 ],
             }
             for page in pages

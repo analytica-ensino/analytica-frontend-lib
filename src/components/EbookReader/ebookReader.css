@@ -1,12 +1,12 @@
 /*
  * EbookReader — the frame around an authored ebook (AE-3321).
  *
- * The book brings its own CSS, scoped to `.ebook-leitor` by the upload. These
+ * The book brings its own CSS, scoped to `.ebook-content` by the upload. These
  * rules only size the stage. The book's `<main>` was made for the package's
  * own fixed bars (100vh tall, room for a bar at the bottom); inside the
  * reader the controls sit outside the stage, so the reader takes over its
- * size and spacing. The selectors carry `.ebook-leitor` to outrank the book's
- * `.ebook-leitor .ebook-livro`.
+ * size and spacing. The selectors carry `.ebook-content` to outrank the
+ * book's `.ebook-content .ebook-book`.
  *
  * Imported by `src/styles.css`, like `articleContent.css`.
  */
@@ -23,7 +23,7 @@
  * high z-index) in the book's CSS or inline styles would otherwise cover the
  * whole platform: with layout containment this frame is the box such
  * elements position against, and with paint containment nothing of the book
- * is drawn outside it. The book's CSS is scoped to `.ebook-leitor` and its
+ * is drawn outside it. The book's CSS is scoped to `.ebook-content` and its
  * descendants, so it cannot undo this on the frame.
  */
 .ebook-reader__frame {
@@ -41,14 +41,14 @@
   flex-direction: column;
 }
 
-.ebook-leitor .ebook-reader__content {
+.ebook-content .ebook-reader__content {
   flex: 1;
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
 }
 
-.ebook-leitor .ebook-reader__content > main {
+.ebook-content .ebook-reader__content > main {
   min-height: 100%;
   padding: 1rem;
   box-sizing: border-box;
@@ -59,12 +59,12 @@
  * (design note: "usar a fonte do DS e o estilo de tabelas e links do DS").
  * The book's fonts and colors for tables and links give way to the theme's.
  */
-.ebook-leitor[data-ds-typography],
-.ebook-leitor[data-ds-typography] * {
+.ebook-content[data-ds-typography],
+.ebook-content[data-ds-typography] * {
   font-family: var(--font-sans) !important;
 }
 
-.ebook-leitor[data-ds-typography] table {
+.ebook-content[data-ds-typography] table {
   border: 1px solid var(--color-border-200);
   border-collapse: separate;
   border-spacing: 0;
@@ -73,27 +73,27 @@
   font-size: 0.875rem;
 }
 
-.ebook-leitor[data-ds-typography] th,
-.ebook-leitor[data-ds-typography] td {
+.ebook-content[data-ds-typography] th,
+.ebook-content[data-ds-typography] td {
   padding: 0.875rem 1.5rem;
   border-top: 1px solid var(--color-border-200);
   color: var(--color-text-800);
 }
 
-.ebook-leitor[data-ds-typography] tr:first-child > th,
-.ebook-leitor[data-ds-typography] tr:first-child > td {
+.ebook-content[data-ds-typography] tr:first-child > th,
+.ebook-content[data-ds-typography] tr:first-child > td {
   border-top: 0;
 }
 
-.ebook-leitor[data-ds-typography] thead th {
+.ebook-content[data-ds-typography] thead th {
   background: var(--color-background-50);
   font-weight: 500;
 }
 
-.ebook-leitor[data-ds-typography] a {
+.ebook-content[data-ds-typography] a {
   color: var(--color-primary-900);
 }
 
-.ebook-leitor[data-ds-typography] a:hover {
+.ebook-content[data-ds-typography] a:hover {
   color: var(--color-primary-700);
 }

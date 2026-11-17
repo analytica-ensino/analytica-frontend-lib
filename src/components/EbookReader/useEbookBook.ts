@@ -9,14 +9,16 @@ import {
 } from 'react';
 import type { FlipCorner, PageFlip, SizeType } from 'page-flip';
 import { measureBook, visiblePages, type BookSize } from './bookLayout';
-import type { EbookPageChange } from './types';
+import { EBOOK_CLASS, EBOOK_FORMAT, type EbookPageChange } from './types';
 import { createManagedPageFlip, type ManagedPageFlip } from './pageFlipLoop';
 
 /** `book` turns pages (page-flip); `scroll` shows them one under the other. */
 export type EbookLayout = 'book' | 'scroll';
 
-/** Pages of the book layout: the `.pg` children of `#livro`. */
-const PAGE_SELECTOR = ':scope > .pg';
+/** Pages of the book layout: the `.page` children of `#book`. */
+const PAGE_SELECTOR = `:scope > .${EBOOK_FORMAT.PAGE_CLASS}`;
+const BOOK_SELECTOR = `#${EBOOK_FORMAT.BOOK_ID}`;
+const SECTION_SELECTOR = `[${EBOOK_FORMAT.SECTION_ATTRIBUTE}]`;
 
 /** The book is rebuilt only when the page width changes by this much, or the spread changes. */
 const RESIZE_TOLERANCE_PX = 12;
@@ -44,19 +46,19 @@ export interface EbookTocEntry {
 interface BookTemplate {
   main: HTMLElement;
   pages: HTMLElement[];
-  /** Every `data-secao`, in reading order */
+  /** Every `data-section`, in reading order */
   sections: string[];
   toc: EbookTocEntry[];
 }
 
 export interface UseEbookBookOptions {
-  /** Element the book is drawn into (inside the `.ebook-leitor` container) */
+  /** Element the book is drawn into (inside the `.ebook-content` container) */
   contentRef: RefObject<HTMLDivElement | null>;
   /** The book's `<main>`, already sanitized */
   html: string;
-  /** Section (`data-secao`) or element id to open at */
+  /** Section (`data-section`) or element id to open at */
   initialSection?: string;
-  /** Called with every section (`data-secao`) the first time it comes into view */
+  /** Called with every section (`data-section`) the first time it comes into view */
   onSectionsSeen?: (sections: string[]) => void;
   /** Called whenever the pages on screen change: on a page turn, a scroll or a new section of a scroll-only material */
   onPageChange?: (page: EbookPageChange) => void;
@@ -90,10 +92,10 @@ const prefersReducedMotion = (): boolean =>
   typeof globalThis.matchMedia === 'function' &&
   globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/** `data-secao` of an element and of the sections inside it (the end marker sits inside the last page). */
+/** `data-section` of an element and of the sections inside it (the end marker sits inside the last page). */
 const sectionsOf = (element: Element): string[] =>
-  [element, ...Array.from(element.querySelectorAll('[data-secao]'))]
-    .map((el) => el.getAttribute('data-secao'))
+  [element, ...Array.from(element.querySelectorAll(SECTION_SELECTOR))]
+    .map((el) => el.getAttribute(EBOOK_FORMAT.SECTION_ATTRIBUTE))
     .filter((section): section is string => !!section);
 
 /**
@@ -101,9 +103,9 @@ const sectionsOf = (element: Element): string[] =>
  * `.indice` list) that has any.
  */
 const tocOf = (main: HTMLElement): EbookTocEntry[] => {
-  const list = Array.from(main.querySelectorAll('nav, .indice')).find(
-    (element) => element.querySelector('a[href^="#"]')
-  );
+  const list = Array.from(
+    main.querySelectorAll(`nav, .${EBOOK_CLASS.OLD_CONTENTS}`)
+  ).find((element) => element.querySelector('a[href^="#"]'));
   if (!list) return [];
   return Array.from(list.querySelectorAll('a[href^="#"]'))
     .map((link) => ({
@@ -117,28 +119,34 @@ const parseTemplate = (html: string): BookTemplate => {
   const holder = document.createElement('div');
   holder.innerHTML = html;
   const main = holder.querySelector('main') ?? holder;
-  const book = main.querySelector<HTMLElement>('#livro');
+  const book = main.querySelector<HTMLElement>(BOOK_SELECTOR);
   const pages = book
     ? Array.from(book.querySelectorAll<HTMLElement>(PAGE_SELECTOR))
     : [];
   pages.forEach((page, index) => page.setAttribute('data-ix', String(index)));
-  main.querySelectorAll<HTMLElement>('.ver-resposta').forEach((button) => {
-    button.dataset.ebookLabel = button.textContent ?? '';
-  });
-  const sections = Array.from(main.querySelectorAll('[data-secao]'))
-    .map((element) => element.getAttribute('data-secao') ?? '')
+  main
+    .querySelectorAll<HTMLElement>(`.${EBOOK_CLASS.ANSWER_BUTTON}`)
+    .forEach((button) => {
+      button.dataset.ebookLabel = button.textContent ?? '';
+    });
+  const sections = Array.from(main.querySelectorAll(SECTION_SELECTOR))
+    .map(
+      (element) => element.getAttribute(EBOOK_FORMAT.SECTION_ATTRIBUTE) ?? ''
+    )
     .filter(Boolean);
   return { main, pages, sections, toc: tocOf(main) };
 };
+
+/** The element a section id or element id points at. */
+const sectionTargetSelector = (target: string): string =>
+  `#${CSS.escape(target)}, [${EBOOK_FORMAT.SECTION_ATTRIBUTE}="${CSS.escape(target)}"]`;
 
 const pageIndexOf = (template: BookTemplate, target: string): number =>
   template.pages.findIndex(
     (page) =>
       page.id === target ||
-      page.getAttribute('data-secao') === target ||
-      !!page.querySelector(
-        `#${CSS.escape(target)}, [data-secao="${CSS.escape(target)}"]`
-      )
+      page.getAttribute(EBOOK_FORMAT.SECTION_ATTRIBUTE) === target ||
+      !!page.querySelector(sectionTargetSelector(target))
   );
 
 /** Width and height left for the book inside `<main>`, padding excluded. */
@@ -158,12 +166,12 @@ const availableSize = (content: HTMLElement, main: HTMLElement): BookSize => {
 /**
  * Draws a processed book inside the reader and turns its pages.
  *
- * The book layout follows the package's own reader: `#livro` becomes a
+ * The book layout follows the package's own reader: `#book` becomes a
  * page-flip book (two pages when they fit, hard covers, flipped by the
  * buttons, the keyboard, a click on the page corner or a link of the
  * contents). The scroll layout shows the pages one under the other. Both draw
  * from a clean copy of the book and set the classes its CSS expects:
- * `aberto`, `rolagem`, `na-capa` and `na-contracapa` on `#livro`.
+ * the open, scroll, cover and back cover classes of EBOOK_CLASS on `#book`.
  *
  * @param options - Where to draw, what to draw and who to tell about seen sections
  * @returns Layout state and navigation
@@ -233,9 +241,12 @@ export const useEbookBook = ({
       pageIndexRef.current = index;
       setPageIndex(index);
       setSpread(isSpread);
-      bookRef.current?.classList.toggle('na-capa', isSpread && index === 0);
       bookRef.current?.classList.toggle(
-        'na-contracapa',
+        EBOOK_CLASS.ON_COVER,
+        isSpread && index === 0
+      );
+      bookRef.current?.classList.toggle(
+        EBOOK_CLASS.ON_BACK_COVER,
         isSpread && index === count - 1
       );
       showSections(
@@ -254,12 +265,12 @@ export const useEbookBook = ({
       teardown();
       const main = template.main.cloneNode(true) as HTMLElement;
       content.replaceChildren(main);
-      const book = main.querySelector<HTMLElement>('#livro');
+      const book = main.querySelector<HTMLElement>(BOOK_SELECTOR);
       if (!book) return;
       const size = availableSize(content, main);
       book.style.width = `${size.spread ? 2 * size.pageWidth : size.pageWidth}px`;
       book.style.height = `${size.pageHeight}px`;
-      book.classList.add('aberto');
+      book.classList.add(EBOOK_CLASS.OPEN);
       bookRef.current = book;
       sizeRef.current = size;
       managedRef.current = createManagedPageFlip(
@@ -298,8 +309,8 @@ export const useEbookBook = ({
       teardown();
       const main = template.main.cloneNode(true) as HTMLElement;
       content.replaceChildren(main);
-      const book = main.querySelector<HTMLElement>('#livro');
-      book?.classList.add('rolagem');
+      const book = main.querySelector<HTMLElement>(BOOK_SELECTOR);
+      book?.classList.add(EBOOK_CLASS.SCROLL);
       book?.removeAttribute('style');
       const pages = book
         ? Array.from(book.querySelectorAll<HTMLElement>(PAGE_SELECTOR))
@@ -319,7 +330,9 @@ export const useEbookBook = ({
                 showSections(sectionsOf(entry.target));
                 return;
               }
-              const section = entry.target.getAttribute('data-secao');
+              const section = entry.target.getAttribute(
+                EBOOK_FORMAT.SECTION_ATTRIBUTE
+              );
               if (!section) return;
               setCurrentSection(section);
               showSections([section]);
@@ -331,7 +344,7 @@ export const useEbookBook = ({
         );
         (book
           ? pages
-          : Array.from(main.querySelectorAll('[data-secao]'))
+          : Array.from(main.querySelectorAll(SECTION_SELECTOR))
         ).forEach((target) => observer.observe(target));
         observerRef.current = observer;
       }
@@ -418,9 +431,7 @@ export const useEbookBook = ({
         return;
       }
       contentRef.current
-        ?.querySelector(
-          `#${CSS.escape(target)}, [data-secao="${CSS.escape(target)}"]`
-        )
+        ?.querySelector(sectionTargetSelector(target))
         ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     },
     [contentRef, goToIndex, hasBookLayout, template]
@@ -445,7 +456,9 @@ export const useEbookBook = ({
     if (!content) return undefined;
     const onClick = (event: MouseEvent) => {
       const target = event.target as Element | null;
-      const answerButton = target?.closest?.<HTMLElement>('.ver-resposta');
+      const answerButton = target?.closest?.<HTMLElement>(
+        `.${EBOOK_CLASS.ANSWER_BUTTON}`
+      );
       if (answerButton) {
         event.preventDefault();
         const isOpen = answerButton.getAttribute('aria-expanded') === 'true';

@@ -44,7 +44,7 @@ const BASE = 'https://cdn.example.com/ebooks/eb40/3/';
 
 const CASO: EbookNarrationPage = {
   section: 'caso',
-  file: 'audio/narracao.mp3',
+  file: 'audio/narration.mp3',
   start: 10,
   end: 32,
   clips: [
@@ -56,7 +56,7 @@ const CASO: EbookNarrationPage = {
 
 const P04: EbookNarrationPage = {
   section: 'p04',
-  file: 'audio/narracao.mp3',
+  file: 'audio/narration.mp3',
   start: 32,
   end: 50,
   clips: [
@@ -69,15 +69,15 @@ const P04: EbookNarrationPage = {
 /** A page that only describes an image. */
 const QUADRO: EbookNarrationPage = {
   section: 'quadro',
-  file: 'audio/narracao.mp3',
+  file: 'audio/narration.mp3',
   start: 50,
   end: 60,
   clips: [{ id: 'p5-1', start: 0, end: 9, audioDescription: true }],
 };
 
 const pageHtml = (index: number, section: string, clipIds: string[]) =>
-  `<div class="pg" data-ix="${index}" data-secao="${section}">${clipIds
-    .map((id) => `<p data-trecho="${id}">${id}</p>`)
+  `<div class="page" data-ix="${index}" data-section="${section}">${clipIds
+    .map((id) => `<p data-segment="${id}">${id}</p>`)
     .join('')}</div>`;
 
 const buildContent = () => {
@@ -105,7 +105,7 @@ const page = (content: HTMLElement, index: number) =>
 
 const reading = (content: HTMLElement) =>
   Array.from(content.querySelectorAll('.lendo')).map((element) =>
-    element.getAttribute('data-trecho')
+    element.getAttribute('data-segment')
   );
 
 const setup = ({
@@ -185,7 +185,7 @@ describe('useEbookNarration', () => {
     await act(async () => hook.result.current.toggle());
 
     expect(hook.result.current.isPlaying).toBe(true);
-    expect(audio().src).toBe(`${BASE}audio/narracao.mp3`);
+    expect(audio().src).toBe(`${BASE}audio/narration.mp3`);
     expect(audio().currentTime).toBe(10);
     expect(audio().play).toHaveBeenCalled();
 
@@ -252,8 +252,8 @@ describe('useEbookNarration', () => {
   });
 
   it.each([
-    'https://evil.example.com/narracao.mp3',
-    '../outro-livro/audio/narracao.mp3',
+    'https://evil.example.com/narration.mp3',
+    '../other-book/audio/narration.mp3',
   ])('ignores a page whose mp3 is not in the package (%s)', (file) => {
     const { hook } = setup({ narration: [{ ...CASO, file }] });
 
@@ -269,7 +269,9 @@ describe('useEbookNarration', () => {
     tick(24.1);
 
     expect(
-      rebuilt.querySelector('[data-trecho="p3-2"]')?.classList.contains('lendo')
+      rebuilt
+        .querySelector('[data-segment="p3-2"]')
+        ?.classList.contains('lendo')
     ).toBe(true);
   });
 

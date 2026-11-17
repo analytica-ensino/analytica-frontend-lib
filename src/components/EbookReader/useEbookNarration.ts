@@ -13,7 +13,7 @@ import {
   isAudioDescriptionOnly,
 } from './narration';
 import { resolvePackagePath } from './sanitizeEbookHtml';
-import type { EbookNarrationPage } from './types';
+import { EBOOK_CLASS, EBOOK_FORMAT, type EbookNarrationPage } from './types';
 import type { UseEbookBookReturn } from './useEbookBook';
 
 /** How often, in milliseconds, the player checks the time (timeupdate is too coarse to skip on time). */
@@ -26,10 +26,10 @@ const PAGE_END_MARGIN_S = 0.3;
 const SEEK_PAST_S = 0.02;
 
 /** Attribute that names a page's section. */
-const SECTION_ATTRIBUTE = 'data-secao';
+const SECTION_ATTRIBUTE = EBOOK_FORMAT.SECTION_ATTRIBUTE;
 
 /** Class the book's CSS gives the block being read. */
-const READING_CLASS = 'lendo';
+const READING_CLASS = EBOOK_CLASS.READING;
 
 /** Where the audio description switch is kept, per browser. */
 export const AUDIO_DESCRIPTION_STORAGE_KEY = 'ebook:audio-description';
@@ -121,7 +121,7 @@ export interface UseEbookNarrationReturn {
  * Plays the book's recorded narration, page by page.
  *
  * "Ouvir" plays the clips of the pages on screen, highlighting the element of
- * each clip (`data-trecho`) with the class the book's CSS styles, and turns
+ * each clip (`data-segment`) with the class the book's CSS styles, and turns
  * the page when they end. With audio description off, image descriptions
  * (`ad` clips) are skipped before they sound, and pages that only describe
  * images are left out. Turning a page by hand while listening goes on from
@@ -251,7 +251,7 @@ export const useEbookNarration = ({
         highlightedRef.current = activeClips(page, time)
           .map((clip) =>
             contentRef.current?.querySelector(
-              `[data-trecho="${CSS.escape(clip.id)}"]`
+              `[${EBOOK_FORMAT.SEGMENT_ATTRIBUTE}="${CSS.escape(clip.id)}"]`
             )
           )
           .filter((element): element is Element => !!element);

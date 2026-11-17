@@ -9,6 +9,7 @@ import { EbookReaderHeader } from './EbookReaderHeader';
 import { sanitizeEbookCss } from './sanitizeEbookCss';
 import { sanitizeEbookHtml } from './sanitizeEbookHtml';
 import {
+  EBOOK_FORMAT,
   EBOOK_MATERIAL_TYPE,
   type EbookContent,
   type EbookDetails,
@@ -53,7 +54,7 @@ export interface EbookReaderProps {
   onBack?: () => void;
   /** `student` records reading; `preview` records nothing */
   mode?: EbookReaderMode;
-  /** Section (`data-secao`) or element id to open at */
+  /** Section (`data-section`) or element id to open at */
   initialSection?: string;
   /** Called with every section the first time it comes into view (never in preview) */
   onSectionsSeen?: (sections: string[]) => void;
@@ -76,7 +77,7 @@ const startsWithDetailsOpen = (): boolean =>
  * Reader of authored ebooks: draws the book inside the platform page, so the
  * accessibility widget and VLibras reach its text, and turns its pages.
  *
- * The book's CSS is applied inside a `.ebook-leitor` container that follows
+ * The book's CSS is applied inside a `.ebook-content` container that follows
  * the platform theme through `data-theme`. No script of the package ever
  * runs: the HTML is sanitized again here, and turning pages is this reader's.
  * Around the book: the header (title, material tabs, details toggle), the
@@ -156,10 +157,10 @@ export const EbookReader = ({
       <div className="relative flex min-h-0 flex-1">
         <div className="flex min-w-0 flex-1 flex-col">
           {/* The frame keeps the book inside: the book's CSS reaches
-              `.ebook-leitor` and below, never this element. */}
+              `.ebook-content` and below, never this element. */}
           <div className="ebook-reader__frame" data-testid="ebook-reader-frame">
             <div
-              className="ebook-leitor ebook-reader__stage"
+              className={`${EBOOK_FORMAT.STAGE_CLASS} ebook-reader__stage`}
               data-theme={isDark ? 'dark' : 'light'}
               data-ds-typography={
                 material === EBOOK_MATERIAL_TYPE.TEACHER ? '' : undefined

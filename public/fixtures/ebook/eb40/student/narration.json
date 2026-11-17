@@ -1,7 +1,7 @@
 [
   {
     "section": "caso",
-    "file": "audio/narracao.mp3",
+    "file": "audio/narration.mp3",
     "start": 0.0,
     "end": 22.52,
     "clips": [
@@ -30,7 +30,7 @@
   },
   {
     "section": "p04",
-    "file": "audio/narracao.mp3",
+    "file": "audio/narration.mp3",
     "start": 22.52,
     "end": 72.49,
     "clips": [

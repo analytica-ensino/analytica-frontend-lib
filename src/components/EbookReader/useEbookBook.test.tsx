@@ -43,13 +43,13 @@ describe('useEbookBook', () => {
   });
 
   describe('book layout', () => {
-    it('turns the #livro pages into a book that opens at the cover', () => {
+    it('turns the #book pages into a book that opens at the cover', () => {
       render(<EbookReader content={content()} title="Livro" />);
       initBook();
 
       const book = screen
         .getByTestId('ebook-reader-content')
-        .querySelector('#livro');
+        .querySelector('#book');
       expect(book).toHaveClass('aberto');
       expect(lastFlip().pages).toHaveLength(7);
       expect(lastFlip().settings.startPage).toBe(0);
@@ -100,7 +100,7 @@ describe('useEbookBook', () => {
         screen.getByRole('button', { name: 'Próxima página' })
       ).toBeDisabled();
       expect(
-        screen.getByTestId('ebook-reader-content').querySelector('#livro')
+        screen.getByTestId('ebook-reader-content').querySelector('#book')
       ).toHaveClass('na-contracapa');
     });
 
@@ -290,7 +290,7 @@ describe('useEbookBook', () => {
 
       const book = screen
         .getByTestId('ebook-reader-content')
-        .querySelector('#livro');
+        .querySelector('#book');
       expect(flip.destroyed).toBe(true);
       expect(book).toHaveClass('rolagem');
       expect(book).not.toHaveAttribute('style');
@@ -418,7 +418,9 @@ describe('useEbookBook', () => {
       act(() => lastFlip().flip(1));
 
       expect(
-        hook.result.current.getVisiblePages().map((page) => page.dataset.secao)
+        hook.result.current
+          .getVisiblePages()
+          .map((page) => page.dataset.section)
       ).toEqual(['rosto', 'sumario']);
     });
 
@@ -428,7 +430,9 @@ describe('useEbookBook', () => {
       act(() => lastFlip().flip(3));
 
       expect(
-        hook.result.current.getVisiblePages().map((page) => page.dataset.secao)
+        hook.result.current
+          .getVisiblePages()
+          .map((page) => page.dataset.section)
       ).toEqual(['caso']);
     });
 
@@ -438,7 +442,9 @@ describe('useEbookBook', () => {
       act(() => hook.result.current.toggleLayout());
 
       expect(
-        hook.result.current.getVisiblePages().map((page) => page.dataset.secao)
+        hook.result.current
+          .getVisiblePages()
+          .map((page) => page.dataset.section)
       ).toEqual(['caso']);
     });
 

@@ -141,26 +141,26 @@ export const resetEbookDoubles = () => {
 
 /** A student book: cover, six pages with contents, an answer and the end marker, back cover. */
 export const BOOK = `
-<main class="ebook-livro">
-  <div id="livro" class="livro">
-    <div class="pg pg-capa" data-secao="capa" data-density="hard"><h1>Capa</h1></div>
-    <div class="pg" data-secao="rosto"><p>Rosto</p></div>
-    <div class="pg" data-secao="sumario"><nav class="hq-indice"><a href="#caso">O caso</a><a href="#p04">Ir para a página 4</a></nav></div>
-    <div class="pg" data-secao="caso" id="caso"><p>Caso</p></div>
-    <div class="pg" data-secao="p04" id="p04">
+<main class="ebook-book">
+  <div id="book" class="book">
+    <div class="page page-cover" data-section="capa" data-density="hard"><h1>Capa</h1></div>
+    <div class="page" data-section="rosto"><p>Rosto</p></div>
+    <div class="page" data-section="sumario"><nav class="hq-indice"><a href="#caso">O caso</a><a href="#p04">Ir para a página 4</a></nav></div>
+    <div class="page" data-section="caso" id="caso"><p>Caso</p></div>
+    <div class="page" data-section="p04" id="p04">
       <button class="ver-resposta" aria-expanded="false">Ver resposta</button>
       <p class="resposta" hidden>Resposta</p>
     </div>
-    <div class="pg" data-secao="ficha"><p data-secao="fim">Fim!</p></div>
-    <div class="pg pg-contracapa" data-density="hard"><p>Contracapa</p></div>
+    <div class="page" data-section="ficha"><p data-section="fim">Fim!</p></div>
+    <div class="page page-back-cover" data-density="hard"><p>Contracapa</p></div>
   </div>
 </main>`;
 
 /** A Guia do Professor: sections in scroll, with contents. */
 export const GUIDE = `
 <main class="ebook prof">
-  <section data-secao="capa"><h1>Guia</h1><nav class="sumario"><a href="#capa">Início</a><a href="#sala">Ir para a sala</a></nav></section>
-  <section id="sala" data-secao="sala"><h2>Como usar em sala</h2></section>
+  <section data-section="capa"><h1>Guia</h1><nav class="sumario"><a href="#capa">Início</a><a href="#sala">Ir para a sala</a></nav></section>
+  <section id="sala" data-section="sala"><h2>Como usar em sala</h2></section>
 </main>`;
 
 /** Base URL of the fake version's files. */
@@ -169,6 +169,6 @@ export const EBOOK_BASE = 'https://cdn.example.com/ebooks/eb40/3/';
 /** A processed version with the given `<main>`. */
 export const ebookContent = (html = BOOK): EbookContent => ({
   html,
-  css: '.ebook-leitor .pg { color: red; }',
+  css: '.ebook-content .page { color: red; }',
   assetBaseUrl: EBOOK_BASE,
 });

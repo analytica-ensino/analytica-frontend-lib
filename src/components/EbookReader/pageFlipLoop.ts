@@ -24,7 +24,7 @@ interface RenderWithFrame {
  * frame request is swallowed while `loadFromHTML` runs, so that loop never
  * starts, and an equivalent loop is run here instead.
  *
- * @param book - Element that becomes the book (`#livro`)
+ * @param book - Element that becomes the book (`#book`)
  * @param pages - The pages, in order
  * @param settings - page-flip settings
  * @param onReady - Registers event listeners before the pages load
