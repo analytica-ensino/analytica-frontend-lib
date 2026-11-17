@@ -237,17 +237,15 @@ describe('EbookReader', () => {
         <EbookReader
           content={{
             ...content(),
-            narration: [
-              {
+            narration: {
+              '3': {
                 section: 'caso',
                 file: 'audio/narration.mp3',
                 start: 0,
                 end: 10,
-                clips: [
-                  { id: 'p3-1', start: 0, end: 9, audioDescription: true },
-                ],
+                segments: [{ segment: 'p3-1', start: 0, end: 9, ad: true }],
               },
-            ],
+            },
           }}
           title="Livro"
         />

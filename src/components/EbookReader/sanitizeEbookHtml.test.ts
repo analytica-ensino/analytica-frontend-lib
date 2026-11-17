@@ -39,6 +39,15 @@ describe('sanitizeEbookHtml', () => {
     );
   });
 
+  it('keeps an image source already inside the version, as the upload may write it', () => {
+    const safe = sanitizeEbookHtml(
+      `<img src="${BASE}/img/EB40_A01.webp" alt="Capa">`,
+      BASE
+    );
+
+    expect(safe).toBe(`<img src="${BASE}/img/EB40_A01.webp" alt="Capa">`);
+  });
+
   it.each([
     'https://evil.example.com/x.png',
     '//evil.example.com/x.png',
@@ -47,6 +56,9 @@ describe('sanitizeEbookHtml', () => {
     '../other-book/img/x.webp',
     'img/../../x.webp',
     'img\\..\\x.webp',
+    `${BASE}/../4/img/x.webp`,
+    `${BASE}/%2e%2e/4/img/x.webp`,
+    `${BASE}-other/img/x.webp`,
   ])('drops the image source %s, which is outside the package', (src) => {
     const safe = sanitizeEbookHtml(`<img src="${src}" alt="x">`, BASE);
 
@@ -101,12 +113,20 @@ describe('resolvePackagePath', () => {
     expect(resolvePackagePath('audio/narration.mp3', base)).toBe(expected);
   });
 
+  it('keeps an address already inside the version', () => {
+    expect(resolvePackagePath(`${BASE}/audio/narration.mp3`, BASE)).toBe(
+      `${BASE}/audio/narration.mp3`
+    );
+  });
+
   it.each([
     'https://evil.example.com/x.mp3',
     '//evil.example.com/x.mp3',
     '/audio/x.mp3',
     '../other-book/audio/narration.mp3',
     'audio\\..\\..\\x.mp3',
+    '%2e%2e/4/audio/x.mp3',
+    `${BASE}-other/audio/x.mp3`,
     '',
   ])('refuses %j, which is not a file of the package', (path) => {
     expect(resolvePackagePath(path, BASE)).toBeNull();

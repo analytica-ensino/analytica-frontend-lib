@@ -1,7 +1,6 @@
 /**
  * Data the ebook reader works with, as AE-3318 stores a processed version
- * (backend `docs/EBOOKS-FORMATO.md`). The upload hands the package's
- * narration map (`window.NARRATION`) over in these fields.
+ * (backend `docs/EBOOKS-FORMATO.md`).
  */
 
 /**
@@ -40,31 +39,42 @@ export const EBOOK_CLASS = {
   OLD_CONTENTS: 'indice',
 } as const;
 
-/** One clip of the recorded narration, tied to an element by `data-segment`. */
-export interface EbookNarrationClip {
-  /** `data-segment` of the element read in this clip (the package's `segment`) */
-  id: string;
-  /** Start, in seconds from the start of the page (`start`) */
+/** One segment of the recorded narration, tied to an element by `data-segment`. */
+export interface EbookNarrationSegment {
+  /** `data-segment` of the element read in this segment; without it nothing is highlighted */
+  segment?: string | null;
+  /** Text of the segment, how older packages tied it to the page (not used by the reader) */
+  key?: string | null;
+  /** Start, in seconds from the start of the page */
   start: number;
-  /** End, in seconds from the start of the page (`end`) */
+  /** End, in seconds from the start of the page */
   end: number;
-  /** Describes an image: skipped when audio description is off (`ad`) */
-  audioDescription?: boolean;
+  /** Describes an image: skipped when audio description is off */
+  ad?: boolean | null;
 }
 
-/** Narration of one page: where it sits in the mp3 and its clips. */
+/** Narration of one page: where it sits in the mp3 and its segments. */
 export interface EbookNarrationPage {
-  /** `data-section` of the page (`section`) */
+  /** `data-section` of the page */
   section: string;
-  /** Path of the mp3 inside the package, e.g. `audio/narration.mp3` (`file`) */
-  file: string;
-  /** Start of the page, in seconds from the start of the mp3 (`start`) */
+  /** Path of the mp3 in the package; NARRATION_FILE when absent */
+  file?: string | null;
+  /** Start of the page, in seconds from the start of the mp3 */
   start: number;
-  /** End of the page, in seconds from the start of the mp3 (`end`) */
+  /** End of the page, in seconds from the start of the mp3 */
   end: number;
-  /** Clips in reading order (`segments`) */
-  clips: EbookNarrationClip[];
+  /** Segments in reading order */
+  segments: EbookNarrationSegment[];
 }
+
+/**
+ * The package's narration map (`window.NARRATION`), as the upload stores it:
+ * pages under any key (the reader goes by each page's `section`).
+ */
+export type EbookNarration = Record<string, EbookNarrationPage>;
+
+/** The mp3 of a page that does not name one: the package's single narration file. */
+export const NARRATION_FILE = 'audio/narration.mp3';
 
 /** A processed ebook version, ready to display. */
 export interface EbookContent {
@@ -72,9 +82,9 @@ export interface EbookContent {
   html: string;
   /** The book's CSS, already scoped to `.ebook-content` by the upload */
   css: string;
-  /** Recorded narration, page by page, when the book has one */
-  narration?: EbookNarrationPage[] | null;
-  /** Where the package files live; relative `src` and audio paths resolve against it */
+  /** Recorded narration, when the book has one */
+  narration?: EbookNarration | null;
+  /** Where the version's files live; package paths resolve against it */
   assetBaseUrl: string;
 }
 

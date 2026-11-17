@@ -5,8 +5,8 @@ Writes public/fixtures/ebook/eb40/{student,teacher}/ the way the upload
 
   content.html    the book's <main>, without scripts
   styles.css      every <style>, scoped to `.ebook-content`
-  narration.json  the narration, page by page, in the reader's fields
-                  (EbookNarrationPage; student book only)
+  narration.json  the package's narration map (`window.NARRATION`), as is
+                  (student book only)
   metadata.json   the package's metadata, as is
   img/            the images, downscaled so the fixture stays small
   audio/          only the narration of pages "caso" and "p04" (a spread with
@@ -154,26 +154,13 @@ def build(package, out):
         t0, t1 = pages[0]['start'], pages[-1]['end']
         os.makedirs(os.path.join(dst, 'audio'))
         cut_mp3(os.path.join(src, 'audio', 'narration.mp3'), os.path.join(dst, 'audio', 'narration.mp3'), t0, t1)
-        # The upload hands the package's map over in the reader's fields
-        # (EbookNarrationPage), as a list.
-        kept = [
-            {
-                'section': page['section'],
-                'file': page['file'],
-                'start': round(page['start'] - t0, 2),
-                'end': round(page['end'] - t0, 2),
-                'clips': [
-                    {
-                        'id': segment['segment'],
-                        'start': segment['start'],
-                        'end': segment['end'],
-                        **({'audioDescription': True} if segment.get('ad') else {}),
-                    }
-                    for segment in page['segments']
-                ],
-            }
-            for page in pages
-        ]
+        # The upload stores the package's map as is; only the kept pages, with
+        # their times shifted to the cut mp3.
+        kept = {
+            key: {**page, 'start': round(page['start'] - t0, 2), 'end': round(page['end'] - t0, 2)}
+            for key, page in narration.items()
+            if page['section'] in KEEP_NARRATION
+        }
         open(os.path.join(dst, 'narration.json'), 'w', encoding='utf-8').write(
             json.dumps(kept, ensure_ascii=False, indent=2) + '\n')
 

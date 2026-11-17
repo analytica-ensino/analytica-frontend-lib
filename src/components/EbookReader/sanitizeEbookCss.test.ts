@@ -7,7 +7,8 @@ describe('sanitizeEbookCss', () => {
     ['url(fonts/baloo.woff2)', `url("${BASE}fonts/baloo.woff2")`],
     ["url('img/fundo.webp')", `url("${BASE}img/fundo.webp")`],
     ['url( "img/fundo.webp" )', `url("${BASE}img/fundo.webp")`],
-  ])('resolves the package file %s against the version', (value, expected) => {
+    [`url(${BASE}fonts/baloo.woff2)`, `url("${BASE}fonts/baloo.woff2")`],
+  ])('points %s at the file of the version', (value, expected) => {
     expect(
       sanitizeEbookCss(`.ebook-content .capa { background: ${value}; }`, BASE)
     ).toBe(`.ebook-content .capa { background: ${expected}; }`);
@@ -18,6 +19,7 @@ describe('sanitizeEbookCss', () => {
     'url(//evil.example.com/x.png)',
     'url(/static/x.png)',
     'url(../other-book/fonts/x.woff2)',
+    'url(%2e%2e/4/fonts/x.woff2)',
   ])('blocks %s, which loads from outside the package', (value) => {
     expect(sanitizeEbookCss(`.a { background: ${value}; }`, BASE)).toBe(
       '.a { background: url(""); }'

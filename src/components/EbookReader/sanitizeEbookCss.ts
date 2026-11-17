@@ -16,10 +16,11 @@ const BLOCKED_URL = 'url("")';
  * the CSS points at are dealt with. Inside the platform page a relative
  * `url(fonts/x.woff2)` would resolve against the platform, not the CDN, so
  * package paths are resolved against the version's files, as image sources
- * are. Addresses outside the package (an `https:` or `//host` address, an
- * absolute path, a `..` step) are dropped and `@import` rules removed, so a
- * book never loads files from elsewhere by mistake. Inline `data:` URIs and
- * `#fragment` references load nothing and are kept.
+ * are; an address already inside the version's folder is kept. Addresses
+ * outside it (another `https:` or `//host` address, an absolute path, a `..`
+ * step) are dropped and `@import` rules removed, so a book never loads files
+ * from elsewhere by mistake. Inline `data:` URIs and `#fragment` references
+ * load nothing and are kept.
  *
  * This is not a security boundary: the CSS comes from a package approved in
  * the backoffice (AE-3318), and a regular expression cannot follow every CSS
@@ -35,7 +36,7 @@ export const sanitizeEbookCss = (css: string, assetBaseUrl?: string): string =>
     .replace(URL_FUNCTION, (whole, _quote: string, value: string) => {
       const address = value.trim();
       if (address.startsWith('#') || /^data:/i.test(address)) return whole;
-      if (!isPackagePath(address)) return BLOCKED_URL;
-      if (!assetBaseUrl) return whole;
-      return `url("${resolvePackagePath(address, assetBaseUrl)}")`;
+      if (!assetBaseUrl) return isPackagePath(address) ? whole : BLOCKED_URL;
+      const resolved = resolvePackagePath(address, assetBaseUrl);
+      return resolved ? `url("${resolved}")` : BLOCKED_URL;
     });
