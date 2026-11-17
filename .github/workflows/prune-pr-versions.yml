@@ -1,0 +1,72 @@
+name: Prune PR Versions
+
+on:
+  workflow_call:
+
+# The PR versions live in a private GitHub Packages package, and the free plan
+# stores at most 500 MB of private packages (one build is ~11 MB). This drops
+# every version of a closed PR and all but the newest KEEP versions of an open
+# one. It looks at every PR, not only the one that triggered the run, so a
+# version that slipped past an earlier run (e.g. published by a run cancelled
+# while the PR was closing) goes on the next one.
+jobs:
+  prune:
+    name: Delete old PR versions from GitHub Packages
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      pull-requests: read
+    # Two runs deleting from the same list would trip over each other.
+    concurrency:
+      group: prune-pr-versions
+      cancel-in-progress: false
+
+    steps:
+      - name: Delete versions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GitHub Packages names an npm package without its @scope.
+          VERSIONS_API: orgs/${{ github.repository_owner }}/packages/npm/analytica-frontend-lib/versions
+          KEEP: 3
+        run: |
+          set -euo pipefail
+
+          # "<id> <created_at> <version>", newest first. 404: nothing published yet.
+          if ! gh api --paginate "$VERSIONS_API?per_page=100" \
+              --jq '.[] | "\(.id) \(.created_at) \(.name)"' > "$RUNNER_TEMP/versions" 2> "$RUNNER_TEMP/error"; then
+            if grep -q 'HTTP 404' "$RUNNER_TEMP/error"; then
+              echo "No PR version published yet."
+              exit 0
+            fi
+            cat "$RUNNER_TEMP/error" >&2
+            exit 1
+          fi
+          sort -k2,2r -o "$RUNNER_TEMP/versions" "$RUNNER_TEMP/versions"
+
+          declare -A open_prs per_pr
+          for n in $(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls?state=open&per_page=100" --jq '.[].number'); do
+            open_prs[$n]=1
+          done
+
+          total=0
+          to_delete=()
+          while read -r id _ version; do
+            total=$((total + 1))
+            pr=$(sed -nE 's/.*-pr\.([0-9]+)\..*/\1/p' <<< "$version")
+            [ -n "$pr" ] || continue
+            per_pr[$pr]=$(( ${per_pr[$pr]:-0} + 1 ))
+            if [ -z "${open_prs[$pr]:-}" ] || [ "${per_pr[$pr]}" -gt "$KEEP" ]; then
+              to_delete+=("$id $version")
+            fi
+          done < "$RUNNER_TEMP/versions"
+
+          # GitHub refuses to delete a package's last version; keep the newest.
+          if [ "${#to_delete[@]}" -gt 0 ] && [ "${#to_delete[@]}" -ge "$total" ]; then
+            to_delete=("${to_delete[@]:1}")
+          fi
+
+          echo "$total versions, deleting ${#to_delete[@]}."
+          for entry in "${to_delete[@]}"; do
+            gh api -X DELETE "$VERSIONS_API/${entry%% *}"
+            echo "deleted ${entry#* }"
+          done

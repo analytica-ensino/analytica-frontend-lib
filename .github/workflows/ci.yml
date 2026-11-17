@@ -80,6 +80,20 @@ jobs:
       packages: write
       pull-requests: write
 
+  # Keeps the private PR package under the free plan's 500 MB: runs after each
+  # PR publish and when a PR closes (merged or not), when publish-pr is skipped.
+  prune-pr-versions:
+    name: Prune PR Versions
+    needs: publish-pr
+    if: >-
+      !cancelled() && github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (needs.publish-pr.result == 'success' || github.event.action == 'closed')
+    uses: ./.github/workflows/prune-pr-versions.yml
+    permissions:
+      packages: write
+      pull-requests: read
+
   deploy-ladle:
     name: Deploy Ladle
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
