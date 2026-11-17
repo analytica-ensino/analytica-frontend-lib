@@ -2,6 +2,8 @@ export interface MultiSearchSelectOption {
   value: string;
   label: string;
   disabled?: boolean;
+  /** How many items fall under the option (e.g. books of a theme), shown at its right */
+  count?: number;
 }
 
 /**
@@ -57,6 +59,12 @@ export interface MultiSearchSelectProps {
   id?: string;
   /** How many chips to render before collapsing the rest into a "+N" chip. */
   maxVisibleChips?: number;
+  /**
+   * Shows the selection as a text instead of chips, e.g.
+   * `(count) => \`${count} selecionados\``, for when the chosen values are
+   * listed elsewhere on the page.
+   */
+  formatSelected?: (count: number) => string;
   /**
    * Called with the debounced query as the user types. Supplying it is what
    * makes the search server-side; pair it with `filterLocally={false}` so the

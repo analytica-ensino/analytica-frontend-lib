@@ -173,6 +173,11 @@ function OptionRow({
       <Text size="sm" className="flex-1 text-text-700">
         {option.label}
       </Text>
+      {option.count !== undefined && (
+        <Text size="sm" className="shrink-0 tabular-nums text-text-500">
+          {String(option.count).padStart(2, '0')}
+        </Text>
+      )}
     </div>
   );
 }

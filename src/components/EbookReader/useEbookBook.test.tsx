@@ -507,4 +507,119 @@ describe('useEbookBook', () => {
       expect(screen.queryByRole('button', { name: 'Sumário' })).toBeNull();
     });
   });
+
+  describe('page changes, for the reading telemetry', () => {
+    it('reports the page being read and every section on screen', () => {
+      const onPageChange = jest.fn();
+      render(
+        <EbookReader
+          content={content()}
+          title="Livro"
+          onPageChange={onPageChange}
+        />
+      );
+      initBook();
+      act(() => lastFlip().flip(3));
+      act(() => lastFlip().flip(5));
+
+      expect(onPageChange.mock.calls).toEqual([
+        [{ section: 'capa', sections: ['capa'] }],
+        [{ section: 'caso', sections: ['caso', 'p04'] }],
+        [{ section: 'ficha', sections: ['ficha', 'fim'] }],
+      ]);
+    });
+
+    it('reports a page once, however many times it is drawn', () => {
+      const onPageChange = jest.fn();
+      render(
+        <EbookReader
+          content={content()}
+          title="Livro"
+          onPageChange={onPageChange}
+        />
+      );
+      initBook();
+      initBook();
+      act(() => lastFlip().flip(0));
+
+      expect(onPageChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports the page that scrolls into view', () => {
+      const onPageChange = jest.fn();
+      render(
+        <EbookReader
+          content={content()}
+          title="Livro"
+          onPageChange={onPageChange}
+        />
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Ler em rolagem' }));
+      const observer = FakeIntersectionObserver.instances[0];
+
+      act(() => observer.show(observer.targets[3]));
+
+      expect(onPageChange).toHaveBeenLastCalledWith({
+        section: 'caso',
+        sections: ['caso'],
+      });
+    });
+
+    it('reports the section of a scroll-only material in view', () => {
+      const onPageChange = jest.fn();
+      render(
+        <EbookReader
+          content={content(GUIDE)}
+          title="Guia"
+          onPageChange={onPageChange}
+        />
+      );
+      const observer = FakeIntersectionObserver.instances[0];
+
+      act(() => observer.show(observer.targets[1]));
+
+      expect(onPageChange).toHaveBeenLastCalledWith({
+        section: 'sala',
+        sections: ['sala'],
+      });
+    });
+
+    it('reports nothing in preview', () => {
+      const onPageChange = jest.fn();
+      render(
+        <EbookReader
+          content={content()}
+          title="Livro"
+          mode="preview"
+          onPageChange={onPageChange}
+        />
+      );
+      initBook();
+
+      expect(onPageChange).not.toHaveBeenCalled();
+    });
+
+    it('reports the cover again when another book is shown', () => {
+      const onPageChange = jest.fn();
+      const { rerender } = render(
+        <EbookReader
+          content={content()}
+          title="Livro"
+          onPageChange={onPageChange}
+        />
+      );
+      initBook();
+
+      rerender(
+        <EbookReader
+          content={{ ...content(), html: BOOK.replace('Capa', 'Outra capa') }}
+          title="Livro"
+          onPageChange={onPageChange}
+        />
+      );
+      initBook();
+
+      expect(onPageChange).toHaveBeenCalledTimes(2);
+    });
+  });
 });

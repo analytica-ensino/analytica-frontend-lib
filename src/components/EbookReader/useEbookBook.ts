@@ -9,6 +9,7 @@ import {
 } from 'react';
 import type { FlipCorner, PageFlip, SizeType } from 'page-flip';
 import { measureBook, visiblePages, type BookSize } from './bookLayout';
+import type { EbookPageChange } from './types';
 import { createManagedPageFlip, type ManagedPageFlip } from './pageFlipLoop';
 
 /** `book` turns pages (page-flip); `scroll` shows them one under the other. */
@@ -57,6 +58,8 @@ export interface UseEbookBookOptions {
   initialSection?: string;
   /** Called with every section (`data-secao`) the first time it comes into view */
   onSectionsSeen?: (sections: string[]) => void;
+  /** Called whenever the pages on screen change: on a page turn, a scroll or a new section of a scroll-only material */
+  onPageChange?: (page: EbookPageChange) => void;
 }
 
 export interface UseEbookBookReturn {
@@ -170,6 +173,7 @@ export const useEbookBook = ({
   html,
   initialSection,
   onSectionsSeen,
+  onPageChange,
 }: UseEbookBookOptions): UseEbookBookReturn => {
   const template = useMemo(() => parseTemplate(html), [html]);
   const hasBookLayout = template.pages.length > 0;
@@ -190,8 +194,22 @@ export const useEbookBook = ({
   const seenRef = useRef(new Set<string>());
   const onSectionsSeenRef = useRef(onSectionsSeen);
   onSectionsSeenRef.current = onSectionsSeen;
+  const onPageChangeRef = useRef(onPageChange);
+  onPageChangeRef.current = onPageChange;
+  /** Sections last reported as on screen, so a page is reported once per change. */
+  const onScreenRef = useRef('');
 
-  const markSeen = useCallback((sections: string[]) => {
+  /**
+   * The sections now on screen: reports the new page and the sections seen
+   * for the first time.
+   * @param sections - Sections on screen, the page being read first
+   */
+  const showSections = useCallback((sections: string[]) => {
+    const onScreen = sections.join('\n');
+    if (onScreen !== onScreenRef.current) {
+      onScreenRef.current = onScreen;
+      onPageChangeRef.current?.({ section: sections[0] ?? null, sections });
+    }
     const fresh = sections.filter((section) => !seenRef.current.has(section));
     if (fresh.length === 0) return;
     fresh.forEach((section) => seenRef.current.add(section));
@@ -220,13 +238,13 @@ export const useEbookBook = ({
         'na-contracapa',
         isSpread && index === count - 1
       );
-      markSeen(
+      showSections(
         visiblePages(index, count, isSpread).flatMap((page) =>
           template.pages[page] ? sectionsOf(template.pages[page]) : []
         )
       );
     },
-    [markSeen, template]
+    [showSections, template]
   );
 
   const mountBook = useCallback(
@@ -298,13 +316,13 @@ export const useEbookBook = ({
               if (index !== null) {
                 pageIndexRef.current = Number(index);
                 setPageIndex(Number(index));
-                markSeen(sectionsOf(entry.target));
+                showSections(sectionsOf(entry.target));
                 return;
               }
               const section = entry.target.getAttribute('data-secao');
               if (!section) return;
               setCurrentSection(section);
-              markSeen([section]);
+              showSections([section]);
             });
           },
           book
@@ -319,12 +337,13 @@ export const useEbookBook = ({
       }
       pages[startIndex]?.scrollIntoView({ block: 'start' });
     },
-    [contentRef, markSeen, teardown, template]
+    [contentRef, showSections, teardown, template]
   );
 
   // A new book starts over: nothing seen, at the requested section.
   useLayoutEffect(() => {
     seenRef.current = new Set();
+    onScreenRef.current = '';
     setCurrentSection(undefined);
     const start = initialSection ? pageIndexOf(template, initialSection) : 0;
     pageIndexRef.current = Math.max(0, start);

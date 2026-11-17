@@ -14,6 +14,8 @@ interface TriggerContentProps {
   maxVisibleChips: number;
   size: MultiSearchSelectSize;
   onRemove: (value: string) => void;
+  /** Shows the selection as this text instead of chips */
+  formatSelected?: (count: number) => string;
 }
 
 /**
@@ -29,6 +31,7 @@ export function TriggerContent({
   maxVisibleChips,
   size,
   onRemove,
+  formatSelected,
 }: Readonly<TriggerContentProps>) {
   const textSize = TRIGGER_TEXT_SIZES[size];
 
@@ -47,6 +50,19 @@ export function TriggerContent({
     return (
       <Text as="span" size={textSize} className="block truncate text-text-500">
         {placeholder}
+      </Text>
+    );
+  }
+
+  if (formatSelected) {
+    return (
+      <Text
+        as="span"
+        size={textSize}
+        weight="medium"
+        className="block truncate text-text-950"
+      >
+        {formatSelected(selectedOptions.length)}
       </Text>
     );
   }

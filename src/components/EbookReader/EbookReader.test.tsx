@@ -82,6 +82,22 @@ describe('EbookReader', () => {
     expect(screen.getByText('4º ano · Educação 4.0 e 5.0')).toBeInTheDocument();
   });
 
+  it('loads the book CSS with its files resolved against the version', () => {
+    const { container } = render(
+      <EbookReader
+        content={{
+          ...content(),
+          css: "@import url('https://fonts.googleapis.com/css2');.ebook-leitor .capa { background: url(img/capa.webp); }",
+        }}
+        title="Livro"
+      />
+    );
+
+    expect(container.querySelector('.ebook-leitor style')?.textContent).toBe(
+      '.ebook-leitor .capa { background: url("https://cdn.example.com/ebooks/eb40/3/img/capa.webp"); }'
+    );
+  });
+
   describe('details panel', () => {
     it('opens beside the book on a wide screen and closes', () => {
       openDetailsOnWideScreens(true);

@@ -6,6 +6,7 @@ import { EbookNarrationControls } from './EbookNarrationControls';
 import { EbookReaderControls } from './EbookReaderControls';
 import { EbookReaderDetails } from './EbookReaderDetails';
 import { EbookReaderHeader } from './EbookReaderHeader';
+import { sanitizeEbookCss } from './sanitizeEbookCss';
 import { sanitizeEbookHtml } from './sanitizeEbookHtml';
 import {
   EBOOK_MATERIAL_TYPE,
@@ -14,6 +15,7 @@ import {
   type EbookMaterialType,
   type EbookNarrationClip,
   type EbookNarrationPage,
+  type EbookPageChange,
   type EbookReaderMode,
 } from './types';
 import { useEbookBook } from './useEbookBook';
@@ -27,6 +29,7 @@ export type {
   EbookMaterialType,
   EbookNarrationClip,
   EbookNarrationPage,
+  EbookPageChange,
   EbookReaderMode,
 };
 
@@ -54,6 +57,12 @@ export interface EbookReaderProps {
   initialSection?: string;
   /** Called with every section the first time it comes into view (never in preview) */
   onSectionsSeen?: (sections: string[]) => void;
+  /**
+   * Called whenever the pages on screen change, with the section to resume at
+   * and every section on screen (never in preview): what the reading
+   * telemetry reports.
+   */
+  onPageChange?: (page: EbookPageChange) => void;
   /** Extra controls in the footer, before the round buttons */
   footerExtra?: ReactNode;
   className?: string;
@@ -84,6 +93,7 @@ export const EbookReader = ({
   mode = 'student',
   initialSection,
   onSectionsSeen,
+  onPageChange,
   footerExtra,
   className,
 }: Readonly<EbookReaderProps>) => {
@@ -98,12 +108,18 @@ export const EbookReader = ({
     () => sanitizeEbookHtml(content.html, content.assetBaseUrl),
     [content.html, content.assetBaseUrl]
   );
+  const css = useMemo(
+    () => sanitizeEbookCss(content.css, content.assetBaseUrl),
+    [content.css, content.assetBaseUrl]
+  );
+  const isPreview = mode === 'preview';
 
   const book = useEbookBook({
     contentRef,
     html,
     initialSection,
-    onSectionsSeen: mode === 'preview' ? undefined : onSectionsSeen,
+    onSectionsSeen: isPreview ? undefined : onSectionsSeen,
+    onPageChange: isPreview ? undefined : onPageChange,
   });
 
   const narration = useEbookNarration({
@@ -149,7 +165,7 @@ export const EbookReader = ({
                 material === EBOOK_MATERIAL_TYPE.TEACHER ? '' : undefined
               }
             >
-              <style>{content.css}</style>
+              <style>{css}</style>
               <div
                 ref={contentRef}
                 className="ebook-reader__content"
