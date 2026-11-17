@@ -24,19 +24,19 @@ const FIXTURE = 'fixtures/ebook/eb40';
 
 /** Folder of each material inside the fixture. */
 const FOLDER: Record<EbookMaterialType, string> = {
-  [EBOOK_MATERIAL_TYPE.STUDENT]: 'aluno',
-  [EBOOK_MATERIAL_TYPE.TEACHER]: 'professor',
+  [EBOOK_MATERIAL_TYPE.STUDENT]: 'student',
+  [EBOOK_MATERIAL_TYPE.TEACHER]: 'teacher',
 };
 
 /** Fields of the package's `metadata.json` the stories use. */
 interface PackageMetadata {
-  titulo: string;
-  categoria: string;
-  ano_escolar: string;
-  autores: { nome: string }[];
-  habilidades_bncc: { codigo: string }[];
-  palavras: number;
-  tempo_leitura_estimado_min: number;
+  title: string;
+  category: string;
+  school_year: string;
+  authors: { name: string }[];
+  bncc_skills: { code: string }[];
+  word_count: number;
+  estimated_reading_minutes: number;
 }
 
 interface LoadedMaterial {
@@ -64,16 +64,16 @@ const loadMaterial = async (
   ]);
   return {
     content: { html, css, narration, assetBaseUrl: base },
-    title: metadata.titulo,
-    subtitle: `${metadata.ano_escolar} · ${metadata.categoria}`,
+    title: metadata.title,
+    subtitle: `${metadata.school_year} · ${metadata.category}`,
     details: {
       code: 'EB40',
-      theme: metadata.categoria,
-      audience: metadata.ano_escolar,
-      authors: metadata.autores.map((author) => author.nome),
-      bncc: metadata.habilidades_bncc.map((skill) => skill.codigo),
-      words: metadata.palavras,
-      readingMinutes: metadata.tempo_leitura_estimado_min,
+      theme: metadata.category,
+      audience: metadata.school_year,
+      authors: metadata.authors.map((author) => author.name),
+      bncc: metadata.bncc_skills.map((skill) => skill.code),
+      words: metadata.word_count,
+      readingMinutes: metadata.estimated_reading_minutes,
     },
   };
 };

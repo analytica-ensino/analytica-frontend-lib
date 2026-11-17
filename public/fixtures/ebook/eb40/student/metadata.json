@@ -1,0 +1,429 @@
+{
+  "id": "analytica-eb40-educao-4-0-e-5-0-student",
+  "title": "O Caso da Couve Mordida",
+  "subtitle": "Uma investigação na horta da escola",
+  "material_type": "student",
+  "pair_id": "analytica-eb40-educao-4-0-e-5-0-teacher",
+  "version": "0.9",
+  "status": "awaiting_pedagogical_review",
+  "authors": [
+    {
+      "name": "Equipe Pedagógica Analytica Ensino",
+      "pending_confirmation": true,
+      "role": "author"
+    }
+  ],
+  "contributors": [
+    {
+      "name": null,
+      "pending_confirmation": true,
+      "role": "pedagogical_supervision"
+    },
+    {
+      "name": null,
+      "pending_confirmation": true,
+      "role": "review"
+    },
+    {
+      "name": null,
+      "pending_confirmation": true,
+      "role": "illustration"
+    },
+    {
+      "name": null,
+      "pending_confirmation": true,
+      "role": "graphic_design"
+    }
+  ],
+  "publisher": "Analytica Ensino",
+  "edition": "1ª edição",
+  "place": "Curitiba",
+  "rights_holder": {
+    "company_name": "Analytica Ensino Ltda.",
+    "cnpj": "42.506.572/0001-97"
+  },
+  "ai_use": "A inteligência artificial foi usada como ferramenta de apoio nas ilustrações e na revisão. Texto, direção de arte e validação pedagógica são da equipe.",
+  "rights": "© 2026 Analytica Ensino Ltda., CNPJ 42.506.572/0001-97. Todos os direitos reservados. Uso autorizado no ambiente digital da plataforma Analytica Ensino.",
+  "reviewers": [],
+  "collection": "E-books Pedagógicos Analytica",
+  "publication_year": 2026,
+  "language": "pt-BR",
+  "category": "Educação 4.0 e 5.0",
+  "edital_theme": {
+    "code": "I",
+    "name": "Educação 4.0 e 5.0"
+  },
+  "segment": "Ensino Fundamental, Anos Iniciais",
+  "school_year": "4º ano",
+  "age_range": {
+    "min": 9,
+    "max": 10
+  },
+  "bncc_skills": [
+    {
+      "code": "EF15LP14",
+      "type": "primary",
+      "description": "Construir o sentido de histórias em quadrinhos e tirinhas, relacionando imagens e palavras e interpretando recursos gráficos (tipos de balões, de letras, onomatopeias)."
+    },
+    {
+      "code": "EF04MA27",
+      "type": "primary",
+      "description": "Analisar dados apresentados em tabelas simples ou de dupla entrada e em gráficos de colunas ou pictóricos, com base em informações das diferentes áreas do conhecimento, e produzir texto com a síntese de sua análise."
+    },
+    {
+      "code": "EF04CI04",
+      "type": "primary",
+      "description": "Analisar e construir cadeias alimentares simples, reconhecendo a posição ocupada pelos seres vivos nessas cadeias e o papel do Sol como fonte primária de energia na produção de alimentos."
+    },
+    {
+      "code": "EF35LP04",
+      "type": "complementar",
+      "description": "Inferir informações implícitas nos textos lidos."
+    },
+    {
+      "code": "EF04MA28",
+      "type": "complementar",
+      "description": "Realizar pesquisa envolvendo variáveis categóricas e numéricas e organizar dados coletados por meio de tabelas e gráficos de colunas simples ou agrupadas, com e sem uso de tecnologias digitais."
+    }
+  ],
+  "keywords": [
+    "pista",
+    "hipótese",
+    "cadeia alimentar",
+    "crisálida",
+    "onomatopeia",
+    "educação 4.0 e 5.0"
+  ],
+  "format": "text/html",
+  "main_file": "index.html",
+  "created_at": "2026-11-09",
+  "audience": [
+    "students"
+  ],
+  "description": "Alguém está comendo a couve da horta da escola! A detetive Bené, o Kenji, que conta tudo, e a Lu, que cuida da horta, juntam pistas, testam hipóteses e organizam dados numa tabela. A descoberta vai mudar o jeito como a turma vê a horta e as borboletas do recreio.",
+  "cover": "img/EB40_A01.webp",
+  "word_count": 1128,
+  "estimated_reading_minutes": 17,
+  "sections": [
+    "capa",
+    "rosto",
+    "quem",
+    "caso",
+    "p04",
+    "suspeitos",
+    "p06",
+    "noite",
+    "noiteb",
+    "p09",
+    "p10",
+    "dados",
+    "p12",
+    "p13",
+    "borboletas",
+    "cadeia",
+    "p16",
+    "p17",
+    "fim-caso",
+    "gibi",
+    "praticar",
+    "praticar2",
+    "sua-vez",
+    "glossario",
+    "ficha",
+    "fim"
+  ],
+  "reading_completion": {
+    "final_section": "fim",
+    "min_section_fraction": 0.8,
+    "min_seconds": 120,
+    "postmessage_events": [
+      "open",
+      "progress",
+      "complete"
+    ]
+  },
+  "accessibility": {
+    "real_text": true,
+    "alt_text_on_all_images": true,
+    "supports_dark_theme": true,
+    "resizable_font": true
+  },
+  "images": [
+    {
+      "file": "img/EB40_A01.webp",
+      "alt": "Capa: numa horta de escola, a Bené, menina negra de cabelo black power, olha pela lupa e o olho dela fica enorme. Atrás, o Kenji espia por cima da prancheta, e a Lu, menina ruiva de chapéu de palha, mostra uma folha de couve cheia de buracos.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A02.webp",
+      "alt": "Retrato da Bené, menina negra baixinha de cabelo black power, macacão amarelo-mostarda e tênis vermelhos, segurando a lupa perto do rosto.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A03.webp",
+      "alt": "Retrato do Kenji, menino alto de óculos redondos e camiseta listrada de azul e branco, segurando a prancheta.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A04.webp",
+      "alt": "Retrato da Lu, menina ruiva de tranças e sardas, de chapéu de palha e avental verde, rindo e abraçando uma folha de couve.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A05.webp",
+      "alt": "Retrato do Seu Osvaldo, senhor de pele morena e bigodão branco, de boné verde e macacão azul-marinho, sorrindo.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A06.webp",
+      "alt": "Retrato do Pipoca, cachorrinho caramelo e peludo, de orelhas caídas, sentado com cara de inocente.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A07.webp",
+      "alt": "Manhã cedo na horta da escola. As couves da frente estão cheias de buracos, tão comidas que só sobrou o esqueleto das folhas. A Lu grita com as mãos no rosto, e o regador escorrega das mãos dela, espirrando água.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A08.webp",
+      "alt": "A Bené chega correndo com a lupa erguida, e o Kenji vem junto com a prancheta. A Lu aponta, aflita, para as couves furadas.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A09.webp",
+      "alt": "A Bené olha pela lupa uma folha de couve cheia de buracos redondos. O Kenji se abaixa ao lado dela e anota na prancheta.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A10.webp",
+      "alt": "A Bené, o Kenji e a Lu lado a lado diante das couves furadas, em pose de detetives: a Bené de dedo erguido, o Kenji ajeitando os óculos e a Lu de mãos na cintura.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A06.webp",
+      "alt": "Desenho do Pipoca, cachorrinho caramelo de orelhas caídas, sentado.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A05.webp",
+      "alt": "Desenho do Seu Osvaldo, de bigodão branco, boné verde e macacão azul-marinho.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A11.webp",
+      "alt": "Desenho de uma lesma numa pedra molhada, à noite.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A12.webp",
+      "alt": "Desenho de dois passarinhos de barriga amarela pousados numa cerca de madeira, ao lado de uma horta.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A13.webp",
+      "alt": "No corredor da escola, a Bené aponta com a lupa para um mural de cortiça com desenhos dos suspeitos ligados por linhas vermelhas. O Kenji anota na prancheta.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A14.webp",
+      "alt": "Fim da tarde na horta: a Bené e a Lu despejam farinha de trigo de saquinhos de papel, formando um anel branco em volta do canteiro de couve.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A15.webp",
+      "alt": "O Kenji, sentado num balde virado, desenha com régua uma tabela na prancheta.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A16.webp",
+      "alt": "A Lu, ajoelhada ao lado das couves furadas, faz carinho numa folha e cochicha com ela.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A17.webp",
+      "alt": "Noite de lua cheia na horta da escola. O anel de farinha brilha no chão em volta das couves, os grilos estão na grama e, do lado direito, a silhueta de um cachorrinho se aproxima devagar.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A17.webp",
+      "alt": "",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A18.webp",
+      "alt": "De perto: na farinha branca sobre a terra, uma trilha de pegadas de cachorro pequeno, com quatro dedinhos e uma almofadinha cada.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A19.webp",
+      "alt": "O Pipoca, sentado, com farinha branca no focinho e nas patas, faz cara de inocente. A Lu e o Kenji olham para ele com as mãos na cintura.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A20.webp",
+      "alt": "A Bené, agachada, examina com a lupa o focinho do Pipoca, branco de farinha, bem séria.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A21.webp",
+      "alt": "A Bené aponta para o alto de um pé de couve, onde as folhas de cima também estão furadas. O Kenji olha para lá, e o Pipoca fica em pé nas patas de trás, sem alcançar.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A22.webp",
+      "alt": "O Seu Osvaldo passa com o regador, cantarolando. Perto de um pé de couve, a Lu e o Kenji cochicham e olham desconfiados.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A23.webp",
+      "alt": "O Seu Osvaldo dá uma gargalhada, segurando a barriga. A Bené, ajoelhada, examina com a lupa as botas dele, limpinhas, e a Lu tapa a boca, sem graça.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A24.webp",
+      "alt": "A Lu, o Kenji e a Bené sentados na beirada de pedra do canteiro, de queixo nas mãos, pensando. O caminho de pedras está limpo.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A25.webp",
+      "alt": "Na sala de aula, o Kenji aponta com a régua para uma folha num cavalete com três barras que crescem. A Bené e a Lu assistem sentadas.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A26.webp",
+      "alt": "A Lu, ajoelhada, levanta uma folha grande de couve e mostra o lado de baixo, de olhos arregalados: ali estão lagartinhas listradas. A Bené e o Kenji se inclinam, espantados.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A27.webp",
+      "alt": "Bem de perto, embaixo da folha: um grupinho de ovos amarelos, compridos e em pé, lado a lado.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A28.webp",
+      "alt": "Bem de perto: três lagartas comendo a beirada de uma folha de couve. Elas são verde-acinzentadas, com listras marrons e amarelas ao longo do corpo, pontinhos pretos e cabeça escura.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A29.webp",
+      "alt": "A Bené segura a lupa sobre uma folha de couve com bolinhas verde-escuras espalhadas, com cara de quem descobriu tudo.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A30.webp",
+      "alt": "Ao lado do canteiro com lagartas listradas, a Lu, brava, ergue um pote de vidro vazio. O Kenji anota na prancheta, e a Bené levanta a mão, pedindo calma.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A31.webp",
+      "alt": "O Seu Osvaldo se agacha ao lado do canteiro de couve e fala com calma, sorrindo. A Bené e o Kenji se viram para ele, curiosos.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A32.webp",
+      "alt": "A Bené, o Kenji e a Lu lado a lado, olhando para cima, pensativos. O Kenji coça a cabeça.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A33.webp",
+      "alt": "Uma lembrança: no pátio, na hora do recreio, voam muitas borboletas brancas de bordas escuras. A Bené e a Lu correm de braços abertos, rindo, e o Kenji olha para elas, com uma borboleta pousada no dedo.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A34.webp",
+      "alt": "Um pé de couve.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A35.webp",
+      "alt": "Uma lagarta listrada.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A36.webp",
+      "alt": "Um passarinho de barriga amarela.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A37.webp",
+      "alt": "Na sala, a Bené aponta para o quadro-negro, onde setas ligam, em fila, um sol, uma folha de couve, uma lagarta e um passarinho. O Kenji e a Lu observam.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A38.webp",
+      "alt": "A Bené, a Lu e o Kenji, ajoelhados no chão em volta de uma folha grande, desenham o plano da horta dividida em dois canteiros.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A39.webp",
+      "alt": "O Seu Osvaldo e o Kenji, um de cada lado do canteiro, esticam uma tela fina e branca sobre arcos, cobrindo as couves como um tunelzinho.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A40.webp",
+      "alt": "A Lu carrega com cuidado uma folha com lagartas listradas até outro canteiro de couve, que tem uma plaquinha de madeira espetada na terra.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A41.webp",
+      "alt": "Duas semanas depois, ao lado do canteiro coberto pela tela, as couves estão inteiras. A Lu mostra uma folha grande e perfeita, o Seu Osvaldo segura uma cesta cheia, e o Pipoca pula de alegria.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A42.webp",
+      "alt": "À direita, pendurada num talo, há uma crisálida verde-clara do tamanho de um dedo. A Bené olha para ela pela lupa, e o Kenji aponta, com a prancheta na outra mão.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    },
+    {
+      "file": "img/EB40_A43.webp",
+      "alt": "Numa manhã de sol, um rio de borboletas brancas sai do canteiro de couve e sobe para o céu azul. A Bené, o Kenji e a Lu olham para cima, sorrindo, e a Lu abre os braços.",
+      "origin": "ai_generated",
+      "art_direction": "Analytica Ensino"
+    }
+  ]
+}

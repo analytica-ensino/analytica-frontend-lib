@@ -9,7 +9,7 @@ import type { EbookNarrationPage } from './types';
 /** Page "caso" of EB40: an audio description, then three lines. */
 const CASO: EbookNarrationPage = {
   section: 'caso',
-  file: 'audio/narracao.mp3',
+  file: 'audio/narration.mp3',
   start: 85.58,
   end: 108.1,
   clips: [
@@ -22,7 +22,7 @@ const CASO: EbookNarrationPage = {
 
 const COVER: EbookNarrationPage = {
   section: 'capa',
-  file: 'audio/narracao.mp3',
+  file: 'audio/narration.mp3',
   start: 0,
   end: 9.57,
   clips: [{ id: 'p0-1', start: 0, end: 9.4 }],

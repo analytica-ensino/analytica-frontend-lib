@@ -9,15 +9,15 @@ describe('sanitizeEbookCss', () => {
     ['url( "img/fundo.webp" )', `url("${BASE}img/fundo.webp")`],
   ])('resolves the package file %s against the version', (value, expected) => {
     expect(
-      sanitizeEbookCss(`.ebook-leitor .capa { background: ${value}; }`, BASE)
-    ).toBe(`.ebook-leitor .capa { background: ${expected}; }`);
+      sanitizeEbookCss(`.ebook-content .capa { background: ${value}; }`, BASE)
+    ).toBe(`.ebook-content .capa { background: ${expected}; }`);
   });
 
   it.each([
     'url(https://fonts.gstatic.com/s/baloo.woff2)',
     'url(//evil.example.com/x.png)',
     'url(/static/x.png)',
-    'url(../outro-livro/fonts/x.woff2)',
+    'url(../other-book/fonts/x.woff2)',
   ])('blocks %s, which loads from outside the package', (value) => {
     expect(sanitizeEbookCss(`.a { background: ${value}; }`, BASE)).toBe(
       '.a { background: url(""); }'
@@ -35,10 +35,10 @@ describe('sanitizeEbookCss', () => {
 
   it('removes @import rules', () => {
     const css =
-      "@import url('https://fonts.googleapis.com/css2?family=Baloo+2');\n@import 'tema.css' screen;\n.ebook-leitor { color: red; }";
+      "@import url('https://fonts.googleapis.com/css2?family=Baloo+2');\n@import 'tema.css' screen;\n.ebook-content { color: red; }";
 
     expect(sanitizeEbookCss(css, BASE)).toBe(
-      '\n\n.ebook-leitor { color: red; }'
+      '\n\n.ebook-content { color: red; }'
     );
   });
 

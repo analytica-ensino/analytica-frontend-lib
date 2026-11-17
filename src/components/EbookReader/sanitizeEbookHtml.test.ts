@@ -5,17 +5,17 @@ const BASE = 'https://cdn.example.com/ebooks/eb40/3';
 describe('sanitizeEbookHtml', () => {
   it('keeps the book markup the reader relies on', () => {
     const html =
-      '<main class="ebook-livro"><div id="livro" class="livro"><div class="pg pg-hq" data-secao="caso" data-density="hard" style="--cx:30%" role="region" aria-labelledby="t"><p data-trecho="p3-2" lang="en">Hi</p></div></div></main>';
+      '<main class="ebook-book"><div id="book" class="book"><div class="page page-comic" data-section="caso" data-density="hard" style="--cx:30%" role="region" aria-labelledby="t"><p data-segment="p3-2" lang="en">Hi</p></div></div></main>';
 
     const safe = sanitizeEbookHtml(html, BASE);
 
-    expect(safe).toContain('class="ebook-livro"');
-    expect(safe).toContain('id="livro"');
-    expect(safe).toContain('data-secao="caso"');
+    expect(safe).toContain('class="ebook-book"');
+    expect(safe).toContain('id="book"');
+    expect(safe).toContain('data-section="caso"');
     expect(safe).toContain('data-density="hard"');
     expect(safe).toContain('style="--cx:30%"');
     expect(safe).toContain('aria-labelledby="t"');
-    expect(safe).toContain('data-trecho="p3-2"');
+    expect(safe).toContain('data-segment="p3-2"');
     expect(safe).toContain('lang="en"');
   });
 
@@ -44,7 +44,7 @@ describe('sanitizeEbookHtml', () => {
     '//evil.example.com/x.png',
     '/img/x.png',
     'data:image/png;base64,AAAA',
-    '../outro-livro/img/x.webp',
+    '../other-book/img/x.webp',
     'img/../../x.webp',
     'img\\..\\x.webp',
   ])('drops the image source %s, which is outside the package', (src) => {
@@ -95,17 +95,17 @@ describe('sanitizeEbookHtml', () => {
 
 describe('resolvePackagePath', () => {
   it.each([
-    [BASE, `${BASE}/audio/narracao.mp3`],
-    [`${BASE}/`, `${BASE}/audio/narracao.mp3`],
+    [BASE, `${BASE}/audio/narration.mp3`],
+    [`${BASE}/`, `${BASE}/audio/narration.mp3`],
   ])('joins the path to the base %s', (base, expected) => {
-    expect(resolvePackagePath('audio/narracao.mp3', base)).toBe(expected);
+    expect(resolvePackagePath('audio/narration.mp3', base)).toBe(expected);
   });
 
   it.each([
     'https://evil.example.com/x.mp3',
     '//evil.example.com/x.mp3',
     '/audio/x.mp3',
-    '../outro-livro/audio/narracao.mp3',
+    '../other-book/audio/narration.mp3',
     'audio\\..\\..\\x.mp3',
     '',
   ])('refuses %j, which is not a file of the package', (path) => {

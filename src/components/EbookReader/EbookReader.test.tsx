@@ -58,7 +58,7 @@ describe('EbookReader', () => {
     });
   });
 
-  it('draws the sanitized book inside a .ebook-leitor that follows the platform theme', () => {
+  it('draws the sanitized book inside a .ebook-content that follows the platform theme', () => {
     useThemeStore.setState({ isDark: true });
     const { container } = render(
       <EbookReader
@@ -70,10 +70,10 @@ describe('EbookReader', () => {
       />
     );
 
-    const stage = container.querySelector('.ebook-leitor');
+    const stage = container.querySelector('.ebook-content');
     expect(stage).toHaveAttribute('data-theme', 'dark');
     expect(stage?.querySelector('style')?.textContent).toBe(
-      '.ebook-leitor .pg { color: red; }'
+      '.ebook-content .page { color: red; }'
     );
     expect(container.querySelector('script')).toBeNull();
     expect(
@@ -87,14 +87,14 @@ describe('EbookReader', () => {
       <EbookReader
         content={{
           ...content(),
-          css: "@import url('https://fonts.googleapis.com/css2');.ebook-leitor .capa { background: url(img/capa.webp); }",
+          css: "@import url('https://fonts.googleapis.com/css2');.ebook-content .capa { background: url(img/capa.webp); }",
         }}
         title="Livro"
       />
     );
 
-    expect(container.querySelector('.ebook-leitor style')?.textContent).toBe(
-      '.ebook-leitor .capa { background: url("https://cdn.example.com/ebooks/eb40/3/img/capa.webp"); }'
+    expect(container.querySelector('.ebook-content style')?.textContent).toBe(
+      '.ebook-content .capa { background: url("https://cdn.example.com/ebooks/eb40/3/img/capa.webp"); }'
     );
   });
 
@@ -170,7 +170,7 @@ describe('EbookReader', () => {
         />
       );
 
-      expect(container.querySelector('.ebook-leitor')).toHaveAttribute(
+      expect(container.querySelector('.ebook-content')).toHaveAttribute(
         'data-ds-typography'
       );
     });
@@ -180,7 +180,7 @@ describe('EbookReader', () => {
         <EbookReader content={content()} title="Livro" />
       );
 
-      expect(container.querySelector('.ebook-leitor')).not.toHaveAttribute(
+      expect(container.querySelector('.ebook-content')).not.toHaveAttribute(
         'data-ds-typography'
       );
     });
@@ -240,7 +240,7 @@ describe('EbookReader', () => {
             narration: [
               {
                 section: 'caso',
-                file: 'audio/narracao.mp3',
+                file: 'audio/narration.mp3',
                 start: 0,
                 end: 10,
                 clips: [

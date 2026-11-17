@@ -24,7 +24,7 @@ const openStory = async (page: Page, story: string) => {
 /** Waits for page-flip to build the book (it reports the cover as seen). */
 const openBook = async (page: Page, story = 'student-book') => {
   await openStory(page, story);
-  await expect(page.locator('#livro.stf__parent')).toBeVisible();
+  await expect(page.locator('#book.stf__parent')).toBeVisible();
 };
 
 const pageLabel = (page: Page) => page.getByTestId('ebook-reader-page-label');
@@ -39,8 +39,8 @@ const goToChapter = async (page: Page, chapter: string) => {
 const headerTitle = (page: Page) =>
   page.locator('section.ebook-reader > header h1');
 
-const clip = (page: Page, trecho: string) =>
-  page.locator(`[data-trecho="${trecho}"]`);
+const clip = (page: Page, segment: string) =>
+  page.locator(`[data-segment="${segment}"]`);
 
 for (const { name, size, spread } of VIEWPORTS) {
   /** The counter reads "a–b de 24" on a spread and "a de 24" on one page. */
@@ -77,7 +77,7 @@ for (const { name, size, spread } of VIEWPORTS) {
       await expect(pageLabel(page)).toHaveText(pages(3));
 
       await page.getByRole('button', { name: 'Ler em rolagem' }).click();
-      await expect(page.locator('#livro.rolagem')).toBeVisible();
+      await expect(page.locator('#book.rolagem')).toBeVisible();
       await expect(
         page.getByRole('button', { name: 'Próxima página' })
       ).toHaveCount(0);
@@ -187,7 +187,7 @@ for (const { name, size, spread } of VIEWPORTS) {
 
     test('follows the platform theme', async ({ page }) => {
       await openBook(page);
-      const stage = page.locator('.ebook-leitor');
+      const stage = page.locator('.ebook-content');
       await expect(stage).toHaveAttribute('data-theme', 'light');
       await expect(stage).toHaveCSS('background-color', 'rgb(246, 249, 248)');
 
@@ -285,7 +285,7 @@ for (const { name, size, spread } of VIEWPORTS) {
 
       await page.getByRole('tab', { name: 'Livro do estudante' }).click();
 
-      await expect(page.locator('#livro.stf__parent')).toBeVisible();
+      await expect(page.locator('#book.stf__parent')).toBeVisible();
       await expect(pageLabel(page)).toHaveText('Capa');
     });
   });
