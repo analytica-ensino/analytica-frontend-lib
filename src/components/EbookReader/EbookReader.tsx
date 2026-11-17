@@ -14,8 +14,9 @@ import {
   type EbookContent,
   type EbookDetails,
   type EbookMaterialType,
-  type EbookNarrationClip,
+  type EbookNarration,
   type EbookNarrationPage,
+  type EbookNarrationSegment,
   type EbookPageChange,
   type EbookReaderMode,
 } from './types';
@@ -28,8 +29,9 @@ export type {
   EbookContent,
   EbookDetails,
   EbookMaterialType,
-  EbookNarrationClip,
+  EbookNarration,
   EbookNarrationPage,
+  EbookNarrationSegment,
   EbookPageChange,
   EbookReaderMode,
 };

@@ -105,20 +105,28 @@ export const isPackagePath = (value: string): boolean =>
   !value.includes('\\') &&
   !value.split('/').includes('..');
 
-/** Absolute URL of a path already known to be inside the package. */
-const joinToBase = (path: string, base: string): string =>
-  new URL(path, base.endsWith('/') ? base : `${base}/`).href;
-
 /**
- * Resolves a package path against the version's base URL.
- * @param path - Path inside the package (e.g. `img/EB40_A01.webp`)
+ * Absolute URL of a file of the version: a package path resolved against the
+ * version's base URL, or an address already inside the version's folder (the
+ * upload may write image sources that way). The check is on the resolved
+ * address, so no `..` (written plainly or as `%2e%2e`) leaves the folder.
+ * @param path - Path in the package, or an absolute address
  * @param base - Base URL of the version's files
- * @returns Absolute URL, or `null` when the path is not inside the package
+ * @returns Absolute URL, or `null` when it is not a file of the version
  */
 export const resolvePackagePath = (
   path: string,
   base: string
-): string | null => (isPackagePath(path) ? joinToBase(path, base) : null);
+): string | null => {
+  if (path === '' || path.includes('\\')) return null;
+  const folder = base.endsWith('/') ? base : `${base}/`;
+  try {
+    const url = new URL(path, folder).href;
+    return url.startsWith(folder) ? url : null;
+  } catch {
+    return null;
+  }
+};
 
 /**
  * Dedicated DOMPurify instance, so these hooks never leak into the global one
@@ -139,12 +147,12 @@ const getPurifier = (): Purifier => {
     }
     if (element.tagName === 'IMG') {
       const src = element.getAttribute('src') ?? '';
-      if (!isPackagePath(src)) {
-        // Every image comes from the package; anything else is dropped.
-        element.removeAttribute('src');
-      } else if (currentBase) {
-        element.setAttribute('src', joinToBase(src, currentBase));
-      }
+      // Every image comes from the version's files; anything else is dropped.
+      const resolved = currentBase
+        ? resolvePackagePath(src, currentBase)
+        : isPackagePath(src) && src;
+      if (resolved) element.setAttribute('src', resolved);
+      else element.removeAttribute('src');
       return;
     }
     if (element.tagName === 'BUTTON') {

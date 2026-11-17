@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import type { EbookNarrationPage } from './types';
+import type { EbookNarration, EbookNarrationPage } from './types';
 import type { EbookLayout } from './useEbookBook';
 import {
   AUDIO_DESCRIPTION_STORAGE_KEY,
@@ -47,10 +47,10 @@ const CASO: EbookNarrationPage = {
   file: 'audio/narration.mp3',
   start: 10,
   end: 32,
-  clips: [
-    { id: 'p3-1', start: 0, end: 13.5, audioDescription: true },
-    { id: 'p3-2', start: 14, end: 18 },
-    { id: 'p3-3', start: 18.5, end: 21.5 },
+  segments: [
+    { segment: 'p3-1', start: 0, end: 13.5, ad: true },
+    { segment: 'p3-2', start: 14, end: 18 },
+    { segment: 'p3-3', start: 18.5, end: 21.5 },
   ],
 };
 
@@ -59,10 +59,10 @@ const P04: EbookNarrationPage = {
   file: 'audio/narration.mp3',
   start: 32,
   end: 50,
-  clips: [
-    { id: 'p4-1', start: 0, end: 2 },
-    { id: 'p4-2', start: 2.5, end: 5, audioDescription: true },
-    { id: 'p4-3', start: 5.5, end: 17 },
+  segments: [
+    { segment: 'p4-1', start: 0, end: 2 },
+    { segment: 'p4-2', start: 2.5, end: 5, ad: true },
+    { segment: 'p4-3', start: 5.5, end: 17 },
   ],
 };
 
@@ -72,7 +72,7 @@ const QUADRO: EbookNarrationPage = {
   file: 'audio/narration.mp3',
   start: 50,
   end: 60,
-  clips: [{ id: 'p5-1', start: 0, end: 9, audioDescription: true }],
+  segments: [{ segment: 'p5-1', start: 0, end: 9, ad: true }],
 };
 
 const pageHtml = (index: number, section: string, clipIds: string[]) =>
@@ -108,6 +108,13 @@ const reading = (content: HTMLElement) =>
     element.getAttribute('data-segment')
   );
 
+/** The pages as the upload stores them: the package's map, keyed by page number. */
+const stored = (pages: EbookNarrationPage[] | null): EbookNarration | null =>
+  pages &&
+  Object.fromEntries(
+    pages.map((narrated, index) => [String(index + 3), narrated])
+  );
+
 const setup = ({
   narration = [CASO, P04, QUADRO] as EbookNarrationPage[] | null,
   layout = 'book' as EbookLayout,
@@ -122,15 +129,17 @@ const setup = ({
     getVisiblePages: () => visible.map((index) => page(content, index)),
   };
   const contentRef = { current: content as HTMLDivElement };
+  // One object for the whole test, as the reader's content keeps it.
+  const storedNarration = stored(narration);
   const hook = renderHook(
-    (props: { book: FakeBook; narration: EbookNarrationPage[] | null }) =>
+    (props: { book: FakeBook; narration: EbookNarration | null }) =>
       useEbookNarration({
         narration: props.narration,
         assetBaseUrl: BASE,
         contentRef,
         book: props.book,
       }),
-    { initialProps: { book, narration } }
+    { initialProps: { book, narration: storedNarration } }
   );
   const tick = (time: number) => {
     audio().currentTime = time;
@@ -140,7 +149,7 @@ const setup = ({
   };
   const rerenderBook = (changes: Partial<FakeBook>) => {
     Object.assign(book, changes);
-    hook.rerender({ book: { ...book }, narration });
+    hook.rerender({ book: { ...book }, narration: storedNarration });
   };
   return { content, book, hook, tick, rerenderBook };
 };
@@ -179,7 +188,7 @@ describe('useEbookNarration', () => {
     expect(hook.result.current.withAudioDescription).toBe(true);
   });
 
-  it('plays the page on screen from its start in the mp3 and highlights the clip being read', async () => {
+  it('plays the page on screen from its start in the mp3 and highlights the segment being read', async () => {
     const { content, hook, tick } = setup();
 
     await act(async () => hook.result.current.toggle());
@@ -233,7 +242,7 @@ describe('useEbookNarration', () => {
     expect(hook.result.current.isPlaying).toBe(false);
   });
 
-  it('moves to the end of the page when the clip ends on its own', async () => {
+  it('moves to the end of the page when the segment ends on its own', async () => {
     const { book, hook } = setup({ visible: [2] });
     await act(async () => hook.result.current.toggle());
 
@@ -254,13 +263,47 @@ describe('useEbookNarration', () => {
   it.each([
     'https://evil.example.com/narration.mp3',
     '../other-book/audio/narration.mp3',
+    `${BASE}%2e%2e/4/audio/narration.mp3`,
   ])('ignores a page whose mp3 is not in the package (%s)', (file) => {
     const { hook } = setup({ narration: [{ ...CASO, file }] });
 
     expect(hook.result.current.hasNarration).toBe(false);
   });
 
-  it('highlights the clip on the book as it is now, after a rebuild', async () => {
+  it.each([
+    ['names no mp3', null, `${BASE}audio/narration.mp3`],
+    [
+      'gives its mp3 as an address of the version',
+      `${BASE}audio/b.mp3`,
+      `${BASE}audio/b.mp3`,
+    ],
+  ])('plays a page that %s', (_case, file, src) => {
+    const { hook } = setup({ visible: [1], narration: [{ ...CASO, file }] });
+
+    act(() => hook.result.current.toggle());
+
+    expect(audio().src).toBe(src);
+  });
+
+  it('plays a segment without `data-segment`, highlighting nothing', () => {
+    const { content, hook, tick } = setup({
+      visible: [1],
+      narration: [
+        {
+          ...CASO,
+          segments: [{ key: 'Bené olhou a horta', start: 0, end: 13 }],
+        },
+      ],
+    });
+
+    act(() => hook.result.current.toggle());
+    tick(10 + 1);
+
+    expect(hook.result.current.isPlaying).toBe(true);
+    expect(reading(content)).toEqual([]);
+  });
+
+  it('highlights the segment on the book as it is now, after a rebuild', async () => {
     const { content, hook, tick } = setup({ visible: [1] });
     await act(async () => hook.result.current.toggle());
     const rebuilt = page(content, 1).cloneNode(true) as HTMLElement;

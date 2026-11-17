@@ -1,87 +1,100 @@
-[
-  {
-    "section": "caso",
+{
+  "3": {
     "file": "audio/narration.mp3",
-    "start": 0.0,
-    "end": 22.52,
-    "clips": [
+    "section": "caso",
+    "segments": [
       {
-        "id": "p3-1",
+        "key": "Quadro. Manhã cedo na horta da escola. As couves da frente estão cheias de buracos, tão comidas que só sobrou o esqueleto das folhas. A Lu grita com as mãos no rosto, e o regador escorrega das mãos dela, espirrando água.",
         "start": 0.0,
         "end": 13.56,
-        "audioDescription": true
+        "segment": "p3-1",
+        "ad": true
       },
       {
-        "id": "p3-2",
+        "key": "Escola Ipê Amarelo. Segunda-feira, sete da manhã.",
         "start": 14.05,
-        "end": 18.26
+        "end": 18.26,
+        "segment": "p3-2"
       },
       {
-        "id": "p3-3",
+        "key": "Lu: Minha couve!",
         "start": 18.76,
-        "end": 20.56
+        "end": 20.56,
+        "segment": "p3-3"
       },
       {
-        "id": "p3-4",
+        "key": "PLOFT!",
         "start": 21.05,
-        "end": 22.36
+        "end": 22.36,
+        "segment": "p3-4"
       }
-    ]
+    ],
+    "start": 0.0,
+    "end": 22.52
   },
-  {
-    "section": "p04",
+  "4": {
     "file": "audio/narration.mp3",
-    "start": 22.52,
-    "end": 72.49,
-    "clips": [
+    "section": "p04",
+    "segments": [
       {
-        "id": "p4-1",
+        "key": "Quadro. A Bené chega correndo com a lupa erguida, e o Kenji vem junto com a prancheta. A Lu aponta, aflita, para as couves furadas.",
         "start": 0.0,
         "end": 8.05,
-        "audioDescription": true
+        "segment": "p4-1",
+        "ad": true
       },
       {
-        "id": "p4-2",
+        "key": "Bené: Alguém pediu um detetive?",
         "start": 8.54,
-        "end": 10.27
+        "end": 10.27,
+        "segment": "p4-2"
       },
       {
-        "id": "p4-3",
+        "key": "Lu: Olhem isso! Está toda furada!",
         "start": 10.76,
-        "end": 14.16
+        "end": 14.16,
+        "segment": "p4-3"
       },
       {
-        "id": "p4-4",
+        "key": "Quadro. A Bené olha pela lupa uma folha de couve cheia de buracos redondos. O Kenji se abaixa ao lado dela e anota na prancheta.",
         "start": 14.65,
         "end": 23.09,
-        "audioDescription": true
+        "segment": "p4-4",
+        "ad": true
       },
       {
-        "id": "p4-5",
+        "key": "Bené: Hum... buracos redondos. Só sobrou o esqueleto da folha!",
         "start": 23.59,
-        "end": 28.73
+        "end": 28.73,
+        "segment": "p4-5"
       },
       {
-        "id": "p4-6",
+        "key": "Kenji: 37 buracos. Só nesta folha!",
         "start": 29.23,
-        "end": 32.71
+        "end": 32.71,
+        "segment": "p4-6"
       },
       {
-        "id": "p4-7",
+        "key": "Quadro. A Bené, o Kenji e a Lu lado a lado diante das couves furadas, em pose de detetives: a Bené de dedo erguido, o Kenji ajeitando os óculos e a Lu de mãos na cintura.",
         "start": 33.2,
         "end": 44.75,
-        "audioDescription": true
+        "segment": "p4-7",
+        "ad": true
       },
       {
-        "id": "p4-8",
+        "key": "Bené: Turma, temos um caso.",
         "start": 45.24,
-        "end": 47.2
+        "end": 47.2,
+        "segment": "p4-8"
       },
       {
-        "id": "p4-9",
+        "key": "Lu: E um comedor de couve à solta!",
         "start": 47.7,
-        "end": 50.21
+        "end": 50.21,
+        "segment": "p4-9"
       }
-    ]
+    ],
+    "start": 22.52,
+    "end": 72.49
   }
-]
+}

@@ -1,5 +1,5 @@
 import {
-  activeClips,
+  activeSegments,
   audioDescriptionSkipTarget,
   hasAudioDescription,
   isAudioDescriptionOnly,
@@ -12,11 +12,11 @@ const CASO: EbookNarrationPage = {
   file: 'audio/narration.mp3',
   start: 85.58,
   end: 108.1,
-  clips: [
-    { id: 'p3-1', start: 0, end: 13.56, audioDescription: true },
-    { id: 'p3-2', start: 14.05, end: 18.26 },
-    { id: 'p3-3', start: 18.76, end: 20.56 },
-    { id: 'p3-4', start: 21.05, end: 22.36 },
+  segments: [
+    { segment: 'p3-1', start: 0, end: 13.56, ad: true },
+    { segment: 'p3-2', start: 14.05, end: 18.26 },
+    { segment: 'p3-3', start: 18.76, end: 20.56 },
+    { segment: 'p3-4', start: 21.05, end: 22.36 },
   ],
 };
 
@@ -25,22 +25,22 @@ const COVER: EbookNarrationPage = {
   file: 'audio/narration.mp3',
   start: 0,
   end: 9.57,
-  clips: [{ id: 'p0-1', start: 0, end: 9.4 }],
+  segments: [{ segment: 'p0-1', start: 0, end: 9.4 }],
 };
 
 describe('isAudioDescriptionOnly', () => {
-  it('is true when every clip describes an image', () => {
-    expect(isAudioDescriptionOnly({ ...CASO, clips: [CASO.clips[0]] })).toBe(
-      true
-    );
+  it('is true when every segment describes an image', () => {
+    expect(
+      isAudioDescriptionOnly({ ...CASO, segments: [CASO.segments[0]] })
+    ).toBe(true);
   });
 
   it('is false for a page with spoken lines', () => {
     expect(isAudioDescriptionOnly(CASO)).toBe(false);
   });
 
-  it('is false for a page without clips', () => {
-    expect(isAudioDescriptionOnly({ ...CASO, clips: [] })).toBe(false);
+  it('is false for a page without segments', () => {
+    expect(isAudioDescriptionOnly({ ...CASO, segments: [] })).toBe(false);
   });
 });
 
@@ -49,7 +49,7 @@ describe('hasAudioDescription', () => {
     expect(hasAudioDescription([COVER, CASO])).toBe(true);
   });
 
-  it('is false when no clip describes an image', () => {
+  it('is false when no segment describes an image', () => {
     expect(hasAudioDescription([COVER])).toBe(false);
   });
 });
@@ -66,9 +66,9 @@ describe('audioDescriptionSkipTarget', () => {
   it('jumps just before a description starts sounding', () => {
     const page = {
       ...CASO,
-      clips: [
-        { id: 'a', start: 0, end: 2 },
-        { id: 'b', start: 2.1, end: 4, audioDescription: true },
+      segments: [
+        { segment: 'a', start: 0, end: 2 },
+        { segment: 'b', start: 2.1, end: 4, ad: true },
       ],
     };
 
@@ -78,10 +78,10 @@ describe('audioDescriptionSkipTarget', () => {
   it('chains descriptions that follow each other', () => {
     const page = {
       ...CASO,
-      clips: [
-        { id: 'a', start: 0, end: 3, audioDescription: true },
-        { id: 'b', start: 3.1, end: 6, audioDescription: true },
-        { id: 'c', start: 6.5, end: 8 },
+      segments: [
+        { segment: 'a', start: 0, end: 3, ad: true },
+        { segment: 'b', start: 3.1, end: 6, ad: true },
+        { segment: 'c', start: 6.5, end: 8 },
       ],
     };
 
@@ -93,29 +93,38 @@ describe('audioDescriptionSkipTarget', () => {
   });
 });
 
-describe('activeClips', () => {
-  it('is empty before the first clip starts', () => {
-    expect(activeClips({ ...CASO, clips: CASO.clips.slice(1) }, 1)).toEqual([]);
+describe('activeSegments', () => {
+  it('is empty before the first segment starts', () => {
+    expect(
+      activeSegments({ ...CASO, segments: CASO.segments.slice(1) }, 1)
+    ).toEqual([]);
   });
 
-  it('returns the clip being read, a little ahead of the voice', () => {
-    expect(activeClips(CASO, 14.01).map((clip) => clip.id)).toEqual(['p3-2']);
+  it('returns the segment being read, a little ahead of the voice', () => {
+    expect(activeSegments(CASO, 14.01).map(({ segment }) => segment)).toEqual([
+      'p3-2',
+    ]);
   });
 
-  it('keeps the last clip until the page ends', () => {
-    expect(activeClips(CASO, 30).map((clip) => clip.id)).toEqual(['p3-4']);
+  it('keeps the last segment until the page ends', () => {
+    expect(activeSegments(CASO, 30).map(({ segment }) => segment)).toEqual([
+      'p3-4',
+    ]);
   });
 
-  it('highlights clips that start together', () => {
+  it('highlights segments that start together', () => {
     const page = {
       ...CASO,
-      clips: [
-        { id: 'a', start: 0, end: 2 },
-        { id: 'b', start: 0, end: 2 },
-        { id: 'c', start: 2.5, end: 3 },
+      segments: [
+        { segment: 'a', start: 0, end: 2 },
+        { segment: 'b', start: 0, end: 2 },
+        { segment: 'c', start: 2.5, end: 3 },
       ],
     };
 
-    expect(activeClips(page, 1).map((clip) => clip.id)).toEqual(['a', 'b']);
+    expect(activeSegments(page, 1).map(({ segment }) => segment)).toEqual([
+      'a',
+      'b',
+    ]);
   });
 });

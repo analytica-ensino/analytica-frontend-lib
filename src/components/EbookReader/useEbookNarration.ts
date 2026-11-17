@@ -7,13 +7,19 @@ import {
   type RefObject,
 } from 'react';
 import {
-  activeClips,
+  activeSegments,
   audioDescriptionSkipTarget,
   hasAudioDescription as anyAudioDescription,
   isAudioDescriptionOnly,
 } from './narration';
 import { resolvePackagePath } from './sanitizeEbookHtml';
-import { EBOOK_CLASS, EBOOK_FORMAT, type EbookNarrationPage } from './types';
+import {
+  EBOOK_CLASS,
+  EBOOK_FORMAT,
+  NARRATION_FILE,
+  type EbookNarration,
+  type EbookNarrationPage,
+} from './types';
 import type { UseEbookBookReturn } from './useEbookBook';
 
 /** How often, in milliseconds, the player checks the time (timeupdate is too coarse to skip on time). */
@@ -74,25 +80,25 @@ interface PlayablePage extends EbookNarrationPage {
 }
 
 /**
- * The pages that can play, by section. A page whose mp3 is not a file of the
- * package (an outside URL, a step out of the version's folder) is left out,
- * as images are.
+ * The pages that can play, by section, from the stored map (its keys mean
+ * nothing). A page whose mp3 is not a file of the version (an outside URL, a
+ * step out of the version's folder) is left out, as images are.
  */
 const playablePages = (
-  narration: EbookNarrationPage[] | null | undefined,
+  narration: EbookNarration | null | undefined,
   assetBaseUrl: string
 ): Map<string, PlayablePage> => {
   const pages = new Map<string, PlayablePage>();
-  for (const page of narration ?? []) {
-    const src = resolvePackagePath(page.file, assetBaseUrl);
+  for (const page of Object.values(narration ?? {})) {
+    const src = resolvePackagePath(page.file ?? NARRATION_FILE, assetBaseUrl);
     if (src) pages.set(page.section, { ...page, src });
   }
   return pages;
 };
 
 export interface UseEbookNarrationOptions {
-  /** Narration of the version, page by page, when it has one */
-  narration?: EbookNarrationPage[] | null;
+  /** Narration of the version, when it has one */
+  narration?: EbookNarration | null;
   /** Base URL of the version's files; the mp3 path resolves against it */
   assetBaseUrl: string;
   /** Element the book is drawn into */
@@ -107,7 +113,7 @@ export interface UseEbookNarrationOptions {
 export interface UseEbookNarrationReturn {
   /** The book has recorded narration: the "Ouvir" button shows */
   hasNarration: boolean;
-  /** Some clip describes an image: the audio description switch shows */
+  /** Some segment describes an image: the audio description switch shows */
   hasAudioDescription: boolean;
   isPlaying: boolean;
   /** Audio description on (the default) reads the image descriptions too */
@@ -120,10 +126,10 @@ export interface UseEbookNarrationReturn {
 /**
  * Plays the book's recorded narration, page by page.
  *
- * "Ouvir" plays the clips of the pages on screen, highlighting the element of
- * each clip (`data-segment`) with the class the book's CSS styles, and turns
+ * "Ouvir" plays the segments of the pages on screen, highlighting the element
+ * of each segment (`data-segment`) with the class the book's CSS styles, and turns
  * the page when they end. With audio description off, image descriptions
- * (`ad` clips) are skipped before they sound, and pages that only describe
+ * (`ad` segments) are skipped before they sound, and pages that only describe
  * images are left out. Turning a page by hand while listening goes on from
  * the new page.
  *
@@ -247,12 +253,15 @@ export const useEbookNarration = ({
         }
         clearHighlight();
         // Looked up on the page as it is now: the book may have been rebuilt
-        // (a new size) since this page started. Clip ids are unique in a book.
-        highlightedRef.current = activeClips(page, time)
-          .map((clip) =>
-            contentRef.current?.querySelector(
-              `[${EBOOK_FORMAT.SEGMENT_ATTRIBUTE}="${CSS.escape(clip.id)}"]`
-            )
+        // (a new size) since this page started. Segment ids are unique in a
+        // book; a segment without one has nothing to highlight.
+        highlightedRef.current = activeSegments(page, time)
+          .map(({ segment }) =>
+            segment
+              ? contentRef.current?.querySelector(
+                  `[${EBOOK_FORMAT.SEGMENT_ATTRIBUTE}="${CSS.escape(segment)}"]`
+                )
+              : null
           )
           .filter((element): element is Element => !!element);
         highlightedRef.current.forEach((element) =>
