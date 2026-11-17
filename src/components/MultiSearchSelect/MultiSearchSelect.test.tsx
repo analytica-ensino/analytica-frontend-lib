@@ -639,6 +639,43 @@ describe('MultiSearchSelect', () => {
     });
   });
 
+  describe('counts and selection text', () => {
+    it('shows how many items fall under each option, at its right', () => {
+      setup({
+        options: [
+          { value: 'I', label: 'Educação 4.0 e 5.0', count: 2 },
+          { value: 'II', label: 'Educação financeira', count: 20 },
+          { value: 'III', label: 'Língua estrangeira' },
+        ],
+      });
+      openPanel();
+
+      const [first, second, third] = screen.getAllByRole('option');
+      expect(first).toHaveTextContent('Educação 4.0 e 5.002');
+      expect(second).toHaveTextContent('Educação financeira20');
+      expect(third).toHaveTextContent(/^Língua estrangeira$/);
+    });
+
+    it('shows the selection as a text instead of chips', () => {
+      setup({
+        values: ['c-1', 'c-2'],
+        formatSelected: (count) => `${count} selecionados`,
+      });
+
+      const trigger = screen.getByRole('combobox');
+      expect(trigger).toHaveTextContent('2 selecionados');
+      expect(within(trigger).queryByText('A - NEM EPT')).toBeNull();
+    });
+
+    it('keeps the placeholder while nothing is selected', () => {
+      setup({ formatSelected: (count) => `${count} selecionados` });
+
+      expect(screen.getByRole('combobox')).toHaveTextContent(
+        'Selecione as turmas'
+      );
+    });
+  });
+
   describe('helper and error text', () => {
     it('renders the helper text', () => {
       setup({ helperText: 'Escolha ao menos uma' });

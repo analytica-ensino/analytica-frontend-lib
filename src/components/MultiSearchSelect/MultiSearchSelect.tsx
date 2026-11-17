@@ -72,6 +72,7 @@ export function MultiSearchSelect({
   className,
   id,
   maxVisibleChips = 3,
+  formatSelected,
   onSearch,
   searchDebounce = 300,
   pagination,
@@ -413,6 +414,7 @@ export function MultiSearchSelect({
             maxVisibleChips={maxVisibleChips}
             size={size}
             onRemove={removeValue}
+            formatSelected={formatSelected}
           />
         </div>
         <CaretDownIcon

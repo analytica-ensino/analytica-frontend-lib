@@ -73,3 +73,11 @@ export interface EbookDetails {
   /** Estimated reading time, in minutes */
   readingMinutes?: number;
 }
+
+/** The pages on screen, as the reader reports them on every change. */
+export interface EbookPageChange {
+  /** `data-secao` of the page being read (the left one of a double page): where to resume */
+  section: string | null;
+  /** Every section on screen, the ones inside the pages included */
+  sections: string[];
+}
