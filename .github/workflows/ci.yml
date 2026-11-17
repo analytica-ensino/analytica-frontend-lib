@@ -47,6 +47,9 @@ jobs:
     with:
       cache-key: ${{ needs.setup.outputs.cache-key }}
 
+  # npm Trusted Publishing (OIDC): npm accepts a token from this repo's ci.yml
+  # (the calling workflow, not publish.yml) running in the "npm" environment,
+  # which only main can deploy to. There is no NPM_TOKEN secret anymore.
   publish:
     name: Publish Package
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -59,11 +62,12 @@ jobs:
       contents: write
       id-token: write
 
-  # Every PR commit publishes <package.json version>-pr.<N>.<short sha> under
-  # the pr-<N> dist-tag and comments the version on the PR, so the apps can
-  # try a change before it reaches main. PRs from forks have no NPM_TOKEN.
-  # The pr-<N> tags stay after the PR closes: NPM_TOKEN can publish but npm
-  # refuses it any dist-tag change (E403 on dist-tag rm, PR #693).
+  # Every PR commit publishes <package.json version>-pr.<N>.<short sha> to
+  # GitHub Packages under the pr-<N> dist-tag and comments the version on the
+  # PR, so the apps can try a change before it reaches main. A PR run executes
+  # the workflow files from the PR head, so it gets no secrets and nothing that
+  # can publish to npm: only the GITHUB_TOKEN, which writes to GitHub Packages.
+  # Fork PRs get a read-only token and are skipped.
   publish-pr:
     name: Publish PR Version
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
@@ -71,9 +75,9 @@ jobs:
     uses: ./.github/workflows/publish-pr.yml
     with:
       cache-key: ${{ needs.setup.outputs.cache-key }}
-    secrets: inherit
     permissions:
       contents: read
+      packages: write
       pull-requests: write
 
   deploy-ladle:
