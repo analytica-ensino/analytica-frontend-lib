@@ -43,9 +43,66 @@ import 'analytica-frontend-lib/styles.css';
 2. Crie o componente na pasta `/src/components`.
 3. Adicione testes unitários, com cobertura mínima de 80%.
 4. Adicione o componente no Ladle, contemplando todas as variações.
-5. Atualize a versão no campo `version` do arquivo `package.json`.
-6. Abra um Pull Request (PR) da sua branch para a `main`.
-7. O GitHub Actions cuidará da publicação automática após o merge.
+5. Abra um Pull Request (PR) da sua branch para a `main`. Cada commit do PR publica uma [versão de teste](#versões-de-pr) para você experimentar num app.
+6. Não mexa no campo `version` do `package.json`: depois do merge, o GitHub Actions aumenta o patch e publica no npm sozinho.
+
+---
+
+## Publicação no npm
+
+Só o push na `main` publica no npm, pelo job `publish` do `ci.yml`, usando o [Trusted Publishing](https://docs.npmjs.com/trusted-publishers) (OIDC):
+
+- Não existe token do npm no repositório. O npm só aceita publicação que venha do `ci.yml` deste repositório rodando no environment `npm`, e esse environment só aceita deploy da `main`.
+- Toda versão sai com [provenance](https://docs.npmjs.com/generating-provenance-statements), que liga o pacote ao commit e ao run que o gerou.
+- Nos apps, a lib fica com a versão exata, sem `^`. Para atualizar: `yarn up analytica-frontend-lib@X.Y.Z`.
+
+---
+
+## Versões de PR
+
+Cada commit de um PR aberto a partir deste repositório publica uma versão de teste no **GitHub Packages**, nunca no npm. O pacote se chama `@analytica-ensino/analytica-frontend-lib`, e a versão segue o formato `<versão do package.json>-pr.<número do PR>.<commit>` (ex.: `1.7.48-pr.722.ab12cd3`). O bot comenta no PR o comando pronto, e o dist-tag `pr-<número do PR>` aponta sempre para o build mais recente daquele PR. PR aberto de fork não publica.
+
+### 1. Crie o token (uma vez por máquina)
+
+O GitHub Packages pede token até para instalar pacote público.
+
+1. Abra [github.com/settings/tokens/new](https://github.com/settings/tokens/new?scopes=read:packages&description=analytica-frontend-lib%20PR) e crie um token **classic** só com o escopo `read:packages`. Token fine-grained não funciona no registry npm do GitHub Packages.
+2. Coloque o token no `~/.yarnrc.yml` da sua **home**, não no repositório:
+
+   ```yaml
+   npmScopes:
+     analytica-ensino:
+       npmRegistryServer: "https://npm.pkg.github.com"
+       npmAuthToken: "ghp_seu_token_aqui"
+   ```
+
+3. Teste em qualquer app (troque `722` pelo número do PR):
+
+   ```bash
+   yarn npm info @analytica-ensino/analytica-frontend-lib@pr-722 --fields version
+   ```
+
+   Se aparecer a versão, está pronto. Se der `401`, `403` ou `404`, o token está sem `read:packages` ou não foi lido do `~/.yarnrc.yml`.
+
+### 2. Instale a versão do PR no app
+
+O alias `npm:` instala o pacote de teste com o nome `analytica-frontend-lib`, então nenhum import do app muda.
+
+```bash
+# a versão exata que o bot comentou no PR
+yarn add analytica-frontend-lib@npm:@analytica-ensino/analytica-frontend-lib@1.7.48-pr.722.ab12cd3
+
+# ou o build mais recente do PR (rode de novo depois de cada commit novo)
+yarn up analytica-frontend-lib@npm:@analytica-ensino/analytica-frontend-lib@pr-722
+```
+
+### 3. Volte para a versão publicada antes de commitar
+
+```bash
+yarn up analytica-frontend-lib@1.7.49   # a versão exata que saiu do merge
+```
+
+Nunca commite o alias. O `yarn.lock` passaria a apontar para o GitHub Packages, e o build do app, que não tem o token, quebraria na instalação.
 
 ---
 

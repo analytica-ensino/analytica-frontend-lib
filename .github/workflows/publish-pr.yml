@@ -8,12 +8,21 @@ on:
         required: true
         type: string
 
+# PR versions go to GitHub Packages as @analytica-ensino/analytica-frontend-lib,
+# never to npm (AE-3244): this workflow runs from the PR head, so whoever opens
+# the PR controls it. The apps install a PR version through a yarn alias; see
+# "Versões de PR" in the README.
+env:
+  PR_PACKAGE: '@analytica-ensino/analytica-frontend-lib'
+  PR_REGISTRY: 'https://npm.pkg.github.com'
+
 jobs:
   publish:
-    name: Publish PR version to npm
+    name: Publish PR version to GitHub Packages
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      packages: write
       pull-requests: write
 
     steps:
@@ -28,7 +37,8 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 24
-          registry-url: 'https://registry.npmjs.org/'
+          registry-url: ${{ env.PR_REGISTRY }}
+          scope: '@analytica-ensino'
           cache: yarn
 
       - name: Restore node_modules cache
@@ -61,28 +71,32 @@ jobs:
             SHORT_SHA=$(grep -oE '^[0-9]+[a-f]' <<< "$HEAD_SHA")
           fi
           VERSION="${BASE}-pr.${PR_NUMBER}.${SHORT_SHA}"
+          # GitHub Packages only takes packages scoped to the repo owner. The
+          # registry is pinned too, so a missing scope mapping can't send the
+          # package to npm.
+          npm pkg set name="$PR_PACKAGE" publishConfig.registry="$PR_REGISTRY"
           npm version "$VERSION" --no-git-tag-version
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=pr-${PR_NUMBER}" >> "$GITHUB_OUTPUT"
 
-      # --tag keeps "latest" on the main release; pr-<N> always points to the
-      # newest build of the PR. npm publish runs prepack, which builds dist.
+      # pr-<N> always points to the newest build of the PR. npm publish runs
+      # prepack, which builds dist.
       - name: Publish package
         id: publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_OPTIONS: --max-old-space-size=8192
           VERSION: ${{ steps.version.outputs.version }}
           TAG: ${{ steps.version.outputs.tag }}
         run: |
           # A re-run of the same commit finds its version already published.
           # Leave $TAG alone: re-running an older commit must not point it back
-          # to an older build (and NPM_TOKEN can't change dist-tags anyway).
-          if [ -n "$(npm view "analytica-frontend-lib@$VERSION" version 2>/dev/null)" ]; then
+          # to an older build.
+          if [ -n "$(npm view "$PR_PACKAGE@$VERSION" version 2>/dev/null)" ]; then
             echo "$VERSION is already published; nothing to do."
             echo "published=false" >> "$GITHUB_OUTPUT"
           else
-            npm publish --access public --tag "$TAG"
+            npm publish --tag "$TAG"
             echo "published=true" >> "$GITHUB_OUTPUT"
           fi
 
@@ -97,14 +111,17 @@ jobs:
           TAG: ${{ steps.version.outputs.tag }}
         run: |
           BODY="$RUNNER_TEMP/pr-comment.md"
+          README="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/main/README.md#vers%C3%B5es-de-pr"
           {
-            echo "📦 Versão publicada no npm: \`analytica-frontend-lib@$VERSION\` (commit $HEAD_SHA)"
+            echo "📦 Versão de teste publicada no GitHub Packages: \`$PR_PACKAGE@$VERSION\` (commit $HEAD_SHA)"
             echo
             echo '```sh'
-            echo "yarn add analytica-frontend-lib@$VERSION"
+            echo "yarn add analytica-frontend-lib@npm:$PR_PACKAGE@$VERSION"
             echo '```'
             echo
-            echo "O dist-tag \`$TAG\` sempre aponta para o build mais recente deste PR: \`yarn up analytica-frontend-lib@$TAG\`."
+            echo "O dist-tag \`$TAG\` sempre aponta para o build mais recente deste PR: \`yarn up analytica-frontend-lib@npm:$PR_PACKAGE@$TAG\`."
+            echo
+            echo "Primeira vez? Configure o token do GitHub Packages seguindo o passo a passo em [Versões de PR]($README). Não commite essa versão no app."
           } > "$BODY"
           gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -F body=@"$BODY" > /dev/null
           cat "$BODY" >> "$GITHUB_STEP_SUMMARY"
