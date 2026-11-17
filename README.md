@@ -62,9 +62,9 @@ Só o push na `main` publica no npm, pelo job `publish` do `ci.yml`, usando o [T
 
 Cada commit de um PR aberto a partir deste repositório publica uma versão de teste no **GitHub Packages**, nunca no npm. O pacote se chama `@analytica-ensino/analytica-frontend-lib`, e a versão segue o formato `<versão do package.json>-pr.<número do PR>.<commit>` (ex.: `1.7.48-pr.722.ab12cd3`). O bot comenta no PR o comando pronto, e o dist-tag `pr-<número do PR>` aponta sempre para o build mais recente daquele PR. PR aberto de fork não publica.
 
-### 1. Crie o token (uma vez por máquina)
+O pacote é privado: só membros da organização `analytica-ensino` conseguem instalar. Para caber nos 500 MB do plano gratuito, o CI apaga as versões quando o PR é fechado (mergeado ou não) e, enquanto ele está aberto, mantém só as 3 mais recentes.
 
-O GitHub Packages pede token até para instalar pacote público.
+### 1. Crie o token (uma vez por máquina)
 
 1. Abra [github.com/settings/tokens/new](https://github.com/settings/tokens/new?scopes=read:packages&description=analytica-frontend-lib%20PR) e crie um token **classic** só com o escopo `read:packages`. Token fine-grained não funciona no registry npm do GitHub Packages.
 2. Coloque o token no `~/.yarnrc.yml` da sua **home**, não no repositório:
