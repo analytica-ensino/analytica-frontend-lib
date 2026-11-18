@@ -1,4 +1,5 @@
 import { defineConfig } from 'tsup';
+import { ebookWebViewHtmlPlugin } from './scripts/ebook-webview/htmlPlugin.mjs';
 
 export default defineConfig({
   entry: {
@@ -202,6 +203,8 @@ export default defineConfig({
     'types/supportConversation/index': 'src/types/supportConversation.ts',
     'ArticleContent/index': 'src/components/ArticleContent/ArticleContent.tsx',
     'EbookReader/index': 'src/components/EbookReader/EbookReader.tsx',
+    // The reader for the app's WebView: one HTML string, no DOM imports.
+    'EbookReader/webview/index': 'src/components/EbookReader/webview/index.ts',
     'SupportChatMessage/index':
       'src/components/SupportChat/SupportChatMessage.tsx',
     'SupportChatEvent/index': 'src/components/SupportChat/SupportChatEvent.tsx',
@@ -568,6 +571,8 @@ export default defineConfig({
     'hls.js',
   ],
   target: 'es2022',
+  // Builds `ebook-webview:html`, the WebView page of the ebook reader.
+  esbuildPlugins: [ebookWebViewHtmlPlugin()],
   sourcemap: true,
   dts: false, // Use tsc directly for better memory efficiency
   loader: {

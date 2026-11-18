@@ -4,7 +4,7 @@ Writes public/fixtures/ebook/eb40/{student,teacher}/ the way the upload
 (AE-3318) stores a version, following backend docs/EBOOKS-FORMATO.md:
 
   content.html    the book's <main>, without scripts
-  styles.css      every <style>, scoped to `.ebook-content`
+  styles.css      every <style>, scoped to `.ebook-content` as the upload does
   narration.json  the package's narration map (`window.NARRATION`), as is
                   (student book only)
   metadata.json   the package's metadata, as is
@@ -54,17 +54,26 @@ def split_top_level(text, sep=','):
     return parts
 
 
+# As the upload scopes the book CSS (backend `scopeEbookCss`): `:root`, `html`
+# and `body` become the stage, but theme rules stay on the document root, with
+# the stage under them (`:root[data-theme="dark"] .ebook-content`). The reader
+# moves those onto the stage when it shows the book (sanitizeEbookCss).
+ROOT = re.compile(r'^(:root|html|body)((?:\[data-theme[^\]]*\]|:not\(\[data-theme[^\]]*\]\))*)([\s\S]*)$')
+
+
 def scope_selector(selector):
     out = []
     for sel in split_top_level(selector):
         sel = sel.strip()
         if not sel:
             continue
-        m = re.match(r'^(?:html\s+body|:root|html|body)(?![\w-])', sel)
-        if m:
-            out.append(SCOPE + sel[m.end():])
-        else:
+        m = ROOT.match(sel)
+        if not m:
             out.append(f'{SCOPE} {sel}')
+        elif m.group(2):
+            out.append(f':root{m.group(2)} {SCOPE}{m.group(3)}')
+        else:
+            out.append(SCOPE + m.group(3))
     return ', '.join(out)
 
 
