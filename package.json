@@ -1302,6 +1302,13 @@
       "require": "./dist/FileDropzone/index.js",
       "default": "./dist/FileDropzone/index.mjs"
     },
+    "./ebook-reader": {
+      "types": "./dist/EbookReader/index.d.ts",
+      "module": "./dist/EbookReader/index.mjs",
+      "import": "./dist/EbookReader/index.mjs",
+      "require": "./dist/EbookReader/index.js",
+      "default": "./dist/EbookReader/index.mjs"
+    },
     "./filter/usetablefilter": {
       "types": "./dist/Filter/useTableFilter/index.d.ts",
       "module": "./dist/Filter/useTableFilter/index.mjs",

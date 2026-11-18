@@ -99,4 +99,29 @@ describe('EbookReaderHeader', () => {
       ).toHaveAttribute('aria-expanded', 'true');
     });
   });
+
+  it('renders the header actions after the title and before the tabs', () => {
+    renderHeader({
+      onMaterialChange: jest.fn(),
+      headerActions: <button type="button">Editar</button>,
+    });
+
+    const action = screen.getByRole('button', { name: 'Editar' });
+    const heading = screen.getByRole('heading', {
+      name: 'O Caso da Couve Mordida',
+    });
+    const tabs = screen.getByRole('tablist');
+    expect(
+      heading.compareDocumentPosition(action) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(
+      action.compareDocumentPosition(tabs) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+
+  it('renders no actions wrapper without headerActions', () => {
+    renderHeader();
+
+    expect(screen.queryByRole('button', { name: 'Editar' })).toBeNull();
+  });
 });

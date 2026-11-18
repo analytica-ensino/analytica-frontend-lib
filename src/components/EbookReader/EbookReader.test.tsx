@@ -186,6 +186,22 @@ describe('EbookReader', () => {
     });
   });
 
+  describe('header actions', () => {
+    it('renders the header actions slot', () => {
+      render(
+        <EbookReader
+          content={content()}
+          title="Livro"
+          headerActions={<button type="button">Editar</button>}
+        />
+      );
+
+      expect(
+        screen.getByRole('button', { name: 'Editar' })
+      ).toBeInTheDocument();
+    });
+  });
+
   describe('full screen', () => {
     it('is not offered where the browser does not allow it', () => {
       render(<EbookReader content={content()} title="Livro" />);
