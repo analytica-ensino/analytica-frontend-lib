@@ -26,11 +26,12 @@ const config = {
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    // Built at build time (scripts/ebook-webview/htmlPlugin.mjs); a stub in jest.
+    '^ebook-webview:html$': '<rootDir>/src/testing/ebookWebViewHtmlStub.ts',
     // @phosphor-icons/react expõe ícones como subpaths ESM (dist/csr/<Nome>);
     // no jest (CJS), importados via o barrel da lib, resolvem para undefined.
     // Mapeamos todos os subpaths csr e o barrel para um stub genérico de ícone.
-    '^@phosphor-icons/react/dist/csr/.*$':
-      '<rootDir>/jest.phosphorIconMock.js',
+    '^@phosphor-icons/react/dist/csr/.*$': '<rootDir>/jest.phosphorIconMock.js',
     '^@phosphor-icons/react$': '<rootDir>/jest.phosphorIconMock.js',
     'katex/dist/katex.min.css': 'identity-obj-proxy',
     [String.raw`\.(css|less|scss|sass)$`]: 'identity-obj-proxy',
