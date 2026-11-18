@@ -469,3 +469,31 @@ export const TypeValidation: Story = () => {
     </div>
   );
 };
+
+/**
+ * Zip package upload (e.g. ebook packages)
+ */
+export const ZipUpload: Story = () => (
+  <div className="max-w-md">
+    <FileDropzoneWithState
+      fileType="zip"
+      accept=".zip,application/zip"
+      label="Pacote do ebook"
+      helperText="Formato aceito: ZIP"
+    />
+  </div>
+);
+
+/**
+ * Uploading state: progress bar, no clicks/drops and no remove button
+ */
+export const Uploading: Story = () => (
+  <div className="max-w-md">
+    <FileDropzone
+      fileType="zip"
+      accept=".zip,application/zip"
+      label="Pacote do ebook"
+      uploadProgress={60}
+    />
+  </div>
+);

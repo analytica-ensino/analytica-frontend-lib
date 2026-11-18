@@ -10,11 +10,13 @@ import { ClosedCaptioningIcon } from '@phosphor-icons/react/dist/csr/ClosedCapti
 import { PaperclipIcon } from '@phosphor-icons/react/dist/csr/Paperclip';
 import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
 import { XIcon } from '@phosphor-icons/react/dist/csr/X';
+import { FileArrowUpIcon } from '@phosphor-icons/react/dist/csr/FileArrowUp';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
+import ProgressBar from '../ProgressBar/ProgressBar';
 import { cn } from '../../utils/utils';
 
-export type FileType = 'image' | 'video' | 'audio' | 'pdf' | 'subtitle';
+export type FileType = 'image' | 'video' | 'audio' | 'pdf' | 'subtitle' | 'zip';
 
 export interface FileDropzoneProps {
   /** Label text displayed above the dropzone */
@@ -59,6 +61,14 @@ export interface FileDropzoneProps {
   showPreview?: boolean;
   /** Max height for image preview */
   previewMaxHeight?: string;
+  /**
+   * Upload progress (0-100). While it is a number the dropzone shows the
+   * uploading state: icon, `uploadingText` and a progress bar; clicks, drops
+   * and the remove button are disabled.
+   */
+  uploadProgress?: number | null;
+  /** Text shown while uploading (default: "Anexando arquivo. Não feche a janela...") */
+  uploadingText?: string;
 }
 
 const FILE_TYPE_CONFIG: Record<
@@ -87,6 +97,10 @@ const FILE_TYPE_CONFIG: Record<
   subtitle: {
     icon: ClosedCaptioningIcon,
     defaultPlaceholder: 'para subir a legenda ou arraste aqui',
+  },
+  zip: {
+    icon: FileArrowUpIcon,
+    defaultPlaceholder: 'para subir o arquivo, ou arraste o arquivo aqui',
   },
 };
 
@@ -146,6 +160,8 @@ export default function FileDropzone({
   onTypeError,
   showPreview = true,
   previewMaxHeight = 'max-h-48',
+  uploadProgress = null,
+  uploadingText = 'Anexando arquivo. Não feche a janela...',
 }: Readonly<FileDropzoneProps>) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
@@ -155,6 +171,9 @@ export default function FileDropzone({
   const inputId = `file-dropzone-${generatedId}`;
 
   const hasError = Boolean(errorMessage);
+  const isUploading = typeof uploadProgress === 'number';
+  // Uploading blocks every interaction, like the disabled state
+  const isBlocked = disabled || isUploading;
   const config = FILE_TYPE_CONFIG[fileType];
   const IconComponent = config.icon;
   const defaultPlaceholder = placeholder || config.defaultPlaceholder;
@@ -218,7 +237,7 @@ export default function FileDropzone({
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || disabled) return;
+    if (!file || isBlocked) return;
 
     if (validateFile(file)) {
       onFileSelect?.(file);
@@ -232,7 +251,7 @@ export default function FileDropzone({
     e.preventDefault();
     e.stopPropagation();
     dragCounterRef.current += 1;
-    if (!disabled && dragCounterRef.current === 1) {
+    if (!isBlocked && dragCounterRef.current === 1) {
       setIsDragging(true);
     }
   };
@@ -257,7 +276,7 @@ export default function FileDropzone({
     dragCounterRef.current = 0;
     setIsDragging(false);
 
-    if (disabled) return;
+    if (isBlocked) return;
 
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
@@ -303,6 +322,29 @@ export default function FileDropzone({
     'flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors',
     getBorderClasses(),
     disabled && 'cursor-not-allowed opacity-50'
+  );
+
+  // Uploading state (Figma): icon badge, warning text and progress bar
+  const renderUploading = () => (
+    <div
+      className="flex w-full flex-col items-center justify-center gap-3 p-6 border-2 border-dashed rounded-lg border-border-200 cursor-default"
+      aria-busy="true"
+    >
+      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary-50">
+        <IconComponent size={24} className="text-primary-500" />
+      </div>
+      <Text size="sm" className="text-text-600 text-center">
+        {uploadingText}
+      </Text>
+      <ProgressBar
+        value={uploadProgress ?? 0}
+        variant="blue"
+        accessibleLabel={`${uploadingText} ${Math.round(
+          Math.min(100, Math.max(0, uploadProgress ?? 0))
+        )}%`}
+        className="w-full"
+      />
+    </div>
   );
 
   // Image preview state (Figma): solid card with preview + file chip + actions
@@ -428,12 +470,13 @@ export default function FileDropzone({
         accept={accept}
         onChange={handleFileChange}
         className="hidden"
-        disabled={disabled}
+        disabled={isBlocked}
         aria-invalid={hasError}
         aria-describedby={getAriaDescribedBy()}
       />
 
-      {isImagePreview ? (
+      {isUploading && renderUploading()}
+      {!isUploading && isImagePreview && (
         <div
           className={imageCardClasses}
           onDragEnter={handleDragEnter}
@@ -443,7 +486,8 @@ export default function FileDropzone({
         >
           {renderImagePreview()}
         </div>
-      ) : (
+      )}
+      {!isUploading && !isImagePreview && (
         <label
           htmlFor={inputId}
           className={dropzoneClasses}
