@@ -11,6 +11,9 @@ import { expect as baseExpect, test, type Page } from '@playwright/test';
 
 const expect = baseExpect.configure({ timeout: 15_000 });
 
+// The narration plays real audio: keep it off the speakers.
+test.use({ launchOptions: { args: ['--mute-audio'] } });
+
 const VIEWPORTS = [
   { name: 'desktop', size: { width: 1440, height: 900 }, spread: true },
   { name: 'phone', size: { width: 375, height: 812 }, spread: false },

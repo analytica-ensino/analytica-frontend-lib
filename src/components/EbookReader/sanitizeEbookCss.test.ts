@@ -58,4 +58,32 @@ describe('sanitizeEbookCss', () => {
       `@font-face { font-family: 'Baloo 2'; src: url("${BASE}fonts/b.woff2") format('woff2'), url("") format('woff'); }`
     );
   });
+
+  it.each([
+    [
+      ':root[data-theme="dark"] .ebook-content { --papel: #0e1b1f; }',
+      '.ebook-content[data-theme="dark"] { --papel: #0e1b1f; }',
+    ],
+    [
+      '@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ebook-content { --papel: #0e1b1f; } }',
+      '@media (prefers-color-scheme: dark) { .ebook-content:not([data-theme="light"]) { --papel: #0e1b1f; } }',
+    ],
+    [
+      ':root[data-theme="dark"] .ebook-content .page, :root[data-theme="dark"] .ebook-content .capa { color: #fff; }',
+      '.ebook-content[data-theme="dark"] .page, .ebook-content[data-theme="dark"] .capa { color: #fff; }',
+    ],
+  ])(
+    'moves a theme rule from the document root to the stage (%s)',
+    (css, expected) => {
+      expect(sanitizeEbookCss(css, BASE)).toBe(expected);
+    }
+  );
+
+  it.each([
+    '.ebook-content .page { color: red; }',
+    '.ebook-content[data-theme="dark"] .page { color: #fff; }',
+    ':root[data-theme="dark"] .ebook-contents { color: #fff; }',
+  ])('leaves %s as it is', (css) => {
+    expect(sanitizeEbookCss(css, BASE)).toBe(css);
+  });
 });

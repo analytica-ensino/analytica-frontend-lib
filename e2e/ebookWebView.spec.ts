@@ -9,7 +9,7 @@ import { expect as baseExpect, test, type Page } from '@playwright/test';
  * (`public/fixtures/ebook/eb40/student`), served from a fake CDN.
  *
  * The app's WebView plays media without a tap (`mediaPlaybackRequiresUserAction`
- * off); the browser is launched the same way.
+ * off); the browser is launched the same way, muted.
  */
 
 const expect = baseExpect.configure({ timeout: 15_000 });
@@ -102,7 +102,9 @@ const sectionsReported = async (page: Page) =>
     .map((event) => event.page?.section);
 
 test.use({
-  launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] },
+  launchOptions: {
+    args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio'],
+  },
 });
 
 for (const { name, size } of VIEWPORTS) {
@@ -184,6 +186,25 @@ for (const { name, size } of VIEWPORTS) {
         .poll(async () => (await lastState(page))?.layout)
         .toBe('book');
     });
+
+    for (const { device, app, background } of [
+      { device: 'dark', app: 'light', background: 'rgb(246, 249, 248)' },
+      { device: 'light', app: 'dark', background: 'rgb(14, 27, 31)' },
+    ] as const) {
+      test(`follows the app's ${app} theme on a ${device} phone`, async ({
+        page,
+      }) => {
+        await page.emulateMedia({ colorScheme: device });
+        await openReader(page);
+
+        await send(page, { type: 'open', content: CONTENT, theme: app });
+
+        const stage = page.locator('.ebook-content');
+        await expect(stage).toHaveAttribute('data-theme', app);
+        await expect(page.locator('html')).toHaveAttribute('data-theme', app);
+        await expect(stage).toHaveCSS('background-color', background);
+      });
+    }
 
     test('plays the narration, highlighting what is read', async ({ page }) => {
       await openReader(page);

@@ -106,6 +106,19 @@ describe('EbookWebViewReader', () => {
     expect(container.querySelector('script')).toBeNull();
   });
 
+  it('marks the document with the book theme too, for CSS that reads it there', () => {
+    const { bridge } = fakeBridge();
+    const { rerender } = render(
+      <EbookWebViewReader content={content()} theme="dark" bridge={bridge} />
+    );
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+
+    rerender(
+      <EbookWebViewReader content={content()} theme="light" bridge={bridge} />
+    );
+    expect(document.documentElement).toHaveAttribute('data-theme', 'light');
+  });
+
   it('uses the light theme unless told otherwise', () => {
     const { bridge } = fakeBridge();
     const { container } = render(

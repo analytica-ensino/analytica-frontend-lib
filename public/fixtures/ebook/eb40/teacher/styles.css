@@ -13,12 +13,12 @@
   --f-titulo: "Baloo 2", "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
   --f-texto: "Atkinson Hyperlegible", "Verdana", "Segoe UI", system-ui, sans-serif;
   --raio: 14px;}
-@media (prefers-color-scheme: dark) {.ebook-content:not([data-theme="light"]) {--papel: #0e1b1f; --papel-2: #15262b; --tinta: #e6efee; --tinta-2: #a9bec2;
+@media (prefers-color-scheme: dark) {:root:not([data-theme="light"]) .ebook-content {--papel: #0e1b1f; --papel-2: #15262b; --tinta: #e6efee; --tinta-2: #a9bec2;
     --mar: #5cc2bb; --sol: #e8b924; --sol-suave: #2c2713; --coral: #f29274;
     --linha: #2c4247; --guia: #142231; --guia-tinta: #cfe0f2; --cupom: #18262a;
     color-scheme: dark;}
 }
-.ebook-content[data-theme="dark"] {--papel: #0e1b1f; --papel-2: #15262b; --tinta: #e6efee; --tinta-2: #a9bec2;
+:root[data-theme="dark"] .ebook-content {--papel: #0e1b1f; --papel-2: #15262b; --tinta: #e6efee; --tinta-2: #a9bec2;
   --mar: #5cc2bb; --sol: #e8b924; --sol-suave: #2c2713; --coral: #f29274;
   --linha: #2c4247; --guia: #142231; --guia-tinta: #cfe0f2; --cupom: #18262a;
   color-scheme: dark;}

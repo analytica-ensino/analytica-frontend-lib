@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { pageLabel, readingProgress } from '../bookLayout';
 import { sanitizeEbookCss } from '../sanitizeEbookCss';
 import { sanitizeEbookHtml } from '../sanitizeEbookHtml';
@@ -35,6 +35,12 @@ export const EbookWebViewReader = ({
   bridge,
 }: Readonly<EbookWebViewReaderProps>) => {
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // The page is the reader's alone, so the book's theme also marks the
+  // document: CSS that reads it on the root follows the app, not the phone.
+  useLayoutEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
 
   const html = useMemo(
     () => sanitizeEbookHtml(content.html, content.assetBaseUrl),
