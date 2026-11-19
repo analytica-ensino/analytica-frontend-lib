@@ -32,4 +32,9 @@ export interface PerformanceDistributionChartProps {
   readonly totalStudents?: number;
   readonly loading?: boolean;
   readonly title?: string;
+  /**
+   * Caption of the fifth slice, the students who did nothing. Defaults to
+   * "Não participou"; the reading report says "Sem leitura".
+   */
+  readonly notParticipatedLabel?: string;
 }
