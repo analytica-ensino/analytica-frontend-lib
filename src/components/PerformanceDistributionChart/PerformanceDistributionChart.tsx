@@ -60,8 +60,12 @@ const TIERS: ReadonlyArray<{
 /**
  * Build slices from counters — "Não participou" only when the counters have
  * it. Best band first, as the legend and the pie read top-down / clockwise.
+ * `notParticipatedLabel` renames that fifth slice.
  */
-function buildSlices(counters: SimulatedPerformanceCounters): SliceData[] {
+function buildSlices(
+  counters: SimulatedPerformanceCounters,
+  notParticipatedLabel?: string
+): SliceData[] {
   const tiers = TIERS.filter((tier) => counters[tier.key] !== undefined);
   const total = tiers.reduce((sum, tier) => sum + (counters[tier.key] ?? 0), 0);
 
@@ -71,7 +75,10 @@ function buildSlices(counters: SimulatedPerformanceCounters): SliceData[] {
     const value = counters[tier.key] ?? 0;
     return {
       key: tier.key,
-      label: tier.label,
+      label:
+        tier.key === 'notParticipated' && notParticipatedLabel
+          ? notParticipatedLabel
+          : tier.label,
       value,
       percentage: (value / total) * 100,
       colorClass: tier.colorClass,
@@ -106,13 +113,14 @@ export function PerformanceDistributionChart({
   totalStudents,
   loading = false,
   title = 'Desempenho por quantidade de estudante',
+  notParticipatedLabel,
 }: PerformanceDistributionChartProps) {
   const [hoveredSlice, setHoveredSlice] = useState<string | null>(null);
 
   const slices = useMemo(() => {
     if (!counters) return [];
-    return buildSlices(counters);
-  }, [counters]);
+    return buildSlices(counters, notParticipatedLabel);
+  }, [counters, notParticipatedLabel]);
 
   const pieSlices = useMemo(() => toPieSlices(slices), [slices]);
 

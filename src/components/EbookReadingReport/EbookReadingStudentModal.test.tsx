@@ -27,6 +27,15 @@ const book = (
   ...overrides,
 });
 
+/** A book released to the student and not read. */
+const UNREAD = {
+  ebookId: 'eb-06',
+  code: 'EB06',
+  title: 'O Preço do Tempo',
+  coverUrl: null,
+  category: 'Educação Financeira',
+};
+
 /** Renders the modal, open, with the given state. */
 const renderModal = (props: Partial<EbookReadingStudentModalProps> = {}) => {
   const onRetry = jest.fn();
@@ -40,6 +49,8 @@ const renderModal = (props: Partial<EbookReadingStudentModalProps> = {}) => {
         userInstitutionId: 'student-1',
         studentName: 'Ana Beatriz',
         avatarUrl: null,
+        schoolName: 'Escola Monteiro Lobato',
+        notRead: [],
         className: null,
         schoolYearName: null,
         ebooks: [book()],
@@ -54,19 +65,72 @@ const renderModal = (props: Partial<EbookReadingStudentModalProps> = {}) => {
 };
 
 describe('EbookReadingStudentModal', () => {
-  it('sums the books read and opened and the time', () => {
+  it('splits the books into read, only opened and not read, with the time', () => {
     expect(
-      studentTotals([
-        book({ percent: 100 }),
-        book({ ebookId: 'b', percent: 50, effectiveReadAt: null }),
-      ])
-    ).toEqual({ read: 1, opened: 2, seconds: 3600, progress: 75 });
+      studentTotals(
+        [
+          book({ percent: 100 }),
+          book({ ebookId: 'b', percent: 50, effectiveReadAt: null }),
+        ],
+        [UNREAD]
+      )
+    ).toEqual({ read: 1, opened: 1, notRead: 1, seconds: 3600, progress: 75 });
     expect(studentTotals([])).toEqual({
       read: 0,
       opened: 0,
+      notRead: 0,
       seconds: 0,
       progress: 0,
     });
+  });
+
+  it('lists the books released and not read after the ones opened', () => {
+    renderModal({
+      data: {
+        userInstitutionId: 'student-1',
+        studentName: 'Ana Beatriz',
+        avatarUrl: null,
+        schoolName: 'Escola Monteiro Lobato',
+        className: 'Turma A',
+        schoolYearName: '4º ano',
+        ebooks: [book()],
+        notRead: [UNREAD],
+      },
+    });
+
+    const history = screen.getByRole('region', { name: 'Histórico completo' });
+    const rows = history.querySelectorAll('li');
+    expect(rows).toHaveLength(2);
+    expect(rows[1]).toHaveAttribute('data-testid', 'student-book-eb-06');
+    expect(rows[1]).toHaveTextContent('O Preço do Tempo');
+    expect(rows[1]).toHaveTextContent('Não lido');
+    expect(rows[1]).toHaveTextContent('0%');
+    expect(
+      screen.getByText('Escola Monteiro Lobato • Turma A • 4º ano')
+    ).toBeInTheDocument();
+  });
+
+  it('counts the books read, opened and not read, and the time', () => {
+    renderModal({
+      data: {
+        userInstitutionId: 'student-1',
+        studentName: 'Ana Beatriz',
+        avatarUrl: null,
+        schoolName: 'Escola Monteiro Lobato',
+        className: null,
+        schoolYearName: null,
+        ebooks: [
+          book(),
+          book({ ebookId: 'b', percent: 0, effectiveReadAt: null }),
+        ],
+        notRead: [UNREAD],
+      },
+    });
+
+    const figures = screen.getByRole('region', { name: 'Dados de leitura' });
+    expect(figures).toHaveTextContent(
+      'Livros lidos1Livros abertos1Livros não lidos1Tempo de leitura01:00:00'
+    );
   });
 
   it("shows the student's books with their cover and where they are", () => {
@@ -97,6 +161,8 @@ describe('EbookReadingStudentModal', () => {
         userInstitutionId: 'student-1',
         studentName: 'Ana Beatriz',
         avatarUrl: null,
+        schoolName: 'Escola Monteiro Lobato',
+        notRead: [],
         className: 'Turma A',
         schoolYearName: null,
         ebooks: [],
@@ -104,9 +170,11 @@ describe('EbookReadingStudentModal', () => {
     });
 
     expect(
-      screen.getByText('O estudante não abriu nenhum livro no período.')
+      screen.getByText('O estudante não tem livros no período.')
     ).toBeInTheDocument();
-    expect(screen.getByText('Turma A')).toBeInTheDocument();
+    expect(
+      screen.getByText('Escola Monteiro Lobato • Turma A')
+    ).toBeInTheDocument();
     expect(screen.getByTestId('reading-tier-none')).toBeInTheDocument();
   });
 
@@ -116,6 +184,8 @@ describe('EbookReadingStudentModal', () => {
         userInstitutionId: 'student-1',
         studentName: 'Ana Beatriz',
         avatarUrl: null,
+        schoolName: 'Escola Monteiro Lobato',
+        notRead: [],
         className: null,
         schoolYearName: null,
         ebooks: [book({ coverUrl: null, code: null, category: null })],

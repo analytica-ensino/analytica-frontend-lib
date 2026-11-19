@@ -38,6 +38,21 @@ describe('useEbookReadingRequest', () => {
     expect(result.current).toMatchObject({ loading: false, error: false });
   });
 
+  it('asks through the given loader', async () => {
+    const post = jest.fn();
+    const api = createApi(post);
+    const load = jest.fn().mockResolvedValue([{ id: 'PR:Curitiba' }]);
+    const { result } = renderHook(() =>
+      useEbookReadingRequest(api, '/route', { period: '7_DAYS' }, load)
+    );
+
+    await waitFor(() =>
+      expect(result.current.data).toEqual([{ id: 'PR:Curitiba' }])
+    );
+    expect(load).toHaveBeenCalledWith(api, '/route', { period: '7_DAYS' });
+    expect(post).not.toHaveBeenCalled();
+  });
+
   it('asks nothing without a body', () => {
     const post = jest.fn();
     const api = createApi(post);

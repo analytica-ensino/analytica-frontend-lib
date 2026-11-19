@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { BaseApiClient } from '../../types/api';
-import type { EbookReadingResponse } from './types';
+import { postReading } from './readingReport';
 
 /** Where one report route is. */
 export interface EbookReadingRequestState<T> {
@@ -8,6 +8,13 @@ export interface EbookReadingRequestState<T> {
   loading: boolean;
   error: boolean;
 }
+
+/** Asks a report route for its answer. */
+export type EbookReadingLoader<T> = (
+  api: BaseApiClient,
+  route: string,
+  body: object
+) => Promise<T>;
 
 export interface UseEbookReadingRequestReturn<
   T,
@@ -24,12 +31,15 @@ export interface UseEbookReadingRequestReturn<
  * @param {BaseApiClient} api - The app's API client
  * @param {string} route - The report route
  * @param {object | null} body - The request body; `null` asks nothing
+ * @param {EbookReadingLoader<T>} load - How to ask; one post by default.
+ * Keep it the same function across renders: a new one asks again.
  * @returns {UseEbookReadingRequestReturn<T>} The answer, and how to retry
  */
 export const useEbookReadingRequest = <T>(
   api: BaseApiClient,
   route: string,
-  body: object | null
+  body: object | null,
+  load: EbookReadingLoader<T> = postReading
 ): UseEbookReadingRequestReturn<T> => {
   const [state, setState] = useState<EbookReadingRequestState<T>>({
     data: null,
@@ -48,17 +58,16 @@ export const useEbookReadingRequest = <T>(
       return;
     }
     setState((current) => ({ ...current, loading: true, error: false }));
-    api
-      .post<EbookReadingResponse<T>>(route, JSON.parse(bodyKey))
-      .then((response) => {
+    load(api, route, JSON.parse(bodyKey))
+      .then((data) => {
         if (request !== latestRef.current) return;
-        setState({ data: response.data.data, loading: false, error: false });
+        setState({ data, loading: false, error: false });
       })
       .catch(() => {
         if (request !== latestRef.current) return;
         setState((current) => ({ ...current, loading: false, error: true }));
       });
-  }, [api, route, bodyKey, attempt]);
+  }, [api, route, bodyKey, attempt, load]);
 
   const retry = useCallback(() => setAttempt((count) => count + 1), []);
 

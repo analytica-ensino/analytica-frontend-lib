@@ -11,6 +11,8 @@ const GROUP: EbookReadingGroupRow = {
   id: 'class-a',
   name: 'Turma A',
   schoolYearName: '4º ano',
+  municipality: null,
+  state: null,
   totalStudents: 40,
   readers: 30,
   readerRate: 75,
@@ -25,6 +27,9 @@ const STUDENT: EbookReadingStudentRow = {
   userInstitutionId: 'student-1',
   studentName: 'Ana Beatriz',
   avatarUrl: null,
+  schoolName: 'Escola Monteiro Lobato',
+  schoolYearName: null,
+  className: 'Turma A',
   ebooksOpened: 3,
   accesses: 9,
   effectiveReadings: 1,
@@ -59,6 +64,21 @@ describe('reading table columns', () => {
     );
   });
 
+  it('adds the municipality only to the schools', () => {
+    const keys = (
+      group: (typeof EBOOK_READING_GROUP)[keyof typeof EBOOK_READING_GROUP]
+    ) => buildGroupColumns(group).map((column) => column.key);
+
+    expect(keys(EBOOK_READING_GROUP.SCHOOL)[1]).toBe('municipality');
+    expect(keys(EBOOK_READING_GROUP.CLASS)).not.toContain('municipality');
+    cell(buildGroupColumns(EBOOK_READING_GROUP.SCHOOL), 'municipality', {
+      ...GROUP,
+      municipality: 'Curitiba',
+    });
+
+    expect(screen.getByText('Curitiba')).toBeInTheDocument();
+  });
+
   it('writes the counts, the time and the progress of a group', () => {
     const columns = buildGroupColumns(EBOOK_READING_GROUP.CLASS);
     cell(columns, 'effectiveReadings', GROUP);
@@ -77,6 +97,20 @@ describe('reading table columns', () => {
 
     expect(screen.getByTestId('reading-tier-highlight')).toBeInTheDocument();
     expect(screen.getByText('75%')).toBeInTheDocument();
+  });
+
+  it('says where each student is enrolled, a dash when unknown', () => {
+    expect(STUDENT_COLUMNS.slice(0, 4).map((column) => column.label)).toEqual([
+      'Nome',
+      'Escola',
+      'Ano',
+      'Turma',
+    ]);
+    cell(STUDENT_COLUMNS, 'schoolYearName', STUDENT);
+    cell(STUDENT_COLUMNS, 'className', STUDENT);
+
+    expect(screen.getByText('—')).toBeInTheDocument();
+    expect(screen.getByText('Turma A')).toBeInTheDocument();
   });
 
   it("writes a student's time as a clock and tiers them by progress", () => {

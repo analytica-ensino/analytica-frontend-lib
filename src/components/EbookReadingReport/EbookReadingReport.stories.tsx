@@ -5,6 +5,7 @@ import { EbookReadingReport } from './EbookReadingReport';
 import { EBOOK_READING_ROUTE } from './readingReport';
 import {
   EBOOK_READING_GROUP,
+  type EbookReadingBySubject,
   type EbookReadingGroupRow,
   type EbookReadingMetrics,
 } from './types';
@@ -37,15 +38,78 @@ const group = (
   totalStudents: 40,
   readers: Math.round(readerRate * 0.4),
   schoolYearName,
+  municipality: null,
+  state: null,
+});
+
+/** A school of the story, in its municipality. */
+const school = (
+  id: string,
+  name: string,
+  readerRate: number,
+  municipality: string
+): EbookReadingGroupRow => ({
+  ...group(id, name, readerRate),
+  municipality,
+  state: 'PR',
+});
+
+/** A municipality of the story. */
+const city = (name: string, readerRate: number): EbookReadingGroupRow => ({
+  ...group(`PR:${name}`, name, readerRate),
+  state: 'PR',
 });
 
 const SCHOOLS = [
-  group('s1', 'Escola Estadual Monteiro Lobato', 82),
-  group('s2', 'Colégio Estadual do Paraná', 64),
-  group('s3', 'Escola Municipal São José', 37),
-  group('s4', 'Colégio Adventista de Curitiba', 12),
-  group('s5', 'Escola Técnica do Paraná', 0),
+  school('s1', 'Escola Estadual Monteiro Lobato', 82, 'Curitiba'),
+  school('s2', 'Colégio Estadual do Paraná', 64, 'Londrina'),
+  school('s3', 'Escola Municipal São José', 37, 'Maringá'),
+  school('s4', 'Colégio Adventista de Curitiba', 12, 'Curitiba'),
+  school('s5', 'Escola Técnica do Paraná', 0, 'Cascavel'),
 ];
+
+const MUNICIPALITIES = [
+  city('São Miguel do Iguaçu', 92),
+  city('Londrina', 81),
+  city('Maringá', 77),
+  city('Ponta Grossa', 21),
+  city('Curitiba', 14),
+  city('Cascavel', 6),
+];
+
+/** A subject of the story. */
+const subject = (
+  id: string,
+  name: string,
+  icon: string,
+  color: string,
+  books: number,
+  read: number,
+  opened: number
+) => ({
+  id,
+  name,
+  icon,
+  color,
+  areaKnowledgeId: 'linguagens',
+  areaKnowledgeName: 'Linguagens, Códigos e suas Tecnologias',
+  books,
+  read,
+  opened,
+  notRead: books - read - opened,
+  readRate: Math.round((read / books) * 10000) / 100,
+});
+
+const SUBJECTS: EbookReadingBySubject = {
+  total: { books: 285, read: 174, opened: 96, notRead: 15, readRate: 61.05 },
+  rows: [
+    subject('pt', 'Língua Portuguesa', 'BookOpenText', '#ffd9b5', 90, 65, 20),
+    subject('lit', 'Literatura', 'BookOpenText', '#c9e5ff', 90, 55, 30),
+    subject('en', 'Inglês', 'Chat_EN', '#fff2a8', 60, 30, 25),
+    subject('es', 'Espanhol', 'Chat_ES', '#ffd1d1', 45, 24, 21),
+    subject('art', 'Arte', 'Palette', '#e7d5ff', 30, 10, 15),
+  ],
+};
 
 const CLASSES = [
   group('c1', 'Turma A', 90, '4º ano'),
@@ -76,7 +140,31 @@ const page = <T,>(rows: T[]) => ({
 });
 
 const ROUTES: Record<string, (body: Record<string, unknown>) => unknown> = {
-  [EBOOK_READING_ROUTE.SUMMARY]: () => METRICS,
+  [EBOOK_READING_ROUTE.SUMMARY]: () => ({
+    ...METRICS,
+    municipalities: 20,
+    schools: 30,
+  }),
+  [EBOOK_READING_ROUTE.TIMELINE]: () => ({
+    periods: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5'].map(
+      (label, index) => ({
+        label,
+        effectiveReadings: [130, 200, 190, 120, 60][index],
+      })
+    ),
+  }),
+  [EBOOK_READING_ROUTE.BY_SUBJECT]: () => SUBJECTS,
+  [EBOOK_READING_ROUTE.DISTRIBUTION]: () => ({
+    totalStudents: 200,
+    tiers: {
+      highlight: 64,
+      aboveAverage: 52,
+      belowAverage: 38,
+      attention: 26,
+      none: 20,
+    },
+  }),
+  [EBOOK_READING_ROUTE.BY_MUNICIPALITY]: () => page(MUNICIPALITIES),
   [EBOOK_READING_ROUTE.RANKINGS]: (body) =>
     body.dimension === 'CATEGORY'
       ? {
@@ -111,6 +199,9 @@ const ROUTES: Record<string, (body: Record<string, unknown>) => unknown> = {
         userInstitutionId: 'st1',
         studentName: 'Ana Beatriz',
         avatarUrl: null,
+        schoolName: 'Escola Estadual Monteiro Lobato',
+        schoolYearName: '4º ano',
+        className: 'Turma A',
         ebooksOpened: 4,
         accesses: 12,
         effectiveReadings: 3,
@@ -122,6 +213,9 @@ const ROUTES: Record<string, (body: Record<string, unknown>) => unknown> = {
         userInstitutionId: 'st2',
         studentName: 'Bruno Costa',
         avatarUrl: null,
+        schoolName: 'Escola Estadual Monteiro Lobato',
+        schoolYearName: '4º ano',
+        className: 'Turma B',
         ebooksOpened: 1,
         accesses: 2,
         effectiveReadings: 0,
@@ -134,8 +228,18 @@ const ROUTES: Record<string, (body: Record<string, unknown>) => unknown> = {
     userInstitutionId: 'st1',
     studentName: 'Ana Beatriz',
     avatarUrl: null,
+    schoolName: 'Escola Estadual Monteiro Lobato',
     className: 'Turma A',
     schoolYearName: '4º ano',
+    notRead: [
+      {
+        ebookId: 'eb22',
+        code: 'EB22',
+        title: 'O Mapa da Escola',
+        coverUrl: null,
+        category: 'Cidadania',
+      },
+    ],
     ebooks: [
       {
         ebookId: 'eb40',
@@ -209,7 +313,7 @@ const storyApi = (fail = false): BaseApiClient => ({
 const API = storyApi();
 const FAILING_API = storyApi(true);
 
-/** The manager's network view: schools, each opening its own page. */
+/** The manager's network view: municipalities and schools, each school opening its own page. */
 export const Network: Story = () => (
   <div className="p-6 bg-background-50">
     <EbookReadingReport
@@ -221,7 +325,18 @@ export const Network: Story = () => (
   </div>
 );
 
-/** A school or a teacher: classes, each opening its students. */
+/** A school's page or a teacher: the students, with where each one is. */
+export const Students: Story = () => (
+  <div className="p-6 bg-background-50">
+    <EbookReadingReport
+      api={API}
+      filters={{ ...FILTERS, schoolIds: ['s1'] }}
+      groupBy={EBOOK_READING_GROUP.STUDENT}
+    />
+  </div>
+);
+
+/** A school by its classes, each opening its students. */
 export const Classes: Story = () => (
   <div className="p-6 bg-background-50">
     <EbookReadingReport

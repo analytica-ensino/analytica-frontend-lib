@@ -21,5 +21,10 @@ describe('analytica-frontend-lib/ebook-reading-report', () => {
     expect(report.PERIOD_LABEL['1_MONTH']).toBe('1 mês');
     expect(report.READING_TIER_LABEL.none).toBe('Sem leitura');
     expect(report.RANKING_SIZE).toBe(3);
+    expect(report.EBOOK_READING_GROUP.STUDENT).toBe('student');
+    expect(report.EBOOK_STUDENT_BOOK_STATUS.NOT_READ).toBe('notRead');
+    expect(report.EBOOK_READING_ROUTE.BY_SUBJECT).toBe(
+      '/access-report/ebook-reading/by-subject'
+    );
   });
 });

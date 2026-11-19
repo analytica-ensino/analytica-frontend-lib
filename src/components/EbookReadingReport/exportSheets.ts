@@ -5,35 +5,46 @@ import {
   GROUP_LABEL,
   GROUP_ROUTE,
   READING_TIER_LABEL,
+  fetchEveryRow,
+  postReading,
   readingTier,
 } from './readingReport';
 import {
   EBOOK_RANKING_DIMENSION,
   EBOOK_RANKING_METRIC,
   EBOOK_READING_GROUP,
+  READING_TIER,
   type EbookRankingDimension,
   type EbookRankingItem,
   type EbookRankings,
+  type EbookReadingBySubject,
+  type EbookReadingDistribution,
   type EbookReadingFilters,
   type EbookReadingGroup,
   type EbookReadingGroupRow,
-  type EbookReadingMetrics,
-  type EbookReadingPage,
-  type EbookReadingResponse,
+  type EbookReadingStudentRow,
+  type EbookReadingSummaryData,
+  type EbookReadingTimeline,
 } from './types';
 
 /** Items of each list in the workbook: the most the API ranks. */
 const EXPORT_RANKING_SIZE = 20;
 
-/** Rows of each page the export asks for: the most the API takes. */
-export const EXPORT_PAGE_SIZE = 100;
+/** An empty cell of the workbook. */
+const EMPTY_CELL = '-';
 
 /** What the reading workbook holds. */
 export interface EbookReadingExport {
-  summary: EbookReadingMetrics;
+  summary: EbookReadingSummaryData;
+  timeline: EbookReadingTimeline;
   books: EbookRankings;
   themes: EbookRankings;
+  subjects: EbookReadingBySubject;
+  distribution: EbookReadingDistribution;
+  /** The breakdown table; empty when the report lists the students */
   groups: EbookReadingGroupRow[];
+  /** The students; empty unless the report lists them */
+  students: EbookReadingStudentRow[];
 }
 
 /**
@@ -45,8 +56,10 @@ const toMinutes = (seconds: number): number => Math.round(seconds / 60);
 
 /**
  * Everything the reading workbook needs, within the filters: the summary,
- * the most and least read books and themes, and every row of the breakdown
- * table (all pages).
+ * the readings by period, the most and least read books and themes, the
+ * curricular components, the students in each tier, and every row of the
+ * breakdown table, or every student. The table's pages are asked one at a
+ * time (`fetchEveryRow`).
  * @param {BaseApiClient} api - The app's API client
  * @param {EbookReadingFilters} filters - The report's filters
  * @param {EbookReadingGroup} groupBy - What the breakdown lists
@@ -57,44 +70,69 @@ export const fetchEbookReadingExport = async (
   filters: EbookReadingFilters,
   groupBy: EbookReadingGroup
 ): Promise<EbookReadingExport> => {
-  /** Posts to a report route and unwraps the answer. */
-  const post = async <T>(route: string, body: object): Promise<T> =>
-    (await api.post<EbookReadingResponse<T>>(route, body)).data.data;
   /** The ranking of one dimension, by readers. */
   const ranking = (dimension: EbookRankingDimension) =>
-    post<EbookRankings>(EBOOK_READING_ROUTE.RANKINGS, {
+    postReading<EbookRankings>(api, EBOOK_READING_ROUTE.RANKINGS, {
       ...filters,
       dimension,
       metric: EBOOK_RANKING_METRIC.READERS,
       limit: EXPORT_RANKING_SIZE,
     });
+  const listsStudents = groupBy === EBOOK_READING_GROUP.STUDENT;
 
-  /**
-   * Every row of the breakdown table, one page at a time: the API builds the
-   * whole table for each page, so pages asked together would build it that
-   * many times at once.
-   */
-  const allGroups = async (): Promise<EbookReadingGroupRow[]> => {
-    const rows: EbookReadingGroupRow[] = [];
-    for (let page = 1; ; page += 1) {
-      const result = await post<EbookReadingPage<EbookReadingGroupRow>>(
-        GROUP_ROUTE[groupBy],
-        { ...filters, page, limit: EXPORT_PAGE_SIZE }
-      );
-      rows.push(...result.rows);
-      // A page count that is not a number stops too, instead of looping
-      const { totalPages } = result.pagination;
-      if (!Number.isFinite(totalPages) || page >= totalPages) return rows;
-    }
-  };
-
-  const [summary, books, themes, groups] = await Promise.all([
-    post<EbookReadingMetrics>(EBOOK_READING_ROUTE.SUMMARY, filters),
+  const [
+    summary,
+    timeline,
+    books,
+    themes,
+    subjects,
+    distribution,
+    groups,
+    students,
+  ] = await Promise.all([
+    postReading<EbookReadingSummaryData>(
+      api,
+      EBOOK_READING_ROUTE.SUMMARY,
+      filters
+    ),
+    postReading<EbookReadingTimeline>(
+      api,
+      EBOOK_READING_ROUTE.TIMELINE,
+      filters
+    ),
     ranking(EBOOK_RANKING_DIMENSION.EBOOK),
     ranking(EBOOK_RANKING_DIMENSION.CATEGORY),
-    allGroups(),
+    postReading<EbookReadingBySubject>(
+      api,
+      EBOOK_READING_ROUTE.BY_SUBJECT,
+      filters
+    ),
+    postReading<EbookReadingDistribution>(
+      api,
+      EBOOK_READING_ROUTE.DISTRIBUTION,
+      filters
+    ),
+    listsStudents
+      ? Promise.resolve([])
+      : fetchEveryRow<EbookReadingGroupRow>(api, GROUP_ROUTE[groupBy], filters),
+    listsStudents
+      ? fetchEveryRow<EbookReadingStudentRow>(
+          api,
+          EBOOK_READING_ROUTE.BY_STUDENT,
+          filters
+        )
+      : Promise.resolve([]),
   ]);
-  return { summary, books, themes, groups };
+  return {
+    summary,
+    timeline,
+    books,
+    themes,
+    subjects,
+    distribution,
+    groups,
+    students,
+  };
 };
 
 /**
@@ -129,7 +167,136 @@ const rankingSheet = (
 };
 
 /**
- * The reading workbook: overview, books, themes and the breakdown table.
+ * "Componentes curriculares": every book first, then each subject.
+ * @param {EbookReadingBySubject} subjects - The counts
+ * @returns {SheetConfig} The sheet
+ */
+const subjectsSheet = (subjects: EbookReadingBySubject): SheetConfig => ({
+  name: 'Componentes curriculares',
+  headers: [
+    'Componente curricular',
+    'Área do conhecimento',
+    'Total de livros',
+    'Lidos',
+    'Abertos',
+    'Não lidos',
+    'Taxa de leitura (%)',
+  ],
+  rows: [
+    { ...subjects.total, name: 'Todos', areaKnowledgeName: EMPTY_CELL },
+    ...subjects.rows,
+  ].map((row) => [
+    row.name,
+    row.areaKnowledgeName,
+    row.books,
+    row.read,
+    row.opened,
+    row.notRead,
+    row.readRate,
+  ]),
+});
+
+/**
+ * "Faixas": the students in each reading tier, best first.
+ * @param {EbookReadingDistribution} distribution - The students per tier
+ * @returns {SheetConfig} The sheet
+ */
+const tiersSheet = (distribution: EbookReadingDistribution): SheetConfig => {
+  const { totalStudents, tiers } = distribution;
+  return {
+    name: 'Faixas',
+    headers: ['Faixa', 'Estudantes', '% dos estudantes'],
+    rows: [
+      ...Object.values(READING_TIER).map((tier) => [
+        READING_TIER_LABEL[tier],
+        tiers[tier],
+        totalStudents > 0 ? Math.round((tiers[tier] / totalStudents) * 100) : 0,
+      ]),
+      ['Total', totalStudents, totalStudents > 0 ? 100 : 0],
+    ],
+  };
+};
+
+/**
+ * The breakdown sheet: schools (with their municipality), school years or
+ * classes (with their school year).
+ * @param {EbookReadingGroupRow[]} groups - The rows
+ * @param {EbookReadingGroup} groupBy - What they are
+ * @returns {SheetConfig} The sheet
+ */
+const groupsSheet = (
+  groups: EbookReadingGroupRow[],
+  groupBy: EbookReadingGroup
+): SheetConfig => {
+  const label = GROUP_LABEL[groupBy];
+  const isClass = groupBy === EBOOK_READING_GROUP.CLASS;
+  const isSchool = groupBy === EBOOK_READING_GROUP.SCHOOL;
+  return {
+    name: label.many.charAt(0).toUpperCase() + label.many.slice(1),
+    headers: [
+      label.one,
+      ...(isSchool ? ['Município'] : []),
+      ...(isClass ? ['Série'] : []),
+      'Estudantes',
+      'Leitores',
+      '% de leitura',
+      'Leituras realizadas',
+      'Tempo total (min)',
+      'Progresso médio (%)',
+      'Status',
+    ],
+    rows: groups.map((row) => [
+      row.name,
+      ...(isSchool ? [row.municipality ?? EMPTY_CELL] : []),
+      ...(isClass ? [row.schoolYearName ?? EMPTY_CELL] : []),
+      row.totalStudents,
+      row.readers,
+      row.readerRate,
+      row.effectiveReadings,
+      toMinutes(row.totalTimeSeconds),
+      row.averageProgress,
+      READING_TIER_LABEL[readingTier(row.readerRate)],
+    ]),
+  };
+};
+
+/**
+ * "Estudantes": each student, with where they are enrolled. The tier follows
+ * their average progress, as on the screen.
+ * @param {EbookReadingStudentRow[]} students - The rows
+ * @returns {SheetConfig} The sheet
+ */
+const studentsSheet = (students: EbookReadingStudentRow[]): SheetConfig => ({
+  name: 'Estudantes',
+  headers: [
+    'Estudante',
+    'Escola',
+    'Ano',
+    'Turma',
+    'Livros lidos',
+    'Livros abertos',
+    'Acessos',
+    'Tempo total (min)',
+    'Progresso médio (%)',
+    'Desempenho',
+  ],
+  rows: students.map((row) => [
+    row.studentName,
+    row.schoolName,
+    row.schoolYearName ?? EMPTY_CELL,
+    row.className ?? EMPTY_CELL,
+    row.effectiveReadings,
+    row.ebooksOpened,
+    row.accesses,
+    toMinutes(row.totalTimeSeconds),
+    row.averageProgress,
+    READING_TIER_LABEL[readingTier(row.averageProgress)],
+  ]),
+});
+
+/**
+ * The reading workbook: overview, readings by period, books, themes,
+ * curricular components, tiers, and the breakdown table or the students.
  * The app adds its filters sheet.
  * @param {EbookReadingExport} data - What the workbook holds
  * @param {EbookReadingGroup} groupBy - What the breakdown lists
@@ -140,14 +307,19 @@ export const buildEbookReadingSheets = (
   groupBy: EbookReadingGroup
 ): SheetConfig[] => {
   const { summary } = data;
-  const label = GROUP_LABEL[groupBy];
-  const isClass = groupBy === EBOOK_READING_GROUP.CLASS;
+  const isNetwork = groupBy === EBOOK_READING_GROUP.SCHOOL;
   return [
     {
       name: 'Visão geral',
       headers: ['Métrica', 'Valor'],
       rows: [
         ['Leituras realizadas', summary.effectiveReadings],
+        ...(isNetwork
+          ? [
+              ['Municípios', summary.municipalities],
+              ['Escolas', summary.schools],
+            ]
+          : []),
         ['Total de estudantes', summary.totalStudents],
         ['Estudantes leitores', summary.readers],
         ['Estudantes leitores (%)', summary.readerRate],
@@ -157,32 +329,20 @@ export const buildEbookReadingSheets = (
         ['Progresso médio (%)', summary.averageProgress],
       ],
     },
-    rankingSheet('Livros', 'Livro', data.books),
-    rankingSheet('Temas', 'Tema', data.themes),
     {
-      name: label.many.charAt(0).toUpperCase() + label.many.slice(1),
-      headers: [
-        label.one,
-        ...(isClass ? ['Série'] : []),
-        'Estudantes',
-        'Leitores',
-        '% de leitura',
-        'Leituras realizadas',
-        'Tempo total (min)',
-        'Progresso médio (%)',
-        'Status',
-      ],
-      rows: data.groups.map((row) => [
-        row.name,
-        ...(isClass ? [row.schoolYearName ?? '-'] : []),
-        row.totalStudents,
-        row.readers,
-        row.readerRate,
-        row.effectiveReadings,
-        toMinutes(row.totalTimeSeconds),
-        row.averageProgress,
-        READING_TIER_LABEL[readingTier(row.readerRate)],
+      name: 'Leituras por período',
+      headers: ['Período', 'Leituras realizadas'],
+      rows: data.timeline.periods.map((period) => [
+        period.label,
+        period.effectiveReadings,
       ]),
     },
+    rankingSheet('Livros', 'Livro', data.books),
+    rankingSheet('Temas', 'Tema', data.themes),
+    subjectsSheet(data.subjects),
+    tiersSheet(data.distribution),
+    groupBy === EBOOK_READING_GROUP.STUDENT
+      ? studentsSheet(data.students)
+      : groupsSheet(data.groups, groupBy),
   ];
 };

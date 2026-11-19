@@ -44,6 +44,15 @@ export type EbookReadingMetrics = {
   averageProgress: number;
 };
 
+/**
+ * The summary: the measures, and how many municipalities (city and state)
+ * and schools the students counted are in.
+ */
+export type EbookReadingSummaryData = EbookReadingMetrics & {
+  municipalities: number;
+  schools: number;
+};
+
 /** Page of a table route. */
 export interface EbookReadingPagination {
   page: number;
@@ -67,23 +76,31 @@ export interface EbookReadingTableParams {
   search?: string;
 }
 
-/** What the breakdown table groups the students by. */
+/**
+ * What the breakdown table lists: the students grouped by school, school
+ * year or class, or the students themselves.
+ */
 export const EBOOK_READING_GROUP = {
   SCHOOL: 'school',
   SCHOOL_YEAR: 'schoolYear',
   CLASS: 'class',
+  STUDENT: 'student',
 } as const;
 
 export type EbookReadingGroup =
   (typeof EBOOK_READING_GROUP)[keyof typeof EBOOK_READING_GROUP];
 
 /**
- * A school, school year or class. `schoolYearName` is set only on a class.
+ * A municipality, school, school year or class. `schoolYearName` is set only
+ * on a class, `municipality` only on a school, `state` on a school and a
+ * municipality. A municipality's `id` is `UF:Cidade`.
  */
 export type EbookReadingGroupRow = EbookReadingMetrics & {
   id: string;
   name: string;
   schoolYearName: string | null;
+  municipality: string | null;
+  state: string | null;
 };
 
 /** What the most and least read rank. */
@@ -122,11 +139,14 @@ export interface EbookRankings {
   leastRead: EbookRankingItem[];
 }
 
-/** A student of a class. */
+/** A student, with where they are enrolled. */
 export type EbookReadingStudentRow = {
   userInstitutionId: string;
   studentName: string;
   avatarUrl: string | null;
+  schoolName: string;
+  schoolYearName: string | null;
+  className: string | null;
   ebooksOpened: number;
   accesses: number;
   effectiveReadings: number;
@@ -152,14 +172,30 @@ export interface EbookReadingStudentBook {
   sectionsSeen: { sectionKey: string; title: string; seenAt: string | null }[];
 }
 
+/**
+ * A book released to the student that they had not read to the end by the
+ * end of the period, and did not open in it.
+ */
+export interface EbookReadingUnreadBook {
+  ebookId: string;
+  code: string | null;
+  title: string;
+  coverUrl: string | null;
+  category: string | null;
+}
+
 /** One student's reading, book by book. */
 export interface EbookReadingStudentDetail {
   userInstitutionId: string;
   studentName: string;
   avatarUrl: string | null;
+  schoolName: string;
   className: string | null;
   schoolYearName: string | null;
+  /** The books opened in the period */
   ebooks: EbookReadingStudentBook[];
+  /** The books released and neither read nor opened */
+  notRead: EbookReadingUnreadBook[];
 }
 
 /** Where a student is with a book. */
@@ -170,6 +206,8 @@ export const EBOOK_STUDENT_BOOK_STATUS = {
   READING: 'reading',
   /** Opened, nothing seen */
   OPENED: 'opened',
+  /** Released, never read to the end, not opened in the period */
+  NOT_READ: 'notRead',
 } as const;
 
 export type EbookStudentBookStatus =
@@ -185,3 +223,53 @@ export const READING_TIER = {
 } as const;
 
 export type ReadingTier = (typeof READING_TIER)[keyof typeof READING_TIER];
+
+/** The effective readings of one bucket of the period chart. */
+export interface EbookReadingPeriod {
+  /** Weekday, week or month, as the access charts bucket the period */
+  label: string;
+  effectiveReadings: number;
+}
+
+/** The period chart. */
+export interface EbookReadingTimeline {
+  periods: EbookReadingPeriod[];
+}
+
+/**
+ * The students in each reading tier, by their average progress in the books
+ * of the period.
+ */
+export interface EbookReadingDistribution {
+  totalStudents: number;
+  tiers: Record<ReadingTier, number>;
+}
+
+/**
+ * Books counted once per student they reach: read to the end by the end of
+ * the period, only opened in it, and not read. `readRate` is 0–100.
+ */
+export type EbookReadingBookCounts = {
+  books: number;
+  read: number;
+  opened: number;
+  notRead: number;
+  readRate: number;
+};
+
+/** The book counts of a subject of the matrix. */
+export type EbookReadingSubjectRow = EbookReadingBookCounts & {
+  id: string;
+  name: string;
+  /** Name in the icon map of `IconRender` */
+  icon: string;
+  color: string;
+  areaKnowledgeId: string;
+  areaKnowledgeName: string;
+};
+
+/** "Dados por componente curricular": every book, and each subject's. */
+export interface EbookReadingBySubject {
+  total: EbookReadingBookCounts;
+  rows: EbookReadingSubjectRow[];
+}

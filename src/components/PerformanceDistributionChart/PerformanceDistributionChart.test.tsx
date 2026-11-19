@@ -316,6 +316,19 @@ describe('PerformanceDistributionChart "Não participou"', () => {
     notParticipated: 4,
   };
 
+  it('names the fifth row as the caller says', () => {
+    render(
+      <PerformanceDistributionChart
+        counters={withAbsent}
+        notParticipatedLabel="Sem leitura"
+      />
+    );
+
+    expect(screen.getByText('Sem leitura')).toBeInTheDocument();
+    expect(screen.queryByText('Não participou')).toBeNull();
+    expect(screen.getByText('4 estudantes (50%)')).toBeInTheDocument();
+  });
+
   it('adds a fifth legend row after the four bands', () => {
     render(<PerformanceDistributionChart counters={withAbsent} />);
 

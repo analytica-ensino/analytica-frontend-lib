@@ -3,7 +3,7 @@ import ProgressBar from '../ProgressBar/ProgressBar';
 import type { ColumnConfig } from '../TableProvider/TableProvider';
 import { formatHoursMinutes } from '../EnemMoment/utils';
 import { formatTimeSpent } from '../../utils/activityDetailsUtils';
-import { formatCount } from '../../utils/reportFormat';
+import { MISSING_VALUE, formatCount } from '../../utils/reportFormat';
 import { ReadingTierBadge } from './ReadingTierBadge';
 import {
   GROUP_LABEL,
@@ -40,8 +40,17 @@ const ReaderRateCell = ({ readerRate }: Readonly<{ readerRate: number }>) => (
 );
 
 /**
- * Columns of the schools, school years or classes table. A class also shows
- * its school year; the tier and the bar follow the share of readers.
+ * A text cell that may be empty: "—" then.
+ * @param {unknown} value - The text, or `null`
+ * @returns {string} The cell
+ */
+const textCell = (value: unknown): string =>
+  (value as string | null) ?? MISSING_VALUE;
+
+/**
+ * Columns of the schools, school years or classes table. A school also
+ * shows its municipality, and a class its school year; the tier and the bar
+ * follow the share of readers.
  * @param {EbookReadingGroup} group - What the rows are
  * @returns {ColumnConfig<EbookReadingGroupRow>[]} The columns
  */
@@ -49,12 +58,15 @@ export const buildGroupColumns = (
   group: EbookReadingGroup
 ): ColumnConfig<EbookReadingGroupRow>[] => [
   { key: 'name', label: GROUP_LABEL[group].one },
+  ...(group === EBOOK_READING_GROUP.SCHOOL
+    ? [{ key: 'municipality', label: 'Município', render: textCell }]
+    : []),
   ...(group === EBOOK_READING_GROUP.CLASS
     ? [
         {
           key: 'schoolYearName',
           label: 'Série',
-          render: (value: unknown) => (value as string | null) ?? '—',
+          render: textCell,
         },
       ]
     : []),
@@ -88,11 +100,14 @@ export const buildGroupColumns = (
 ];
 
 /**
- * Columns of a class's students. The tier follows the student's average
- * progress in the books they opened.
+ * Columns of the students, with where each one is enrolled. The tier follows
+ * the student's average progress in the books they opened.
  */
 export const STUDENT_COLUMNS: ColumnConfig<EbookReadingStudentRow>[] = [
   { key: 'studentName', label: 'Nome' },
+  { key: 'schoolName', label: 'Escola' },
+  { key: 'schoolYearName', label: 'Ano', render: textCell },
+  { key: 'className', label: 'Turma', render: textCell },
   { key: 'ebooksOpened', label: 'Livros abertos', render: countCell },
   { key: 'effectiveReadings', label: 'Livros lidos', render: countCell },
   { key: 'accesses', label: 'Acessos', render: countCell },

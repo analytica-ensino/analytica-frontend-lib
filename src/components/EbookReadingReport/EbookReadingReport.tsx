@@ -1,10 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { ArrowLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowLeft';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
+import { PerformanceDistributionChart } from '../PerformanceDistributionChart/PerformanceDistributionChart';
+import type { SimulatedPerformanceCounters } from '../PerformanceDistributionChart/types';
 import type { BaseApiClient } from '../../types/api';
 import { EbookReadingSummary } from './EbookReadingSummary';
+import { EbookReadingPeriodChart } from './EbookReadingPeriodChart';
 import { EbookReadingPreferences } from './EbookReadingPreferences';
+import { EbookReadingSubjects } from './EbookReadingSubjects';
+import { EbookReadingMunicipalities } from './EbookReadingMunicipalities';
 import { EbookReadingStudentModal } from './EbookReadingStudentModal';
 import { ReadingTable } from './ReadingTable';
 import { STUDENT_COLUMNS, buildGroupColumns } from './readingColumns';
@@ -13,6 +18,7 @@ import {
   GROUP_LABEL,
   GROUP_ROUTE,
   PERIOD_LABEL,
+  fetchEveryRow,
 } from './readingReport';
 import { useEbookReadingRequest } from './useEbookReadingRequest';
 import {
@@ -21,14 +27,17 @@ import {
   EBOOK_READING_GROUP,
   type EbookRankingDimension,
   type EbookRankings,
+  type EbookReadingBySubject,
+  type EbookReadingDistribution,
   type EbookReadingFilters,
   type EbookReadingGroup,
   type EbookReadingGroupRow,
-  type EbookReadingMetrics,
   type EbookReadingPage,
   type EbookReadingStudentDetail,
   type EbookReadingStudentRow,
+  type EbookReadingSummaryData,
   type EbookReadingTableParams,
+  type EbookReadingTimeline,
 } from './types';
 
 /** Items in each card of "Preferências de leitura". */
@@ -40,16 +49,36 @@ const FIRST_PAGE: EbookReadingTableParams = { page: 1, limit: 10 };
 export interface EbookReadingReportProps {
   /** The app's API client */
   api: BaseApiClient;
+  /**
+   * The filters. To list the students (`groupBy` student) they must carry
+   * the classes or the schools: the API lists no whole network.
+   */
   filters: EbookReadingFilters;
   /**
-   * What the breakdown table lists: schools in the network view, school
-   * years or classes in a school or for a teacher. Classes open their
-   * students.
+   * What the breakdown table lists: schools in the network view, which also
+   * shows the municipalities; school years or classes in a school, classes
+   * opening their students; or the students themselves, in a school or for
+   * a teacher.
    */
   groupBy: EbookReadingGroup;
   /** A school row was chosen: the app opens that school's page */
   onSchoolSelect?: (school: EbookReadingGroupRow) => void;
 }
+
+/**
+ * The tiers of the distribution as the pie counts them.
+ * @param {EbookReadingDistribution} distribution - The students per tier
+ * @returns {SimulatedPerformanceCounters} The pie's counters
+ */
+export const tierCounters = (
+  distribution: EbookReadingDistribution
+): SimulatedPerformanceCounters => ({
+  highlight: distribution.tiers.highlight,
+  aboveAverage: distribution.tiers.aboveAverage,
+  belowAverage: distribution.tiers.belowAverage,
+  attentionPoint: distribution.tiers.attention,
+  notParticipated: distribution.tiers.none,
+});
 
 /**
  * A failed part of the report, with a way to ask again.
@@ -76,11 +105,36 @@ const ReportError = ({
 );
 
 /**
+ * A part of the report, or what failed in it.
+ * @param {object} props - The props
+ * @param {{ error: boolean; retry: () => void }} props.request - The part's request
+ * @param {string} props.failure - What to say when it fails
+ * @param {ReactNode} props.children - The part
+ * @returns {JSX.Element} The part, or its error
+ */
+const ReportPart = ({
+  request,
+  failure,
+  children,
+}: Readonly<{
+  request: { error: boolean; retry: () => void };
+  failure: string;
+  children: ReactNode;
+}>) =>
+  request.error ? (
+    <ReportError message={failure} onRetry={request.retry} />
+  ) : (
+    <>{children}</>
+  );
+
+/**
  * The ebook reading report (AE-3329), for the teacher's "Desempenho" and the
- * manager's "Relatórios": readings, the most and least read books and
- * themes, the reading of each school, school year or class, and of each
- * student, book by book. It asks the API itself (`/access-report/ebook-
- * reading`) through the app's client, within `filters`.
+ * manager's "Relatórios": readings in the period and by period, the most
+ * and least read books and themes, the books of each curricular component,
+ * the students in each reading tier, and the reading of each school (with
+ * the municipalities in highlight and needing attention), school year,
+ * class or student, book by book. It asks the API itself (`/access-report/
+ * ebook-reading`) through the app's client, within `filters`.
  * @param {EbookReadingReportProps} props - The client, the filters and the grouping
  * @returns {JSX.Element} The report
  */
@@ -112,9 +166,18 @@ export const EbookReadingReport = ({
     setSelectedClass(null);
   }
 
-  const summary = useEbookReadingRequest<EbookReadingMetrics>(
+  const isNetwork = groupBy === EBOOK_READING_GROUP.SCHOOL;
+  const listsStudents = groupBy === EBOOK_READING_GROUP.STUDENT;
+  const showsStudents = listsStudents || selectedClass !== null;
+
+  const summary = useEbookReadingRequest<EbookReadingSummaryData>(
     api,
     EBOOK_READING_ROUTE.SUMMARY,
+    filters
+  );
+  const timeline = useEbookReadingRequest<EbookReadingTimeline>(
+    api,
+    EBOOK_READING_ROUTE.TIMELINE,
     filters
   );
   const rankings = useEbookReadingRequest<EbookRankings>(
@@ -127,18 +190,38 @@ export const EbookReadingReport = ({
       limit: RANKING_SIZE,
     }
   );
+  const subjects = useEbookReadingRequest<EbookReadingBySubject>(
+    api,
+    EBOOK_READING_ROUTE.BY_SUBJECT,
+    filters
+  );
+  const municipalities = useEbookReadingRequest<EbookReadingGroupRow[]>(
+    api,
+    EBOOK_READING_ROUTE.BY_MUNICIPALITY,
+    isNetwork ? filters : null,
+    fetchEveryRow
+  );
+  const distribution = useEbookReadingRequest<EbookReadingDistribution>(
+    api,
+    EBOOK_READING_ROUTE.DISTRIBUTION,
+    filters
+  );
   const groups = useEbookReadingRequest<EbookReadingPage<EbookReadingGroupRow>>(
     api,
     GROUP_ROUTE[groupBy],
-    selectedClass ? null : { ...filters, ...groupParams }
+    showsStudents ? null : { ...filters, ...groupParams }
   );
   const students = useEbookReadingRequest<
     EbookReadingPage<EbookReadingStudentRow>
   >(
     api,
     EBOOK_READING_ROUTE.BY_STUDENT,
-    selectedClass
-      ? { ...filters, ...studentParams, classId: selectedClass.id }
+    showsStudents
+      ? {
+          ...filters,
+          ...studentParams,
+          ...(selectedClass ? { classId: selectedClass.id } : {}),
+        }
       : null
   );
   const student = useEbookReadingRequest<EbookReadingStudentDetail>(
@@ -151,46 +234,93 @@ export const EbookReadingReport = ({
 
   const groupColumns = useMemo(() => buildGroupColumns(groupBy), [groupBy]);
   const groupLabel = GROUP_LABEL[groupBy];
+  const counters = useMemo(
+    () => (distribution.data ? tierCounters(distribution.data) : undefined),
+    [distribution.data]
+  );
 
   /** What a click on a breakdown row opens, if anything. */
   const groupRowClick = (() => {
     if (groupBy === EBOOK_READING_GROUP.CLASS) return setSelectedClass;
-    if (groupBy === EBOOK_READING_GROUP.SCHOOL && onSchoolSelect) {
-      return onSchoolSelect;
-    }
+    if (isNetwork && onSchoolSelect) return onSchoolSelect;
     return undefined;
   })();
 
   return (
     <div className="flex flex-col gap-8" data-testid="ebook-reading-report">
-      {summary.error ? (
-        <ReportError
-          message="Não foi possível carregar o resumo de leitura."
-          onRetry={summary.retry}
+      <ReportPart
+        request={summary}
+        failure="Não foi possível carregar o resumo de leitura."
+      >
+        <EbookReadingSummary
+          data={summary.data}
+          loading={summary.loading}
+          showPlaces={isNetwork}
         />
-      ) : (
-        <EbookReadingSummary data={summary.data} loading={summary.loading} />
-      )}
+      </ReportPart>
 
-      {rankings.error ? (
-        <ReportError
-          message="Não foi possível carregar as preferências de leitura."
-          onRetry={rankings.retry}
+      <ReportPart
+        request={timeline}
+        failure="Não foi possível carregar as leituras por período."
+      >
+        <EbookReadingPeriodChart
+          data={timeline.data}
+          loading={timeline.loading}
         />
-      ) : (
+      </ReportPart>
+
+      <ReportPart
+        request={rankings}
+        failure="Não foi possível carregar as preferências de leitura."
+      >
         <EbookReadingPreferences
           dimension={dimension}
           onDimensionChange={setDimension}
           data={rankings.data}
           loading={rankings.loading}
         />
+      </ReportPart>
+
+      <ReportPart
+        request={subjects}
+        failure="Não foi possível carregar os dados por componente curricular."
+      >
+        <EbookReadingSubjects data={subjects.data} loading={subjects.loading} />
+      </ReportPart>
+
+      {isNetwork && (
+        <ReportPart
+          request={municipalities}
+          failure="Não foi possível carregar os municípios."
+        >
+          <EbookReadingMunicipalities
+            rows={municipalities.data}
+            loading={municipalities.loading}
+          />
+        </ReportPart>
       )}
 
-      {selectedClass ? (
+      <ReportPart
+        request={distribution}
+        failure="Não foi possível carregar o desempenho por quantidade de estudante."
+      >
+        <PerformanceDistributionChart
+          counters={counters}
+          totalStudents={distribution.data?.totalStudents}
+          loading={distribution.loading && !distribution.data}
+          notParticipatedLabel="Sem leitura"
+        />
+      </ReportPart>
+
+      {showsStudents ? (
         <ReadingTable<EbookReadingStudentRow>
           key={filtersKey}
           tableId="ebookReadingStudents"
-          title={`Desempenho por estudante: ${selectedClass.name}`}
+          title={
+            selectedClass
+              ? `Desempenho por estudante: ${selectedClass.name}`
+              : 'Desempenho por estudante'
+          }
           rows={students.data?.rows ?? []}
           columns={STUDENT_COLUMNS}
           total={students.data?.pagination.total ?? 0}
@@ -202,14 +332,16 @@ export const EbookReadingReport = ({
           onRowClick={setSelectedStudent}
           rowActionLabel={(row) => `Ver a leitura de ${row.studentName}`}
           headerContent={
-            <Button
-              variant="link"
-              size="small"
-              iconLeft={<ArrowLeftIcon aria-hidden="true" />}
-              onClick={() => setSelectedClass(null)}
-            >
-              Voltar para as turmas
-            </Button>
+            selectedClass && (
+              <Button
+                variant="link"
+                size="small"
+                iconLeft={<ArrowLeftIcon aria-hidden="true" />}
+                onClick={() => setSelectedClass(null)}
+              >
+                Voltar para as turmas
+              </Button>
+            )
           }
         />
       ) : (
@@ -229,10 +361,10 @@ export const EbookReadingReport = ({
           rowActionLabel={(row) => `Ver a leitura de ${row.name}`}
         />
       )}
-      {(selectedClass ? students.error : groups.error) && (
+      {(showsStudents ? students.error : groups.error) && (
         <ReportError
           message="Não foi possível carregar a tabela de leitura."
-          onRetry={selectedClass ? students.retry : groups.retry}
+          onRetry={showsStudents ? students.retry : groups.retry}
         />
       )}
 

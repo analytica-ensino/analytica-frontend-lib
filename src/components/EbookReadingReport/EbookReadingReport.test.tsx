@@ -12,10 +12,14 @@ import { EBOOK_READING_ROUTE } from './readingReport';
 import {
   EBOOK_READING_GROUP,
   type EbookRankings,
+  type EbookReadingBySubject,
+  type EbookReadingDistribution,
   type EbookReadingGroupRow,
   type EbookReadingMetrics,
   type EbookReadingStudentDetail,
   type EbookReadingStudentRow,
+  type EbookReadingSummaryData,
+  type EbookReadingTimeline,
 } from './types';
 
 const FILTERS = { period: REPORT_PERIOD.SEVEN_DAYS, schoolIds: ['school-1'] };
@@ -29,6 +33,49 @@ const METRICS: EbookReadingMetrics = {
   totalTimeSeconds: 4800,
   averageTimeSeconds: 100,
   averageProgress: 55.5,
+};
+
+const SUMMARY: EbookReadingSummaryData = {
+  ...METRICS,
+  municipalities: 20,
+  schools: 30,
+};
+
+const TIMELINE: EbookReadingTimeline = {
+  periods: [
+    { label: 'Seg', effectiveReadings: 4 },
+    { label: 'Ter', effectiveReadings: 1 },
+  ],
+};
+
+const SUBJECTS: EbookReadingBySubject = {
+  total: { books: 285, read: 174, opened: 96, notRead: 15, readRate: 61.05 },
+  rows: [
+    {
+      id: 'subject-pt',
+      name: 'Língua Portuguesa',
+      icon: 'BookOpenText',
+      color: '#ff0000',
+      areaKnowledgeId: 'area-1',
+      areaKnowledgeName: 'Linguagens, Códigos e suas Tecnologias',
+      books: 90,
+      read: 65,
+      opened: 20,
+      notRead: 5,
+      readRate: 72.22,
+    },
+  ],
+};
+
+const DISTRIBUTION: EbookReadingDistribution = {
+  totalStudents: 4,
+  tiers: {
+    highlight: 1,
+    aboveAverage: 1,
+    belowAverage: 0,
+    attention: 1,
+    none: 1,
+  },
 };
 
 /** A ranked item. */
@@ -62,12 +109,23 @@ const group = (
   name,
   readerRate,
   schoolYearName,
+  municipality: null,
+  state: null,
+});
+
+/** A municipality row. */
+const municipality = (name: string, readerRate: number) => ({
+  ...group(`PR:${name}`, name, readerRate),
+  state: 'PR',
 });
 
 const STUDENT: EbookReadingStudentRow = {
   userInstitutionId: 'student-1',
   studentName: 'Ana Beatriz',
   avatarUrl: null,
+  schoolName: 'Escola Cecília Meireles',
+  schoolYearName: '4º ano',
+  className: 'Turma A',
   ebooksOpened: 3,
   accesses: 9,
   effectiveReadings: 1,
@@ -100,8 +158,10 @@ const STUDENT_DETAIL: EbookReadingStudentDetail = {
   userInstitutionId: 'student-1',
   studentName: 'Ana Beatriz',
   avatarUrl: null,
+  schoolName: 'Escola Cecília Meireles',
   className: 'Turma A',
   schoolYearName: '4º ano',
+  notRead: [],
   ebooks: [
     book('eb-40', 'O Caso da Couve Mordida', 100, '2026-11-16T12:00:00Z'),
     book('eb-01', 'A Barraca do 4º B', 30, null),
@@ -126,7 +186,17 @@ type Body = Record<string, unknown>;
 
 /** What each route answers. */
 const ROUTES: Record<string, (body: Body) => unknown> = {
-  [EBOOK_READING_ROUTE.SUMMARY]: () => METRICS,
+  [EBOOK_READING_ROUTE.SUMMARY]: () => SUMMARY,
+  [EBOOK_READING_ROUTE.TIMELINE]: () => TIMELINE,
+  [EBOOK_READING_ROUTE.BY_SUBJECT]: () => SUBJECTS,
+  [EBOOK_READING_ROUTE.DISTRIBUTION]: () => DISTRIBUTION,
+  [EBOOK_READING_ROUTE.BY_MUNICIPALITY]: () =>
+    page([
+      municipality('Curitiba', 90),
+      municipality('Londrina', 50),
+      municipality('Maringá', 70),
+      municipality('Cascavel', 10),
+    ]),
   [EBOOK_READING_ROUTE.RANKINGS]: (body) =>
     body.dimension === 'CATEGORY' ? THEMES : BOOKS,
   [EBOOK_READING_ROUTE.BY_SCHOOL]: () =>
@@ -203,6 +273,122 @@ describe('EbookReadingReport', () => {
       metric: 'READERS',
       limit: 3,
     });
+  });
+
+  it('shows the network: its municipalities, readings by period, subjects and tiers', async () => {
+    const { api, post } = createApi();
+    render(
+      <EbookReadingReport
+        api={api}
+        filters={FILTERS}
+        groupBy={EBOOK_READING_GROUP.SCHOOL}
+      />
+    );
+
+    const summary = screen.getByTestId('ebook-reading-summary');
+    expect(await within(summary).findByText('Municípios')).toBeInTheDocument();
+    expect(within(summary).getByText('Escolas')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Leituras realizadas por período')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Seg: 4 leituras')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Dados por componente curricular')
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText('Língua Portuguesa').length
+    ).toBeGreaterThanOrEqual(1);
+    const municipalities = await screen.findByTestId(
+      'ebook-reading-municipalities'
+    );
+    expect(within(municipalities).getByText('Curitiba')).toBeInTheDocument();
+    expect(within(municipalities).getByText('Cascavel')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Desempenho por quantidade de estudante')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Sem leitura')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('columnheader', { name: /Município/ })
+    ).toBeInTheDocument();
+    for (const route of [
+      EBOOK_READING_ROUTE.TIMELINE,
+      EBOOK_READING_ROUTE.BY_SUBJECT,
+      EBOOK_READING_ROUTE.DISTRIBUTION,
+    ]) {
+      expect(bodiesTo(post, route)[0]).toEqual(FILTERS);
+    }
+    expect(bodiesTo(post, EBOOK_READING_ROUTE.BY_MUNICIPALITY)).toEqual([
+      { ...FILTERS, page: 1, limit: 100 },
+    ]);
+  });
+
+  it('asks for no municipality outside the network view', async () => {
+    const { api, post } = createApi();
+    render(
+      <EbookReadingReport
+        api={api}
+        filters={FILTERS}
+        groupBy={EBOOK_READING_GROUP.SCHOOL_YEAR}
+      />
+    );
+
+    await screen.findByText('4º ano');
+    expect(bodiesTo(post, EBOOK_READING_ROUTE.BY_MUNICIPALITY)).toEqual([]);
+    expect(screen.queryByTestId('ebook-reading-municipalities')).toBeNull();
+    expect(screen.queryByText('Municípios')).toBeNull();
+  });
+
+  it('lists the students of the filters, with where each one is', async () => {
+    const { api, post } = createApi();
+    render(
+      <EbookReadingReport
+        api={api}
+        filters={FILTERS}
+        groupBy={EBOOK_READING_GROUP.STUDENT}
+      />
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: 'Desempenho por estudante' })
+    ).toBeInTheDocument();
+    expect(await screen.findByText('Ana Beatriz')).toBeInTheDocument();
+    expect(screen.getByText('Escola Cecília Meireles')).toBeInTheDocument();
+    expect(screen.queryByText('Voltar para as turmas')).toBeNull();
+    expect(bodiesTo(post, EBOOK_READING_ROUTE.BY_STUDENT)).toEqual([
+      { ...FILTERS, page: 1, limit: 10 },
+    ]);
+    expect(bodiesTo(post, EBOOK_READING_ROUTE.BY_SCHOOL)).toEqual([]);
+
+    fireEvent.click(screen.getByText('Ana Beatriz'));
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('keeps the rest of the report when a part fails', async () => {
+    const { api, post } = createApi();
+    post.mockImplementation((route: string, body: Body) =>
+      route === EBOOK_READING_ROUTE.BY_SUBJECT
+        ? Promise.reject(new Error('rede'))
+        : Promise.resolve({
+            data: { message: 'ok', data: ROUTES[route](body) },
+          })
+    );
+    render(
+      <EbookReadingReport
+        api={api}
+        filters={FILTERS}
+        groupBy={EBOOK_READING_GROUP.SCHOOL}
+      />
+    );
+
+    expect(
+      await screen.findByText(
+        'Não foi possível carregar os dados por componente curricular.'
+      )
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText('Leituras realizadas por período')
+    ).toBeInTheDocument();
   });
 
   it('ranks the themes on their tab', async () => {
@@ -403,7 +589,9 @@ describe('EbookReadingReport', () => {
     expect(
       await within(modal).findByText('Histórico completo')
     ).toBeInTheDocument();
-    expect(within(modal).getByText('Turma A • 4º ano')).toBeInTheDocument();
+    expect(
+      within(modal).getByText('Escola Cecília Meireles • Turma A • 4º ano')
+    ).toBeInTheDocument();
     expect(within(modal).getByText('Lido')).toBeInTheDocument();
     expect(within(modal).getByText('Em leitura')).toBeInTheDocument();
     expect(within(modal).getByText('Aberto')).toBeInTheDocument();

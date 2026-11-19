@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import type { BaseApiClient } from '../../types/api';
 import { MISSING_VALUE } from '../../utils/reportFormat';
 import { REPORT_PERIOD } from '../../types/common';
 import {
@@ -7,6 +8,8 @@ import {
   READING_TIER,
   type EbookReadingGroup,
   type EbookReadingStudentBook,
+  type EbookReadingPage,
+  type EbookReadingResponse,
   type EbookStudentBookStatus,
   type ReadingTier,
 } from './types';
@@ -14,6 +17,10 @@ import {
 /** Routes of the ebook reading report. */
 export const EBOOK_READING_ROUTE = {
   SUMMARY: '/access-report/ebook-reading/summary',
+  TIMELINE: '/access-report/ebook-reading/timeline',
+  DISTRIBUTION: '/access-report/ebook-reading/distribution',
+  BY_SUBJECT: '/access-report/ebook-reading/by-subject',
+  BY_MUNICIPALITY: '/access-report/ebook-reading/by-municipality',
   BY_SCHOOL: '/access-report/ebook-reading/by-school',
   BY_SCHOOL_YEAR: '/access-report/ebook-reading/by-school-year',
   BY_CLASS: '/access-report/ebook-reading/by-class',
@@ -22,11 +29,55 @@ export const EBOOK_READING_ROUTE = {
   STUDENT: '/access-report/ebook-reading/student',
 } as const;
 
+/**
+ * One request: posts the body and unwraps the answer.
+ * @param {BaseApiClient} api - The app's API client
+ * @param {string} route - The report route
+ * @param {object} body - The request body
+ * @returns {Promise<T>} The answer's `data`
+ */
+export const postReading = async <T>(
+  api: BaseApiClient,
+  route: string,
+  body: object
+): Promise<T> =>
+  (await api.post<EbookReadingResponse<T>>(route, body)).data.data;
+
+/** Rows of each page asked for every row of a table: the most the API takes. */
+export const EVERY_ROW_PAGE_SIZE = 100;
+
+/**
+ * Every row of a table route, one page at a time: the API builds the whole
+ * table for each page, so pages asked together would build it that many
+ * times at once.
+ * @param {BaseApiClient} api - The app's API client
+ * @param {string} route - The table route
+ * @param {object} body - The filters; the page and its size are added
+ * @returns {Promise<T[]>} The rows of every page, in order
+ */
+export const fetchEveryRow = async <T>(
+  api: BaseApiClient,
+  route: string,
+  body: object
+): Promise<T[]> => {
+  const rows: T[] = [];
+  for (let page = 1; ; page += 1) {
+    const { rows: pageRows, pagination } = await postReading<
+      EbookReadingPage<T>
+    >(api, route, { ...body, page, limit: EVERY_ROW_PAGE_SIZE });
+    rows.push(...pageRows);
+    // A page count that is not a number stops too, instead of looping
+    const { totalPages } = pagination;
+    if (!Number.isFinite(totalPages) || page >= totalPages) return rows;
+  }
+};
+
 /** The table route of each grouping. */
 export const GROUP_ROUTE: Record<EbookReadingGroup, string> = {
   [EBOOK_READING_GROUP.SCHOOL]: EBOOK_READING_ROUTE.BY_SCHOOL,
   [EBOOK_READING_GROUP.SCHOOL_YEAR]: EBOOK_READING_ROUTE.BY_SCHOOL_YEAR,
   [EBOOK_READING_GROUP.CLASS]: EBOOK_READING_ROUTE.BY_CLASS,
+  [EBOOK_READING_GROUP.STUDENT]: EBOOK_READING_ROUTE.BY_STUDENT,
 };
 
 /** How each grouping is named on screen, singular and plural. */
@@ -37,6 +88,7 @@ export const GROUP_LABEL: Record<
   [EBOOK_READING_GROUP.SCHOOL]: { one: 'Escola', many: 'escolas' },
   [EBOOK_READING_GROUP.SCHOOL_YEAR]: { one: 'Série', many: 'séries' },
   [EBOOK_READING_GROUP.CLASS]: { one: 'Turma', many: 'turmas' },
+  [EBOOK_READING_GROUP.STUDENT]: { one: 'Estudante', many: 'estudantes' },
 };
 
 /** The period as the report titles say it: "Desempenho em 7 dias". */
@@ -88,6 +140,7 @@ export const STUDENT_BOOK_STATUS_LABEL: Record<EbookStudentBookStatus, string> =
     [EBOOK_STUDENT_BOOK_STATUS.READ]: 'Lido',
     [EBOOK_STUDENT_BOOK_STATUS.READING]: 'Em leitura',
     [EBOOK_STUDENT_BOOK_STATUS.OPENED]: 'Aberto',
+    [EBOOK_STUDENT_BOOK_STATUS.NOT_READ]: 'Não lido',
   };
 
 /**

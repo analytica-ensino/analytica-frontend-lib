@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { EbookReadingSummary, buildSummaryCards } from './EbookReadingSummary';
-import type { EbookReadingMetrics } from './types';
+import type { EbookReadingSummaryData } from './types';
 
-const METRICS: EbookReadingMetrics = {
+const METRICS: EbookReadingSummaryData = {
   totalStudents: 16778,
   readers: 48,
   readerRate: 40.5,
@@ -11,6 +11,8 @@ const METRICS: EbookReadingMetrics = {
   totalTimeSeconds: 7200,
   averageTimeSeconds: 1500,
   averageProgress: 55,
+  municipalities: 20,
+  schools: 1234,
 };
 
 describe('EbookReadingSummary', () => {
@@ -27,6 +29,29 @@ describe('EbookReadingSummary', () => {
     ]);
     expect(cards[2].subtitle).toBe('40,5% dos estudantes');
     expect(cards[4].subtitle).toBe('25min por leitor');
+  });
+
+  it('counts the municipalities and the schools in the network view', () => {
+    const cards = buildSummaryCards(METRICS, true);
+
+    expect(cards.map((card) => [card.label, card.value])).toEqual([
+      ['Leituras realizadas', '2'],
+      ['Municípios', '20'],
+      ['Escolas', '1.234'],
+      ['Total de estudantes', '16.778'],
+      ['Estudantes leitores', '48'],
+      ['Acessos', '9'],
+      ['Tempo em leitura', '2h'],
+      ['Progresso médio', '55%'],
+    ]);
+  });
+
+  it('holds the place of the eight network cards while they load', () => {
+    const { container } = render(
+      <EbookReadingSummary data={null} loading showPlaces />
+    );
+
+    expect(container.querySelectorAll('.h-\\[104px\\]')).toHaveLength(8);
   });
 
   it('holds the place of the cards while they load', () => {
