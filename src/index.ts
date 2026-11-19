@@ -78,6 +78,21 @@ export type { ToggleSwitchProps } from './components/ToggleSwitch/ToggleSwitch';
 export { default as ImageUpload } from './components/ImageUpload/ImageUpload';
 export type { ImageUploadProps } from './components/ImageUpload/ImageUpload';
 export { default as FileDropzone } from './components/FileDropzone/FileDropzone';
+export {
+  default as EbookReader,
+  EBOOK_MATERIAL_TYPE,
+} from './components/EbookReader/EbookReader';
+export type {
+  EbookReaderProps,
+  EbookContent,
+  EbookDetails,
+  EbookMaterialType,
+  EbookNarration,
+  EbookNarrationPage,
+  EbookNarrationSegment,
+  EbookPageChange,
+  EbookReaderMode,
+} from './components/EbookReader/EbookReader';
 export type {
   FileDropzoneProps,
   FileType,

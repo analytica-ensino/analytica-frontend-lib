@@ -1,5 +1,6 @@
 import { CaretLeftIcon } from '@phosphor-icons/react/dist/csr/CaretLeft';
 import { SidebarSimpleIcon } from '@phosphor-icons/react/dist/csr/SidebarSimple';
+import type { ReactNode } from 'react';
 import IconButton from '../IconButton/IconButton';
 import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
 import Text from '../Text/Text';
@@ -17,6 +18,8 @@ export interface EbookReaderHeaderProps {
   detailsId: string;
   detailsOpen: boolean;
   onToggleDetails: () => void;
+  /** Extra actions in the header row, after the title and before the tabs */
+  headerActions?: ReactNode;
 }
 
 /**
@@ -32,6 +35,7 @@ export const EbookReaderHeader = ({
   detailsId,
   detailsOpen,
   onToggleDetails,
+  headerActions,
 }: Readonly<EbookReaderHeaderProps>) => (
   <header className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border-100 bg-background px-4 py-3 md:px-6">
     {onBack && (
@@ -51,6 +55,11 @@ export const EbookReaderHeader = ({
         </Text>
       )}
     </div>
+    {headerActions && (
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
+        {headerActions}
+      </div>
+    )}
     {onMaterialChange && (
       // The tabs keep their own width beside the title; on a phone, where
       // they would squeeze it out, they move to a row of their own.

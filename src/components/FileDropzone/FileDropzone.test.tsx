@@ -669,4 +669,154 @@ describe('FileDropzone', () => {
       expect(label).toHaveAttribute('for', input.id);
     });
   });
+
+  describe('Zip packages', () => {
+    const zipProps = {
+      accept: '.zip,application/zip',
+      fileType: 'zip' as const,
+    };
+
+    const selectFile = (file: File) => {
+      const input = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      Object.defineProperty(input, 'files', { value: [file] });
+      fireEvent.change(input);
+    };
+
+    it('should render the zip placeholder', () => {
+      render(<FileDropzone {...zipProps} />);
+
+      expect(screen.getByText('Clique aqui')).toBeInTheDocument();
+      expect(
+        screen.getByText(/para subir o arquivo, ou arraste o arquivo aqui/)
+      ).toBeInTheDocument();
+    });
+
+    it('should accept a .zip file', () => {
+      const handleFileSelect = jest.fn();
+      const handleTypeError = jest.fn();
+      render(
+        <FileDropzone
+          {...zipProps}
+          onFileSelect={handleFileSelect}
+          onTypeError={handleTypeError}
+        />
+      );
+
+      const file = new File(['zip'], 'ebook.zip', { type: 'application/zip' });
+      selectFile(file);
+
+      expect(handleFileSelect).toHaveBeenCalledWith(file);
+      expect(handleTypeError).not.toHaveBeenCalled();
+    });
+
+    it('should call onTypeError for a .xls file', () => {
+      const handleFileSelect = jest.fn();
+      const handleTypeError = jest.fn();
+      render(
+        <FileDropzone
+          {...zipProps}
+          onFileSelect={handleFileSelect}
+          onTypeError={handleTypeError}
+        />
+      );
+
+      const file = new File(['xls'], 'planilha.xls', {
+        type: 'application/vnd.ms-excel',
+      });
+      selectFile(file);
+
+      expect(handleTypeError).toHaveBeenCalledWith(file);
+      expect(handleFileSelect).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Upload progress', () => {
+    const zipFile = new File(['zip'], 'ebook.zip', { type: 'application/zip' });
+
+    it('should show the default uploading text and the progress bar', () => {
+      render(
+        <FileDropzone
+          accept=".zip"
+          fileType="zip"
+          selectedFile={zipFile}
+          onRemoveFile={jest.fn()}
+          uploadProgress={40}
+        />
+      );
+
+      expect(
+        screen.getByText('Anexando arquivo. Não feche a janela...')
+      ).toBeInTheDocument();
+      const progress = document.querySelector('progress');
+      expect(progress).toHaveAttribute('value', '40');
+      expect(
+        screen.queryByRole('button', { name: 'Remover arquivo' })
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText('ebook.zip')).not.toBeInTheDocument();
+    });
+
+    it('should show a custom uploading text', () => {
+      render(
+        <FileDropzone
+          accept=".zip"
+          fileType="zip"
+          uploadProgress={0}
+          uploadingText="Enviando..."
+        />
+      );
+
+      expect(screen.getByText('Enviando...')).toBeInTheDocument();
+    });
+
+    it('should ignore clicks, file changes and drops while uploading', () => {
+      const handleFileSelect = jest.fn();
+      render(
+        <FileDropzone
+          accept=".zip"
+          fileType="zip"
+          uploadProgress={75}
+          onFileSelect={handleFileSelect}
+        />
+      );
+
+      const input = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      const clickSpy = jest.spyOn(input, 'click');
+      const box = screen
+        .getByText('Anexando arquivo. Não feche a janela...')
+        .closest('[aria-busy="true"]') as HTMLElement;
+
+      expect(box.tagName).not.toBe('LABEL');
+      fireEvent.click(box);
+      expect(clickSpy).not.toHaveBeenCalled();
+      expect(input).toBeDisabled();
+
+      Object.defineProperty(input, 'files', { value: [zipFile] });
+      fireEvent.change(input);
+      fireEvent.drop(box, { dataTransfer: { files: [zipFile] } });
+
+      expect(handleFileSelect).not.toHaveBeenCalled();
+    });
+
+    it('should go back to the normal state when uploadProgress is null', () => {
+      render(
+        <FileDropzone
+          accept=".zip"
+          fileType="zip"
+          selectedFile={zipFile}
+          onRemoveFile={jest.fn()}
+          uploadProgress={null}
+        />
+      );
+
+      expect(document.querySelector('progress')).not.toBeInTheDocument();
+      expect(screen.getByText('ebook.zip')).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Remover arquivo' })
+      ).toBeInTheDocument();
+    });
+  });
 });

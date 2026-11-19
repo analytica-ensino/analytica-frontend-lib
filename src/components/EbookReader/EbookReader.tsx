@@ -68,6 +68,8 @@ export interface EbookReaderProps {
   onPageChange?: (page: EbookPageChange) => void;
   /** Extra controls in the footer, before the round buttons */
   footerExtra?: ReactNode;
+  /** Extra actions in the header, after the title and before the material tabs */
+  headerActions?: ReactNode;
   className?: string;
 }
 
@@ -98,6 +100,7 @@ export const EbookReader = ({
   onSectionsSeen,
   onPageChange,
   footerExtra,
+  headerActions,
   className,
 }: Readonly<EbookReaderProps>) => {
   const isDark = useThemeStore((state) => state.isDark);
@@ -153,6 +156,7 @@ export const EbookReader = ({
           detailsId={detailsId}
           detailsOpen={showDetails}
           onToggleDetails={() => setDetailsOpen((open) => !open)}
+          headerActions={headerActions}
         />
       )}
 
