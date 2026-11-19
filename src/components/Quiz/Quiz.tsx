@@ -636,13 +636,21 @@ const QuizReviewActions = ({
  * Some exams are not corrected on the spot — the in-classroom ENEM simulation
  * is graded later — so telling the student how many they got right would be
  * wrong. With this set, finishing opens a modal with only this content and
- * one button.
+ * its button.
+ *
+ * `secondaryAction` adds a second, outlined button before it — for when
+ * the student may also leave for later: an activity with a book still to
+ * read offers "Ler livro" and "Continuar depois".
  */
 export interface QuizCompletionOverride {
   title: ReactNode;
   description: ReactNode;
   buttonLabel: string;
   onConfirm: () => void;
+  secondaryAction?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 const QuizFooter = forwardRef<
@@ -999,7 +1007,18 @@ const QuizFooter = forwardRef<
               </Text>
             }
             footer={
-              <div className="px-6 flex flex-row items-center w-full">
+              <div className="px-6 flex flex-row items-center gap-2 w-full">
+                {completionOverride.secondaryAction && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    size="small"
+                    onClick={completionOverride.secondaryAction.onClick}
+                    data-testid="quiz-completion-override-secondary"
+                  >
+                    {completionOverride.secondaryAction.label}
+                  </Button>
+                )}
                 <Button
                   className="w-full"
                   onClick={completionOverride.onConfirm}

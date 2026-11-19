@@ -273,7 +273,13 @@ const CardActivitiesResults = forwardRef<
 
 interface CardQuestionProps extends HTMLAttributes<HTMLDivElement> {
   header: string;
-  state?: 'done' | 'undone' | 'pending';
+  /**
+   * Where the student is: `undone` (nothing yet), `inProgress` (answers saved
+   * but not turned in), `pending` (turned in, awaiting correction) or `done`.
+   */
+  state?: 'done' | 'undone' | 'pending' | 'inProgress';
+  /** A line beside the status, e.g. "1 de 10 questões respondidas" */
+  subhead?: string;
   onClickButton?: (valueButton?: unknown) => void;
   valueButton?: unknown;
   /**
@@ -290,6 +296,7 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
     {
       header,
       state = 'undone',
+      subhead,
       className,
       onClickButton,
       valueButton,
@@ -305,6 +312,12 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
             label: 'Realizado',
             buttonLabel: 'Ver Resultado',
             badgeAction: 'success' as const,
+          };
+        case 'inProgress':
+          return {
+            label: 'Em andamento',
+            buttonLabel: 'Continuar',
+            badgeAction: 'warning' as const,
           };
         case 'pending':
           return {
@@ -335,10 +348,18 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
         <section className="flex flex-col gap-1 flex-1 min-w-0">
           <p className="font-bold text-xs text-text-950 truncate">{header}</p>
 
-          <div className="flex flex-row gap-6 items-center">
-            <Badge size="medium" variant="solid" action={badgeAction}>
+          {/* Num card estreito o subhead desce para baixo do status, inteiro,
+              em vez de quebrar o badge ou cortar o contador. */}
+          <div className="flex flex-row flex-wrap gap-x-6 gap-y-1 items-center">
+            <Badge
+              size="medium"
+              variant="solid"
+              action={badgeAction}
+              className="whitespace-nowrap shrink-0"
+            >
               {label}
             </Badge>
+            {subhead && <p className="text-xs text-text-600">{subhead}</p>}
           </div>
         </section>
 

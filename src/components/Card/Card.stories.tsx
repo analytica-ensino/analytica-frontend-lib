@@ -561,6 +561,17 @@ export const AllCardComponentsShowcase: Story = () => {
                 state="done"
               />
             </div>
+            <div>
+              <h4 className="text-lg font-semibold text-text-900 mb-4">
+                Estado: Em andamento
+              </h4>
+              <CardQuestions
+                className="max-w-full"
+                header="Leitura e frações"
+                state="inProgress"
+                subhead="1 de 10 questões respondidas"
+              />
+            </div>
           </div>
         </div>
 

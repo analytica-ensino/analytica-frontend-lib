@@ -3261,6 +3261,57 @@ describe('Quiz', () => {
         screen.getByTestId('quiz-completion-override-confirm').click();
         expect(mockOnConfirm).toHaveBeenCalled();
       });
+
+      it('offers no second button unless the override asks for one', async () => {
+        render(
+          <QuizFooter
+            handleFinishSimulated={jest.fn()}
+            completionOverride={{
+              title: 'Prova enviada!',
+              description: 'Aguarde os resultados.',
+              buttonLabel: 'Voltar para o painel',
+              onConfirm: jest.fn(),
+            }}
+          />
+        );
+
+        await clickElementAsync(screen.getByText('Finalizar'));
+
+        expect(
+          screen.queryByTestId('quiz-completion-override-secondary')
+        ).not.toBeInTheDocument();
+      });
+
+      it('shows the second button of the override and calls it', async () => {
+        const mockOnConfirm = jest.fn();
+        const mockOnLater = jest.fn();
+
+        render(
+          <QuizFooter
+            handleFinishSimulated={jest.fn()}
+            completionOverride={{
+              title: 'Você concluiu as questões!',
+              description: 'Mas ainda não acabou!',
+              buttonLabel: 'Ler livro',
+              onConfirm: mockOnConfirm,
+              secondaryAction: {
+                label: 'Continuar depois',
+                onClick: mockOnLater,
+              },
+            }}
+          />
+        );
+
+        await clickElementAsync(screen.getByText('Finalizar'));
+
+        const secondary = screen.getByTestId(
+          'quiz-completion-override-secondary'
+        );
+        expect(secondary).toHaveTextContent('Continuar depois');
+        secondary.click();
+        expect(mockOnLater).toHaveBeenCalled();
+        expect(mockOnConfirm).not.toHaveBeenCalled();
+      });
     });
 
     describe('Navigation modal filter', () => {
