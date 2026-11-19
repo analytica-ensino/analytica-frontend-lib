@@ -205,6 +205,8 @@ export default defineConfig({
     'EbookReader/index': 'src/components/EbookReader/EbookReader.tsx',
     // The reader for the app's WebView: one HTML string, no DOM imports.
     'EbookReader/webview/index': 'src/components/EbookReader/webview/index.ts',
+    // The ebook reading report of "Desempenho" and "Relatórios" (AE-3329).
+    'EbookReadingReport/index': 'src/components/EbookReadingReport/index.ts',
     'SupportChatMessage/index':
       'src/components/SupportChat/SupportChatMessage.tsx',
     'SupportChatEvent/index': 'src/components/SupportChat/SupportChatEvent.tsx',
