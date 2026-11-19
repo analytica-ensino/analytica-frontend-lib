@@ -348,13 +348,18 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
         <section className="flex flex-col gap-1 flex-1 min-w-0">
           <p className="font-bold text-xs text-text-950 truncate">{header}</p>
 
-          <div className="flex flex-row gap-6 items-center">
-            <Badge size="medium" variant="solid" action={badgeAction}>
+          {/* Num card estreito o subhead desce para baixo do status, inteiro,
+              em vez de quebrar o badge ou cortar o contador. */}
+          <div className="flex flex-row flex-wrap gap-x-6 gap-y-1 items-center">
+            <Badge
+              size="medium"
+              variant="solid"
+              action={badgeAction}
+              className="whitespace-nowrap shrink-0"
+            >
               {label}
             </Badge>
-            {subhead && (
-              <p className="text-xs text-text-600 truncate">{subhead}</p>
-            )}
+            {subhead && <p className="text-xs text-text-600">{subhead}</p>}
           </div>
         </section>
 
