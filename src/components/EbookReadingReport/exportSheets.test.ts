@@ -97,6 +97,90 @@ describe('fetchEbookReadingExport', () => {
   });
 });
 
+describe('fetchEbookReadingExport, page by page', () => {
+  it('asks for the next page of the breakdown only after the last one answers', async () => {
+    const answers: Array<() => void> = [];
+    const post = jest.fn((route: string, body: Record<string, unknown>) => {
+      if (route === EBOOK_READING_ROUTE.SUMMARY) {
+        return Promise.resolve({ data: { data: METRICS } });
+      }
+      if (route === EBOOK_READING_ROUTE.RANKINGS) {
+        return Promise.resolve({ data: { data: RANKINGS } });
+      }
+      return new Promise((resolve) => {
+        answers.push(() =>
+          resolve({
+            data: {
+              data: {
+                rows: [row(String(body.page), 50)],
+                pagination: { totalPages: 3 },
+              },
+            },
+          })
+        );
+      });
+    });
+    const api = {
+      get: jest.fn(),
+      post,
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+    /** The pages asked for so far. */
+    const pagesAsked = () =>
+      post.mock.calls
+        .filter(([route]) => route === EBOOK_READING_ROUTE.BY_CLASS)
+        .map(([, body]) => body.page);
+
+    const exported = fetchEbookReadingExport(
+      api,
+      FILTERS,
+      EBOOK_READING_GROUP.CLASS
+    );
+
+    await Promise.resolve();
+    expect(pagesAsked()).toEqual([1]);
+    answers[0]();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(pagesAsked()).toEqual([1, 2]);
+    answers[1]();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    answers[2]();
+
+    const data = await exported;
+    expect(pagesAsked()).toEqual([1, 2, 3]);
+    expect(data.groups.map((group) => group.id)).toEqual(['1', '2', '3']);
+  });
+
+  it('stops at the first page when the API reports no page count', async () => {
+    const post = jest.fn((route: string) => {
+      if (route === EBOOK_READING_ROUTE.SUMMARY) {
+        return Promise.resolve({ data: { data: METRICS } });
+      }
+      if (route === EBOOK_READING_ROUTE.RANKINGS) {
+        return Promise.resolve({ data: { data: RANKINGS } });
+      }
+      return Promise.resolve({
+        data: { data: { rows: [row('A', 80)], pagination: {} } },
+      });
+    });
+    const api = {
+      get: jest.fn(),
+      post,
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+
+    const data = await fetchEbookReadingExport(
+      api,
+      FILTERS,
+      EBOOK_READING_GROUP.CLASS
+    );
+
+    expect(data.groups.map((group) => group.id)).toEqual(['A']);
+  });
+});
+
 describe('buildEbookReadingSheets', () => {
   const data = {
     summary: METRICS,

@@ -142,7 +142,7 @@ const StudentBookRow = ({
           </Text>
         </div>
         <Text as="span" size="xs" className="text-text-500">
-          {`Última leitura: ${formatReadingDate(book.lastReadAt)} • ${formatTimeSpent(book.timeSpentSeconds)} • ${formatCount(book.sectionsSeen.length)} seções vistas`}
+          {`Última leitura: ${formatReadingDate(book.lastReadAt)} • Tempo de leitura: ${formatTimeSpent(book.timeSpentSeconds)} • ${formatCount(book.sectionsSeen.length)} seções vistas`}
         </Text>
       </div>
     </li>

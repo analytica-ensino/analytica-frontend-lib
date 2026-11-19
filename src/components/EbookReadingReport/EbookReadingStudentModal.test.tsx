@@ -76,7 +76,7 @@ describe('EbookReadingStudentModal', () => {
     expect(screen.getByText('EB40 • Educação 4.0 e 5.0')).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Última leitura: 17/11/2026 • 00:30:00 • 2 seções vistas'
+        'Última leitura: 17/11/2026 • Tempo de leitura: 00:30:00 • 2 seções vistas'
       )
     ).toBeInTheDocument();
     expect(

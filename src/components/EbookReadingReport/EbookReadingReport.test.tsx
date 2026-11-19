@@ -141,11 +141,13 @@ const ROUTES: Record<string, (body: Body) => unknown> = {
 
 /**
  * An API client answering the report routes.
+ * @param {Record<string, (body: Body) => unknown>} answers - What some routes answer instead
  * @returns {{ api: BaseApiClient; post: jest.Mock }} The client and its post
  */
-const createApi = () => {
+const createApi = (answers: Record<string, (body: Body) => unknown> = {}) => {
+  const routes = { ...ROUTES, ...answers };
   const post = jest.fn((route: string, body: Body) =>
-    Promise.resolve({ data: { message: 'ok', data: ROUTES[route](body) } })
+    Promise.resolve({ data: { message: 'ok', data: routes[route](body) } })
   );
   const api: BaseApiClient = {
     get: jest.fn(),
@@ -294,6 +296,93 @@ describe('EbookReadingReport', () => {
     expect(
       await screen.findByRole('heading', { name: 'Desempenho por turma' })
     ).toBeInTheDocument();
+  });
+
+  describe('when the filters change', () => {
+    /** Twelve classes: two pages of ten. */
+    const twoPages = () => ({
+      rows: [group('class-a', 'Turma A', 10, '4º ano')],
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 12,
+        totalPages: 2,
+        hasNext: true,
+        hasPrev: false,
+      },
+    });
+    const OTHER_FILTERS = { ...FILTERS, schoolIds: ['school-2'] };
+
+    it('asks the table for its first page again', async () => {
+      const { api, post } = createApi({
+        [EBOOK_READING_ROUTE.BY_CLASS]: twoPages,
+      });
+      const { rerender } = render(
+        <EbookReadingReport
+          api={api}
+          filters={FILTERS}
+          groupBy={EBOOK_READING_GROUP.CLASS}
+        />
+      );
+      await screen.findByText('Turma A');
+      fireEvent.click(screen.getByText('Próxima'));
+      await waitFor(() =>
+        expect(bodiesTo(post, EBOOK_READING_ROUTE.BY_CLASS).at(-1)).toEqual({
+          ...FILTERS,
+          page: 2,
+          limit: 10,
+        })
+      );
+
+      rerender(
+        <EbookReadingReport
+          api={api}
+          filters={OTHER_FILTERS}
+          groupBy={EBOOK_READING_GROUP.CLASS}
+        />
+      );
+
+      await waitFor(() =>
+        expect(bodiesTo(post, EBOOK_READING_ROUTE.BY_CLASS).at(-1)).toEqual({
+          ...OTHER_FILTERS,
+          page: 1,
+          limit: 10,
+        })
+      );
+      // Never page 2 of the new filter, not even for a moment
+      expect(bodiesTo(post, EBOOK_READING_ROUTE.BY_CLASS)).not.toContainEqual({
+        ...OTHER_FILTERS,
+        page: 2,
+        limit: 10,
+      });
+    });
+
+    it('closes the class that was open', async () => {
+      const { api, post } = createApi();
+      const { rerender } = render(
+        <EbookReadingReport
+          api={api}
+          filters={FILTERS}
+          groupBy={EBOOK_READING_GROUP.CLASS}
+        />
+      );
+      fireEvent.click(await screen.findByText('Turma A'));
+      expect(await screen.findByText('Ana Beatriz')).toBeInTheDocument();
+
+      rerender(
+        <EbookReadingReport
+          api={api}
+          filters={OTHER_FILTERS}
+          groupBy={EBOOK_READING_GROUP.CLASS}
+        />
+      );
+
+      expect(
+        await screen.findByRole('heading', { name: 'Desempenho por turma' })
+      ).toBeInTheDocument();
+      expect(screen.queryByText('Ana Beatriz')).toBeNull();
+      expect(bodiesTo(post, EBOOK_READING_ROUTE.BY_STUDENT)).toHaveLength(1);
+    });
   });
 
   it("opens a student's reading, book by book", async () => {

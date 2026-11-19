@@ -100,6 +100,18 @@ export const EbookReadingReport = ({
   const [selectedStudent, setSelectedStudent] =
     useState<EbookReadingStudentRow | null>(null);
 
+  // A new filter starts the tables over, in the same render: page 2 of the
+  // old filter is not page 2 of the new one, and the open class may be out
+  // of it. The key also remounts the tables, whose page is their own.
+  const filtersKey = JSON.stringify(filters);
+  const [tablesFiltersKey, setTablesFiltersKey] = useState(filtersKey);
+  if (tablesFiltersKey !== filtersKey) {
+    setTablesFiltersKey(filtersKey);
+    setGroupParams(FIRST_PAGE);
+    setStudentParams(FIRST_PAGE);
+    setSelectedClass(null);
+  }
+
   const summary = useEbookReadingRequest<EbookReadingMetrics>(
     api,
     EBOOK_READING_ROUTE.SUMMARY,
@@ -176,6 +188,7 @@ export const EbookReadingReport = ({
 
       {selectedClass ? (
         <ReadingTable<EbookReadingStudentRow>
+          key={filtersKey}
           tableId="ebookReadingStudents"
           title={`Desempenho por estudante: ${selectedClass.name}`}
           rows={students.data?.rows ?? []}
@@ -201,6 +214,7 @@ export const EbookReadingReport = ({
         />
       ) : (
         <ReadingTable<EbookReadingGroupRow>
+          key={filtersKey}
           tableId="ebookReadingGroups"
           title={`Desempenho por ${groupLabel.one.toLowerCase()}`}
           rows={groups.data?.rows ?? []}

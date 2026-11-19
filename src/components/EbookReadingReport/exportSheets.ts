@@ -1,6 +1,5 @@
 import type { BaseApiClient } from '../../types/api';
 import type { SheetConfig } from '../../utils/exportExcel';
-import { fetchAllPages } from '../../utils/fetchAllPages';
 import {
   EBOOK_READING_ROUTE,
   GROUP_LABEL,
@@ -25,6 +24,9 @@ import {
 
 /** Items of each list in the workbook: the most the API ranks. */
 const EXPORT_RANKING_SIZE = 20;
+
+/** Rows of each page the export asks for: the most the API takes. */
+export const EXPORT_PAGE_SIZE = 100;
 
 /** What the reading workbook holds. */
 export interface EbookReadingExport {
@@ -67,20 +69,30 @@ export const fetchEbookReadingExport = async (
       limit: EXPORT_RANKING_SIZE,
     });
 
+  /**
+   * Every row of the breakdown table, one page at a time: the API builds the
+   * whole table for each page, so pages asked together would build it that
+   * many times at once.
+   */
+  const allGroups = async (): Promise<EbookReadingGroupRow[]> => {
+    const rows: EbookReadingGroupRow[] = [];
+    for (let page = 1; ; page += 1) {
+      const result = await post<EbookReadingPage<EbookReadingGroupRow>>(
+        GROUP_ROUTE[groupBy],
+        { ...filters, page, limit: EXPORT_PAGE_SIZE }
+      );
+      rows.push(...result.rows);
+      // A page count that is not a number stops too, instead of looping
+      const { totalPages } = result.pagination;
+      if (!Number.isFinite(totalPages) || page >= totalPages) return rows;
+    }
+  };
+
   const [summary, books, themes, groups] = await Promise.all([
     post<EbookReadingMetrics>(EBOOK_READING_ROUTE.SUMMARY, filters),
     ranking(EBOOK_RANKING_DIMENSION.EBOOK),
     ranking(EBOOK_RANKING_DIMENSION.CATEGORY),
-    fetchAllPages(async ({ page, limit }) => {
-      const result = await post<EbookReadingPage<EbookReadingGroupRow>>(
-        GROUP_ROUTE[groupBy],
-        { ...filters, page, limit }
-      );
-      return {
-        items: result.rows,
-        totalPages: result.pagination.totalPages,
-      };
-    }),
+    allGroups(),
   ]);
   return { summary, books, themes, groups };
 };
