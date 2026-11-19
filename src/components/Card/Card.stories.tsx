@@ -70,6 +70,14 @@ export const AllCardComponentsShowcase: Story = () => {
             CardProgress
           </h3>
 
+          <div className="max-w-md">
+            <CardQuestions
+              header="Leitura e frações"
+              state="inProgress"
+              subhead="1 de 10 questões respondidas"
+            />
+          </div>
+
           {/* Exemplo com texto longo para mostrar truncate */}
           <div className="space-y-4">
             <h4 className="text-xl font-semibold text-text-900 flex items-center gap-2">

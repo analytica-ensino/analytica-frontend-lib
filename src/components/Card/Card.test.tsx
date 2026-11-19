@@ -461,6 +461,35 @@ describe('CardQuestions', () => {
     expect(badge).toHaveAttribute('data-action', 'info');
   });
 
+  it('should render with state "inProgress" showing "Em andamento" and "Continuar" button', () => {
+    render(<CardQuestions {...baseProps} state="inProgress" />);
+
+    expect(screen.getByText('Em andamento')).toBeInTheDocument();
+    expect(screen.getByTestId('badge')).toHaveAttribute(
+      'data-action',
+      'warning'
+    );
+    expect(
+      screen.getByRole('button', { name: 'Continuar: Questão de Teste' })
+    ).toBeInTheDocument();
+  });
+
+  it('should render the subhead beside the status only when given', () => {
+    const { rerender } = render(<CardQuestions {...baseProps} />);
+    expect(screen.queryByText(/questões respondidas/)).not.toBeInTheDocument();
+
+    rerender(
+      <CardQuestions
+        {...baseProps}
+        state="inProgress"
+        subhead="1 de 10 questões respondidas"
+      />
+    );
+    expect(
+      screen.getByText('1 de 10 questões respondidas')
+    ).toBeInTheDocument();
+  });
+
   it('should render with state "pending" showing "Aguardando correção" and "Ver Resultado" button', () => {
     render(<CardQuestions {...baseProps} state="pending" />);
 
