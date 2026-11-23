@@ -20,14 +20,21 @@ export interface UseEbookLibraryReturn {
   loadingMore: boolean;
   error: boolean;
   hasMore: boolean;
+  /** Appends the next page (the picker's "Carregar mais") */
   loadMore: () => void;
+  /** The last page loaded (the page shown, when paging) */
+  page: number;
+  totalPages: number;
+  /** Shows another page in place of the books on screen (the library's pagination) */
+  goToPage: (page: number) => void;
   retry: () => void;
 }
 
 /**
- * The staff library (`GET /ebooks/library`): the student books the caller's
- * institution may attach, searched and filtered, a page at a time. A change
- * of filters starts over from the first page; an answer to older filters is
+ * The staff library (`GET /ebooks/library`): the student books of the
+ * caller's institution, searched and filtered, a page at a time. Pages are
+ * appended (`loadMore`) or shown one at a time (`goToPage`). A change of
+ * filters starts over from the first page; an answer to older filters is
  * dropped.
  *
  * @param apiClient - The host's API client
@@ -49,11 +56,10 @@ export const useEbookLibrary = (
   const requestRef = useRef(0);
 
   const fetchPage = useCallback(
-    async (pageToLoad: number) => {
+    async (pageToLoad: number, append: boolean) => {
       const request = ++requestRef.current;
-      const isFirst = pageToLoad === 1;
-      if (isFirst) setLoading(true);
-      else setLoadingMore(true);
+      if (append) setLoadingMore(true);
+      else setLoading(true);
       setError(false);
       try {
         const response = await apiClient.get<{ data: EbookLibraryPage }>(
@@ -71,7 +77,7 @@ export const useEbookLibrary = (
         if (request !== requestRef.current) return;
         const data = response.data.data;
         setItems((previous) =>
-          isFirst ? data.items : [...previous, ...data.items]
+          append ? [...previous, ...data.items] : data.items
         );
         setTotal(data.total);
         setFacets(data.facets);
@@ -89,13 +95,20 @@ export const useEbookLibrary = (
   );
 
   useEffect(() => {
-    fetchPage(1);
+    fetchPage(1, false);
   }, [fetchPage, attempt]);
 
   const hasMore = items.length < total;
+  const totalPages = Math.max(1, Math.ceil(total / EBOOK_LIBRARY_PAGE_SIZE));
   const loadMore = useCallback(() => {
-    if (hasMore && !loading && !loadingMore) fetchPage(page + 1);
+    if (hasMore && !loading && !loadingMore) fetchPage(page + 1, true);
   }, [hasMore, loading, loadingMore, fetchPage, page]);
+  const goToPage = useCallback(
+    (pageToShow: number) => {
+      fetchPage(pageToShow, false);
+    },
+    [fetchPage]
+  );
   const retry = useCallback(() => setAttempt((value) => value + 1), []);
 
   return {
@@ -107,6 +120,9 @@ export const useEbookLibrary = (
     error,
     hasMore,
     loadMore,
+    page,
+    totalPages,
+    goToPage,
     retry,
   };
 };
