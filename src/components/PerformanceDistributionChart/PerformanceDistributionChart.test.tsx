@@ -162,13 +162,32 @@ describe('PerformanceDistributionChart', () => {
 
     // Legend and pie split the card in two halves; the pie sits centred in
     // the right one.
-    it('gives the pie the right half of the card', () => {
+    it('gives the pie the right half of the card from the small screens up', () => {
       render(<PerformanceDistributionChart counters={createMockCounters()} />);
 
       const pieColumn = screen.getByTestId('performance-distribution-pie');
-      expect(pieColumn).toHaveClass('basis-1/2', 'justify-center');
+      expect(pieColumn).toHaveClass('sm:basis-1/2', 'justify-center');
       expect(pieColumn.querySelector('svg')).not.toBeNull();
-      expect(pieColumn.previousElementSibling).toHaveClass('basis-1/2');
+      expect(pieColumn.previousElementSibling).toHaveClass('sm:basis-1/2');
+      expect(screen.getByTestId('performance-distribution-body')).toHaveClass(
+        'sm:flex-row'
+      );
+    });
+
+    it('puts the legend above the pie on a phone', () => {
+      render(<PerformanceDistributionChart counters={createMockCounters()} />);
+
+      const body = screen.getByTestId('performance-distribution-body');
+      expect(body).toHaveClass('flex-col');
+      expect(body.firstElementChild).toContainElement(
+        screen.getByText('Destaque')
+      );
+      expect(body.lastElementChild).toBe(
+        screen.getByTestId('performance-distribution-pie')
+      );
+      expect(
+        screen.getByTestId('performance-distribution-pie')
+      ).not.toHaveClass('basis-1/2');
     });
 
     it('renders custom totalStudents when provided', () => {

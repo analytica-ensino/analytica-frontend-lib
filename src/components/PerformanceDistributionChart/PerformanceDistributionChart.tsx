@@ -136,10 +136,15 @@ export function PerformanceDistributionChart({
         {title}
       </Text>
 
-      {/* Two halves: legend bottom-aligned on the left, pie centred on the right */}
-      <div className="flex items-stretch gap-2">
+      {/* Two halves from the small screens up: legend bottom-aligned on the
+          left, pie centred on the right. On a phone a half is too narrow for
+          "Ponto de atenção" and its count, so the legend goes on top. */}
+      <div
+        className="flex flex-col gap-6 sm:flex-row sm:items-stretch sm:gap-2"
+        data-testid="performance-distribution-body"
+      >
         {/* Legend: one row per band, count right-aligned; total underneath */}
-        <div className="flex basis-1/2 min-w-0 flex-col justify-end gap-4">
+        <div className="flex min-w-0 flex-col justify-end gap-4 sm:basis-1/2">
           {slices.map((slice) => (
             <div
               key={slice.key}
@@ -184,7 +189,7 @@ export function PerformanceDistributionChart({
         {/* Pie Chart, centred in the right half */}
         <div
           data-testid="performance-distribution-pie"
-          className="flex basis-1/2 min-w-0 items-center justify-center"
+          className="flex min-w-0 items-center justify-center sm:basis-1/2"
         >
           <SimplePieChart
             slices={pieSlices}
