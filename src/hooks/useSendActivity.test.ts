@@ -1,6 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import dayjs from 'dayjs';
 import { useSendActivity } from './useSendActivity';
+import { useModulesStore } from '../store/modulesStore';
 import type {
   UseSendActivityConfig,
   ActivityModelItem,
@@ -611,6 +612,93 @@ describe('useSendActivity', () => {
 
       expect(config.onError).toHaveBeenCalledWith('Erro ao enviar atividade');
       expect(result.current.isLoading).toBe(false);
+    });
+
+    describe('a model with attached books (AE-3325)', () => {
+      const withBooks = () => {
+        const defaultMockApi = createMockApiClient();
+        const mockApi = createMockApiClient();
+        mockApi.get = jest.fn((url: string) =>
+          url.includes('/activity-drafts/')
+            ? Promise.resolve({
+                data: {
+                  data: {
+                    selectedQuestions: [{ id: 'q1' }],
+                    ebooks: [{ id: 'eb-1' }, { id: 'eb-2' }],
+                  },
+                },
+              })
+            : defaultMockApi.get(url)
+        );
+        return mockApi;
+      };
+
+      const setEbooksModule = (on: boolean) =>
+        useModulesStore.setState({
+          modules: { ...useModulesStore.getState().modules, ebooks: on },
+        });
+
+      afterEach(() => setEbooksModule(false));
+
+      const send = async (config: UseSendActivityConfig) => {
+        const { result } = renderHook(() => useSendActivity(config));
+        await act(async () => {
+          result.current.openModal(mockModel);
+        });
+        await act(async () => {
+          await result.current.handleSubmit(mockFormData);
+        });
+      };
+
+      it("sends the model's books with the ebooks module on", async () => {
+        setEbooksModule(true);
+        const config = createMockConfig({ api: withBooks() });
+
+        await send(config);
+
+        expect(config.api.post).toHaveBeenCalledWith(
+          '/activities',
+          expect.objectContaining({
+            questionIds: ['q1'],
+            ebookIds: ['eb-1', 'eb-2'],
+          })
+        );
+      });
+
+      it('sends no books with the module off', async () => {
+        const config = createMockConfig({ api: withBooks() });
+
+        await send(config);
+
+        const [, payload] = (config.api.post as jest.Mock).mock.calls.find(
+          ([url]) => url === '/activities'
+        )!;
+        expect(payload).not.toHaveProperty('ebookIds');
+      });
+
+      it("reports the backend's reason for refusing", async () => {
+        setEbooksModule(true);
+        const mockApi = withBooks();
+        mockApi.post = jest.fn(() =>
+          Promise.reject(
+            Object.assign(new Error('Request failed with status code 400'), {
+              response: {
+                data: {
+                  message:
+                    'Um ou mais alunos não têm acesso aos e-books anexados',
+                },
+              },
+            })
+          )
+        );
+        const config = createMockConfig({ api: mockApi });
+
+        await send(config);
+
+        expect(config.onError).toHaveBeenCalledWith(
+          'Um ou mais alunos não têm acesso aos e-books anexados'
+        );
+      });
     });
 
     it('should handle error when sendToStudents fails', async () => {

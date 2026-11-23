@@ -1,5 +1,6 @@
 import type { QuestionActivity as Question } from '../..';
 import type { ActivityMode } from '../SendActivityModal/types';
+import type { AttachableEbook } from '../../types/ebookAttachment';
 
 // Re-export category types from shared utils for backward compatibility
 export type {
@@ -83,6 +84,8 @@ export interface ActivityData {
   filters: BackendFiltersFormat;
   questionIds: string[];
   selectedQuestions?: Question[];
+  /** Student books attached to the draft, in order (AE-3325) */
+  ebooks?: AttachableEbook[];
   updatedAt?: string;
 }
 

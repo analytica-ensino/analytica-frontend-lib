@@ -5,6 +5,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from 'react';
 import { BookIcon } from '@phosphor-icons/react/dist/csr/Book';
 import { BookBookmarkIcon } from '@phosphor-icons/react/dist/csr/BookBookmark';
@@ -110,6 +111,8 @@ interface LessonPreviewProps {
    * the white rounded card used by the compact (<= 1024px) layout.
    */
   variant?: 'default' | 'card';
+  /** Shown after "Atividade da aula", e.g. the attached books ("Livro da aula") */
+  children?: ReactNode;
 }
 
 export const LessonPreview = ({
@@ -133,6 +136,7 @@ export const LessonPreview = ({
   onRemoveActivity,
   selectedActivity: initialSelectedActivity = null,
   variant = 'default',
+  children,
 }: LessonPreviewProps) => {
   const isCard = variant === 'card';
   const onPositionsChangeRef = useRef(onPositionsChange);
@@ -545,6 +549,8 @@ export const LessonPreview = ({
             Adicionar atividade
           </Button>
         )}
+
+        {children}
       </div>
 
       <LessonWatchModal

@@ -1,4 +1,11 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Fragment,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { FileIcon } from '@phosphor-icons/react/dist/csr/File';
 import { DownloadSimpleIcon } from '@phosphor-icons/react/dist/csr/DownloadSimple';
 import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
@@ -45,6 +52,8 @@ interface ActivityPreviewProps {
    */
   onPositionsChange?: (orderedQuestions: PreviewQuestion[]) => void;
   isDark?: boolean;
+  /** Shown after the questions, e.g. the attached books ("Livro da aula") */
+  children?: ReactNode;
 }
 
 export const ActivityPreview = ({
@@ -57,6 +66,7 @@ export const ActivityPreview = ({
   onReorder,
   onPositionsChange,
   isDark = false,
+  children,
 }: ActivityPreviewProps) => {
   const onPositionsChangeRef = useRef(onPositionsChange);
   onPositionsChangeRef.current = onPositionsChange;
@@ -282,6 +292,8 @@ export const ActivityPreview = ({
           Remover tudo
         </Button>
       )}
+
+      {children}
 
       <QuestionsPdfContent ref={contentRef} questions={orderedQuestions} />
     </div>

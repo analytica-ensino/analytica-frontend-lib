@@ -29,6 +29,8 @@ import { loadCategoriesData } from '../utils/categoryDataUtils';
 import { toCsv } from '../utils/queryParams';
 import { resolveDraftSubjects } from '../utils/subjectMappers';
 import { useDynamicStudentFetching } from '../utils/useDynamicStudentFetching';
+import { getApiErrorMessage } from '../utils/apiErrorMessage';
+import { useModules } from './useModules';
 // Import direto, e não pelo barrel `../index`, para não criar ciclo entre o
 // hook e o índice público da lib.
 import useToastStore from '../components/Toast/utils/ToastStore';
@@ -544,6 +546,7 @@ export const createUseRecommendedLessonsPage = (
     >([]);
 
     const addToast = useToastStore((state) => state.addToast);
+    const { hasEbooks } = useModules();
 
     // Build user filter data: merge userData with historyFilterData (union, dedupe by id)
     const userFilterData = useMemo(() => {
@@ -799,6 +802,7 @@ export const createUseRecommendedLessonsPage = (
               title: string;
               lessons?: Array<{ lessonId: string }>;
               activityDrafts?: Array<{ activityDraftId: string }>;
+              ebooks?: Array<{ id: string }>;
             };
           }>(`${endpoints.recommendedClassDrafts}/${selectedModel.id}`);
           const draft = draftResponse.data.data;
@@ -815,6 +819,10 @@ export const createUseRecommendedLessonsPage = (
             })
           );
           const hasAttachedActivities = activityDraftIds.length > 0;
+          // The model's books go along only with the ebooks module on
+          const ebookIds = hasEbooks
+            ? (draft.ebooks ?? []).map((ebook) => ebook.id)
+            : [];
 
           await api.post(endpoints.submitRecommendedClass, {
             title: formData.title || selectedModel.title,
@@ -826,6 +834,7 @@ export const createUseRecommendedLessonsPage = (
             ).toISOString(),
             lessonIds,
             ...(hasAttachedActivities && { activityDraftIds }),
+            ...(ebookIds.length > 0 && { ebookIds }),
             targetStudentIds: formData.students.map((s) => s.userInstitutionId),
             ...(formData.notification && {
               notification: formData.notification,
@@ -856,9 +865,10 @@ export const createUseRecommendedLessonsPage = (
           addToast({
             title: 'Erro ao enviar aula',
             description:
-              error instanceof Error
+              getApiErrorMessage(error) ??
+              (error instanceof Error
                 ? error.message
-                : 'Ocorreu um erro ao enviar a aula. Tente novamente.',
+                : 'Ocorreu um erro ao enviar a aula. Tente novamente.'),
             variant: 'solid',
             action: 'warning',
             position: 'top-right',
@@ -872,6 +882,7 @@ export const createUseRecommendedLessonsPage = (
         endpoints.recommendedClassDrafts,
         endpoints.submitRecommendedClass,
         selectedModel,
+        hasEbooks,
         addToast,
       ]
     );

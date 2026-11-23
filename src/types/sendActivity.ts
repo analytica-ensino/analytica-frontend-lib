@@ -63,6 +63,11 @@ export interface CreateActivityPayload {
    * `isDigital` is false — an essay is handed in on paper with the booklet.
    */
   essayThemeId?: string | null;
+  /**
+   * Student books attached to the activity, in display order (AE-3325).
+   * Sent only with the ebooks module on: absent attaches nothing.
+   */
+  ebookIds?: string[];
 }
 
 /**

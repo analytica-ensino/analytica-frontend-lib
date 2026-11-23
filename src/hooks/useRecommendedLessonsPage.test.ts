@@ -20,6 +20,7 @@ import type {
 } from '../types/recommendedLessons';
 import type { SendLessonFormData } from '../components/SendLessonModal/types';
 import { loadCategoriesData } from '../utils/categoryDataUtils';
+import { useModulesStore } from '../store/modulesStore';
 
 // Recipients are loaded from the API (same flow as lesson creation); mock the
 // loader and the dynamic student fetching so this suite focuses on the hook's
@@ -1024,6 +1025,81 @@ describe('useRecommendedLessonsPage', () => {
       variant: 'solid',
       action: 'warning',
       position: 'top-right',
+    });
+  });
+
+  describe('a model with attached books (AE-3325)', () => {
+    const setEbooksModule = (on: boolean) =>
+      useModulesStore.setState({
+        modules: { ...useModulesStore.getState().modules, ebooks: on },
+      });
+
+    afterEach(() => setEbooksModule(false));
+
+    const sendModelWithBooks = async () => {
+      (mockApi.get as jest.Mock).mockResolvedValueOnce({
+        data: {
+          data: {
+            title: 'Test Model',
+            lessons: [{ lessonId: 'lesson-1' }],
+            activityDrafts: [],
+            ebooks: [{ id: 'eb-1' }, { id: 'eb-2' }],
+          },
+        },
+      });
+      const { result } = setupHook();
+      await act(async () => {
+        await result.current.historyProps.onSendLesson(testModel);
+      });
+      await act(async () => {
+        await result.current.modalProps.onSubmit(testFormData);
+      });
+    };
+
+    it("sends the model's books with the ebooks module on", async () => {
+      setEbooksModule(true);
+      (mockApi.post as jest.Mock).mockResolvedValueOnce({ data: {} });
+
+      await sendModelWithBooks();
+
+      expect(mockApi.post).toHaveBeenCalledWith(
+        '/recommendedClass',
+        expect.objectContaining({
+          lessonIds: [{ lessonId: 'lesson-1', sequence: 1 }],
+          ebookIds: ['eb-1', 'eb-2'],
+        })
+      );
+    });
+
+    it('sends no books with the module off', async () => {
+      (mockApi.post as jest.Mock).mockResolvedValueOnce({ data: {} });
+
+      await sendModelWithBooks();
+
+      const [, payload] = (mockApi.post as jest.Mock).mock.calls[0];
+      expect(payload).not.toHaveProperty('ebookIds');
+    });
+
+    it("toasts the backend's reason for refusing", async () => {
+      setEbooksModule(true);
+      (mockApi.post as jest.Mock).mockRejectedValueOnce(
+        Object.assign(new Error('Request failed with status code 400'), {
+          response: {
+            data: {
+              message: 'Um ou mais alunos não têm acesso aos e-books anexados',
+            },
+          },
+        })
+      );
+
+      await sendModelWithBooks();
+
+      expect(mockAddToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Erro ao enviar aula',
+          description: 'Um ou mais alunos não têm acesso aos e-books anexados',
+        })
+      );
     });
   });
 
