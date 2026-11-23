@@ -20,6 +20,8 @@ import type { EbookTocEntry } from './useEbookBook';
 const ROUND_BUTTON = 'h-9 w-9 border-primary-950 text-primary-950';
 
 export interface EbookReaderControlsProps {
+  /** Only the page turning, on one centered row, with icon buttons */
+  compact?: boolean;
   /** Page turning is shown in the book layout only */
   showPaging: boolean;
   pageLabel: string;
@@ -47,6 +49,7 @@ export interface EbookReaderControlsProps {
  * phone, where they do not fit one line, the tools go to a second row.
  */
 export const EbookReaderControls = ({
+  compact = false,
   showPaging,
   pageLabel,
   canGoBack,
@@ -66,9 +69,12 @@ export const EbookReaderControls = ({
 }: Readonly<EbookReaderControlsProps>) => (
   <nav
     aria-label="Navegação do livro"
-    className="flex flex-col items-center gap-2 border-t border-border-100 bg-background px-4 py-3 sm:grid sm:grid-cols-[1fr_auto_1fr]"
+    className={cn(
+      'flex flex-col items-center gap-2 border-t border-border-100 bg-background px-4 py-3',
+      !compact && 'sm:grid sm:grid-cols-[1fr_auto_1fr]'
+    )}
   >
-    <span className="hidden sm:block" />
+    {!compact && <span className="hidden sm:block" />}
     <div
       className={cn(
         'flex items-center justify-center gap-2 sm:gap-3',
@@ -85,7 +91,7 @@ export const EbookReaderControls = ({
             disabled={!canGoBack}
             aria-label="Página anterior"
           >
-            <span className="hidden sm:inline">Anterior</span>
+            {!compact && <span className="hidden sm:inline">Anterior</span>}
           </Button>
           <span
             className="min-w-16 text-center text-sm font-bold text-text-950"
@@ -102,70 +108,74 @@ export const EbookReaderControls = ({
             disabled={!canGoForward}
             aria-label="Próxima página"
           >
-            <span className="hidden sm:inline">Próximo</span>
+            {!compact && <span className="hidden sm:inline">Próximo</span>}
           </Button>
         </>
       )}
     </div>
-    <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
-      {extra}
-      {toc.length > 0 && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <IconRoundedButton
-              icon={<ListIcon size={18} />}
-              aria-label="Sumário"
-              className={ROUND_BUTTON}
-            />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            side="top"
-            align="end"
-            className="w-[382px] max-w-[calc(100vw-2rem)]"
-          >
-            {toc.map((entry) => (
-              <DropdownMenuItem
-                key={entry.target}
-                onClick={() => onGoTo(entry.target)}
-                aria-current={
-                  entry.target === activeTocTarget ? 'true' : undefined
-                }
-                className={cn(
-                  entry.target === activeTocTarget && 'bg-background-50'
-                )}
-              >
-                {entry.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-      {canToggleLayout && (
-        <IconRoundedButton
-          icon={
-            isBookLayout ? <RowsIcon size={18} /> : <BookOpenIcon size={18} />
-          }
-          aria-label={isBookLayout ? 'Ler em rolagem' : 'Voltar ao modo livro'}
-          title={isBookLayout ? 'Rolagem' : 'Modo livro'}
-          className={ROUND_BUTTON}
-          onClick={onToggleLayout}
-        />
-      )}
-      {canFullscreen && (
-        <IconRoundedButton
-          icon={
-            isFullscreen ? (
-              <ArrowsInSimpleIcon size={18} />
-            ) : (
-              <ArrowsOutSimpleIcon size={18} />
-            )
-          }
-          aria-label={isFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
-          aria-pressed={isFullscreen}
-          className={ROUND_BUTTON}
-          onClick={onToggleFullscreen}
-        />
-      )}
-    </div>
+    {!compact && (
+      <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
+        {extra}
+        {toc.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <IconRoundedButton
+                icon={<ListIcon size={18} />}
+                aria-label="Sumário"
+                className={ROUND_BUTTON}
+              />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              side="top"
+              align="end"
+              className="w-[382px] max-w-[calc(100vw-2rem)]"
+            >
+              {toc.map((entry) => (
+                <DropdownMenuItem
+                  key={entry.target}
+                  onClick={() => onGoTo(entry.target)}
+                  aria-current={
+                    entry.target === activeTocTarget ? 'true' : undefined
+                  }
+                  className={cn(
+                    entry.target === activeTocTarget && 'bg-background-50'
+                  )}
+                >
+                  {entry.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+        {canToggleLayout && (
+          <IconRoundedButton
+            icon={
+              isBookLayout ? <RowsIcon size={18} /> : <BookOpenIcon size={18} />
+            }
+            aria-label={
+              isBookLayout ? 'Ler em rolagem' : 'Voltar ao modo livro'
+            }
+            title={isBookLayout ? 'Rolagem' : 'Modo livro'}
+            className={ROUND_BUTTON}
+            onClick={onToggleLayout}
+          />
+        )}
+        {canFullscreen && (
+          <IconRoundedButton
+            icon={
+              isFullscreen ? (
+                <ArrowsInSimpleIcon size={18} />
+              ) : (
+                <ArrowsOutSimpleIcon size={18} />
+              )
+            }
+            aria-label={isFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
+            aria-pressed={isFullscreen}
+            className={ROUND_BUTTON}
+            onClick={onToggleFullscreen}
+          />
+        )}
+      </div>
+    )}
   </nav>
 );

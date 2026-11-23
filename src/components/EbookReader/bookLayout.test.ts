@@ -25,6 +25,14 @@ describe('measureBook', () => {
     });
   });
 
+  it('keeps one page, as tall as it fits, when spreads are not allowed', () => {
+    expect(measureBook(1440, 800, false)).toEqual({
+      pageWidth: 533,
+      pageHeight: 799,
+      spread: false,
+    });
+  });
+
   it('caps the page height on very tall screens', () => {
     expect(measureBook(4000, 2000).pageHeight).toBe(900);
   });

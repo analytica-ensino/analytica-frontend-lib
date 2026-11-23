@@ -91,6 +91,13 @@ export interface EbookContent {
 /** `student` records reading; `preview` (teacher, manager, backoffice) records nothing. */
 export type EbookReaderMode = 'student' | 'preview';
 
+/**
+ * `full` is the whole reader; `compact` is the book, one page at a time, and
+ * its page turning only, for a preview boxed inside another screen (no
+ * header, no "Ficha do material", no tools).
+ */
+export type EbookReaderVariant = 'full' | 'compact';
+
 /** The two materials of a title, with the backend's values. */
 export const EBOOK_MATERIAL_TYPE = {
   /** The student book */

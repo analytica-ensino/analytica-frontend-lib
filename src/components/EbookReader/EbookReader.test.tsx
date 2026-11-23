@@ -230,7 +230,8 @@ describe('EbookReader', () => {
         document.dispatchEvent(new Event('fullscreenchange'));
       });
 
-      expect(screen.queryByRole('heading', { name: 'Livro' })).toBeNull();
+      expect(screen.queryByText('4º ano')).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Voltar' })).toBeNull();
       expect(
         screen.getByRole('button', { name: 'Sair da tela cheia' })
       ).toBeInTheDocument();
@@ -291,6 +292,49 @@ describe('EbookReader', () => {
       expect(
         screen.getByRole('button', { name: 'Baixar' })
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('compact', () => {
+    it('shows only the book and its page turning, for a boxed preview', () => {
+      render(
+        <EbookReader
+          content={{
+            ...content(),
+            narration: {
+              '3': {
+                section: 'caso',
+                file: 'audio/narration.mp3',
+                start: 0,
+                end: 10,
+                segments: [{ segment: 'p3-1', start: 0, end: 9 }],
+              },
+            },
+          }}
+          title="Livro"
+          subtitle="4º ano"
+          details={{ code: 'EB40' }}
+          onBack={jest.fn()}
+          mode="preview"
+          variant="compact"
+          footerExtra={<button type="button">Baixar</button>}
+        />
+      );
+      initBook();
+
+      expect(screen.queryByRole('heading', { name: 'Livro' })).toBeNull();
+      expect(screen.queryByText('Ficha do material')).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Ouvir' })).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Sumário' })).toBeNull();
+      expect(
+        screen.queryByRole('button', { name: 'Ler em rolagem' })
+      ).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Baixar' })).toBeNull();
+      expect(
+        screen.getByRole('button', { name: 'Próxima página' })
+      ).toBeInTheDocument();
+      expect(screen.queryByText('Próximo')).toBeNull();
+      expect(screen.getByTestId('ebook-reader-content')).toBeInTheDocument();
     });
   });
 });

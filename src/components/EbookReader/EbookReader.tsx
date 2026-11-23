@@ -19,6 +19,7 @@ import {
   type EbookNarrationSegment,
   type EbookPageChange,
   type EbookReaderMode,
+  type EbookReaderVariant,
 } from './types';
 import { useEbookBook } from './useEbookBook';
 import { useEbookNarration } from './useEbookNarration';
@@ -34,6 +35,7 @@ export type {
   EbookNarrationSegment,
   EbookPageChange,
   EbookReaderMode,
+  EbookReaderVariant,
 };
 
 /** The details panel starts open on screens at least this wide. */
@@ -56,6 +58,8 @@ export interface EbookReaderProps {
   onBack?: () => void;
   /** `student` records reading; `preview` records nothing */
   mode?: EbookReaderMode;
+  /** `compact` shows only the book, one page at a time, and its page turning, boxed inside another screen */
+  variant?: EbookReaderVariant;
   /** Section (`data-section`) or element id to open at */
   initialSection?: string;
   /** Called with every section the first time it comes into view (never in preview) */
@@ -96,6 +100,7 @@ export const EbookReader = ({
   onMaterialChange,
   onBack,
   mode = 'student',
+  variant = 'full',
   initialSection,
   onSectionsSeen,
   onPageChange,
@@ -126,6 +131,7 @@ export const EbookReader = ({
     initialSection,
     onSectionsSeen: isPreview ? undefined : onSectionsSeen,
     onPageChange: isPreview ? undefined : onPageChange,
+    singlePage: variant === 'compact',
   });
 
   const narration = useEbookNarration({
@@ -136,7 +142,8 @@ export const EbookReader = ({
   });
 
   const isBook = book.layout === 'book';
-  const showChrome = !fullscreen.isFullscreen;
+  const isCompact = variant === 'compact';
+  const showChrome = !isCompact && !fullscreen.isFullscreen;
   const showDetails = showChrome && detailsOpen && !!details;
 
   return (
@@ -144,6 +151,7 @@ export const EbookReader = ({
       ref={rootRef}
       aria-label={title}
       data-layout={book.layout}
+      data-variant={variant}
       className={cn('ebook-reader bg-background', className)}
     >
       {showChrome && (
@@ -202,34 +210,37 @@ export const EbookReader = ({
       </div>
 
       <EbookReaderControls
+        compact={isCompact}
         showPaging={isBook}
         pageLabel={pageLabel(book.pageIndex, book.pageCount, book.spread)}
         canGoBack={book.pageIndex > 0}
         canGoForward={book.pageIndex < book.pageCount - 1}
         onPrevious={book.previous}
         onNext={book.next}
-        toc={book.toc}
+        toc={isCompact ? [] : book.toc}
         activeTocTarget={book.activeTocTarget}
         onGoTo={book.goTo}
-        canToggleLayout={book.hasBookLayout}
+        canToggleLayout={!isCompact && book.hasBookLayout}
         isBookLayout={isBook}
         onToggleLayout={book.toggleLayout}
-        canFullscreen={fullscreen.isSupported}
+        canFullscreen={!isCompact && fullscreen.isSupported}
         isFullscreen={fullscreen.isFullscreen}
         onToggleFullscreen={fullscreen.toggle}
         extra={
-          <>
-            {narration.hasNarration && (
-              <EbookNarrationControls
-                isPlaying={narration.isPlaying}
-                onToggle={narration.toggle}
-                hasAudioDescription={narration.hasAudioDescription}
-                withAudioDescription={narration.withAudioDescription}
-                onToggleAudioDescription={narration.toggleAudioDescription}
-              />
-            )}
-            {footerExtra}
-          </>
+          !isCompact && (
+            <>
+              {narration.hasNarration && (
+                <EbookNarrationControls
+                  isPlaying={narration.isPlaying}
+                  onToggle={narration.toggle}
+                  hasAudioDescription={narration.hasAudioDescription}
+                  withAudioDescription={narration.withAudioDescription}
+                  onToggleAudioDescription={narration.toggleAudioDescription}
+                />
+              )}
+              {footerExtra}
+            </>
+          )
         }
       />
     </section>

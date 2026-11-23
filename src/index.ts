@@ -92,6 +92,7 @@ export type {
   EbookNarrationSegment,
   EbookPageChange,
   EbookReaderMode,
+  EbookReaderVariant,
 } from './components/EbookReader/EbookReader';
 export type {
   FileDropzoneProps,
