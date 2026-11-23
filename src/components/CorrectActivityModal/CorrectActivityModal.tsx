@@ -59,6 +59,14 @@ import {
 } from '../../utils/questionRenderer/index';
 import useToastStore from '../Toast/utils/ToastStore';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
+import { StudentEbooksSection } from '../EbookStudentReading/StudentEbooksSection';
+import {
+  StudentEbookReadingTitle,
+  StudentEbookReadingView,
+} from '../EbookStudentReading/StudentEbookReadingView';
+import { useOpenStudentEbook } from '../EbookStudentReading/useOpenStudentEbook';
+import type { BaseApiClient } from '../../types/api';
+import type { StudentAttachedEbook } from '../../types/ebookAttachment';
 
 /**
  * Builds the accessible name of the link to an attachment stored on the server.
@@ -125,6 +133,15 @@ export interface CorrectActivityModalProps {
   schoolName?: string | null;
   className?: string | null;
   schoolYear?: string | null;
+  /**
+   * The books attached to the activity, with this student's reading of each
+   * (AE-3327): the "Leitura do livro" section. Hidden when empty.
+   */
+  ebooks?: StudentAttachedEbook[];
+  /** The host's API client: with it and the enrollment, each book opens its reading */
+  apiClient?: BaseApiClient;
+  /** The student's enrollment, whose reading "Ver detalhes" opens */
+  userInstitutionId?: string | null;
 }
 
 /**
@@ -177,6 +194,9 @@ const CorrectActivityModal = ({
   schoolName,
   className,
   schoolYear,
+  ebooks,
+  apiClient,
+  userInstitutionId,
 }: CorrectActivityModalProps) => {
   const [observation, setObservation] = useState('');
   const [isObservationExpanded, setIsObservationExpanded] = useState(false);
@@ -189,6 +209,11 @@ const CorrectActivityModal = ({
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const observationHeadingId = useId();
+  /** The book whose reading is on screen, in place of the correction */
+  const [openEbook, setOpenEbook] = useOpenStudentEbook(
+    isOpen,
+    data?.studentId
+  );
 
   // Toast store for notifications
   const addToast = useToastStore((state) => state.addToast);
@@ -1093,18 +1118,41 @@ const CorrectActivityModal = ({
     );
   };
 
+  const studentHeader = (
+    <StudentSummaryHeader
+      name={data.studentName || 'Aluno'}
+      location={[schoolName, className, schoolYear]}
+      badge={performanceTag ? <PerformanceBadge tag={performanceTag} /> : null}
+      badgePlacement="end"
+    />
+  );
+  const canOpenReading = !!apiClient && !!userInstitutionId;
+
+  if (openEbook && apiClient && userInstitutionId) {
+    return (
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={<StudentEbookReadingTitle onBack={() => setOpenEbook(null)} />}
+        size="xl"
+      >
+        <div className="flex flex-col gap-6">
+          {studentHeader}
+          <StudentEbookReadingView
+            apiClient={apiClient}
+            ebook={openEbook}
+            userInstitutionId={userInstitutionId}
+          />
+        </div>
+      </Modal>
+    );
+  }
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="xl">
       <div className="flex flex-col gap-6">
         {/* Student Info */}
-        <StudentSummaryHeader
-          name={data.studentName || 'Aluno'}
-          location={[schoolName, className, schoolYear]}
-          badge={
-            performanceTag ? <PerformanceBadge tag={performanceTag} /> : null
-          }
-          badgePlacement="end"
-        />
+        {studentHeader}
 
         {/* View scanned answer sheet button */}
         {answerSheetImageUrl && onViewScannedAnswerSheet && (
@@ -1133,6 +1181,13 @@ const CorrectActivityModal = ({
           />
           <ContentCards best={bestSubtopic} worst={worstSubtopic} />
         </section>
+
+        {ebooks && ebooks.length > 0 && (
+          <StudentEbooksSection
+            ebooks={ebooks}
+            onOpen={canOpenReading ? setOpenEbook : undefined}
+          />
+        )}
 
         {/* Observation Section */}
         {renderObservationSection()}

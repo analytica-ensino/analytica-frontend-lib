@@ -19,6 +19,7 @@ import {
 } from '../Skeleton/Skeleton';
 import { TableProvider } from '../TableProvider/TableProvider';
 import CorrectActivityModal from '../CorrectActivityModal/CorrectActivityModal';
+import { withStudentProgress } from '../EbookStudentReading/studentEbookReading.utils';
 import { getSubjectInfo, type SubjectData } from '../SubjectInfo/SubjectInfo';
 import { useMobile } from '../../hooks/useMobile';
 import { cn } from '../../utils/utils';
@@ -48,6 +49,7 @@ import {
 } from '../../utils/activityDetailsUtils';
 import type { BaseApiClient } from '../../types/api';
 import { useActivityDetails } from '../../hooks/useActivityDetails';
+import { useModules } from '../../hooks/useModules';
 import {
   useQuestionsPdfPrint,
   QuestionsPdfContent,
@@ -823,6 +825,24 @@ export const ActivityDetails = ({
    * `essayStatus`, which the results endpoint states outright — `status` is
    * only consulted by the digital layout.
    */
+  /** The student whose correction is open, for their enrollment and reading */
+  const correctionStudent = useMemo(
+    () =>
+      data?.students.find(
+        (student) => student.studentId === correctionData?.studentId
+      ),
+    [data?.students, correctionData?.studentId]
+  );
+  const { hasEbooks } = useModules();
+  // The books stay attached when the ebooks go off; the section does not
+  const correctionEbooks = useMemo(
+    () =>
+      hasEbooks && data?.ebooks?.length
+        ? withStudentProgress(data.ebooks, correctionStudent?.ebooks)
+        : undefined,
+    [hasEbooks, data?.ebooks, correctionStudent?.ebooks]
+  );
+
   const tableData: ActivityStudentTableItem[] = useMemo(() => {
     if (!data?.students) return [];
 
@@ -1608,6 +1628,9 @@ export const ActivityDetails = ({
         schoolName={data?.activity?.schoolName}
         className={data?.activity?.className}
         schoolYear={data?.activity?.year}
+        ebooks={correctionEbooks}
+        apiClient={apiClient}
+        userInstitutionId={correctionStudent?.userInstitutionId}
       />
 
       {/* Ver atividade (read-only questions with answer key + resolution) */}

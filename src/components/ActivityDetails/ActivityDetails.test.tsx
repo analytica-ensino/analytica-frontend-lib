@@ -180,6 +180,8 @@ jest.mock('../CorrectActivityModal/CorrectActivityModal', () => ({
     data,
     onObservationSubmit,
     onQuestionCorrectionSubmit,
+    ebooks,
+    userInstitutionId,
   }: {
     isOpen: boolean;
     onClose: () => void;
@@ -200,10 +202,20 @@ jest.mock('../CorrectActivityModal/CorrectActivityModal', () => ({
       studentId: string,
       payload: { questionId: string; isCorrect: boolean; score: number }
     ) => void;
+    ebooks?: { id: string; percent: number }[];
+    userInstitutionId?: string | null;
   }) =>
     isOpen ? (
       <div data-testid="correct-activity-modal">
         <button onClick={onClose}>Fechar</button>
+        {ebooks && (
+          <span data-testid="modal-ebooks">
+            {ebooks.map((ebook) => `${ebook.id}:${ebook.percent}`).join(',')}
+          </span>
+        )}
+        {userInstitutionId && (
+          <span data-testid="modal-enrollment">{userInstitutionId}</span>
+        )}
         {data && 'score' in data && (
           <span data-testid="modal-score">{String(data.score)}</span>
         )}
@@ -277,6 +289,12 @@ jest.mock('../CorrectActivityModal/CorrectActivityModal', () => ({
 // Mock useActivityDetails hook
 jest.mock('../../hooks/useActivityDetails', () => ({
   useActivityDetails: jest.fn(),
+}));
+
+// The ebooks module; off unless a test turns it on
+const mockModules = { hasEbooks: false };
+jest.mock('../../hooks/useModules', () => ({
+  useModules: () => mockModules,
 }));
 
 // Mock QuestionsPdfGenerator
@@ -1523,6 +1541,66 @@ describe('ActivityDetails', () => {
       await waitFor(() => {
         expect(screen.getByTestId('table-provider')).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('Ebook reading (AE-3327)', () => {
+    const book = (id: string) => ({
+      id,
+      code: `EB0${id}`,
+      title: `Livro ${id}`,
+      subtitle: null,
+      coverUrl: null,
+      category: null,
+    });
+    const withEbooks: ActivityDetailsData = {
+      ...mockActivityData,
+      ebooks: [book('1'), book('2')],
+      students: mockActivityData.students.map((student) =>
+        student.studentId === 'student-2'
+          ? {
+              ...student,
+              userInstitutionId: 'ui-2',
+              ebooks: [{ ebookId: '2', percent: 50, effectiveReadAt: null }],
+            }
+          : student
+      ),
+    };
+
+    const openCorrection = async () => {
+      render(<ActivityDetails {...defaultProps} />);
+      await waitFor(() => {
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
+      });
+      fireEvent.click(getEnabledCorrectButton()!);
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+    };
+
+    beforeEach(() => {
+      mockFetchActivityDetails.mockResolvedValue(withEbooks);
+    });
+
+    afterEach(() => {
+      mockModules.hasEbooks = false;
+    });
+
+    it("hands the modal the student's reading of each attached book", async () => {
+      mockModules.hasEbooks = true;
+
+      await openCorrection();
+
+      expect(screen.getByTestId('modal-ebooks')).toHaveTextContent('1:0,2:50');
+      expect(screen.getByTestId('modal-enrollment')).toHaveTextContent('ui-2');
+    });
+
+    it('leaves the books out while the ebooks are off', async () => {
+      await openCorrection();
+
+      expect(screen.queryByTestId('modal-ebooks')).not.toBeInTheDocument();
     });
   });
 

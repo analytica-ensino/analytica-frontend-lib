@@ -5,6 +5,8 @@ import { cn } from '../../utils/utils';
 import type { LessonDetailsData } from '../../types/recommendedLessons';
 import type { SubjectEnum } from '../../enums/SubjectEnum';
 import type { BaseApiClient } from '../../types/api';
+import type { StudentAttachedEbook } from '../../types/ebookAttachment';
+import { useModules } from '../../hooks/useModules';
 import {
   Breadcrumb,
   LessonHeader,
@@ -112,6 +114,12 @@ const RecommendedLessonDetails = ({
   const [performanceLoading, setPerformanceLoading] = useState(false);
   const [performanceError, setPerformanceError] = useState<string | null>(null);
 
+  /** The student's reading of the class's books, for "Leitura do livro" */
+  const [performanceEbooks, setPerformanceEbooks] = useState<
+    StudentAttachedEbook[]
+  >([]);
+  const { hasEbooks } = useModules();
+
   // View lesson modal state
   const [viewLessonModalOpen, setViewLessonModalOpen] = useState(false);
 
@@ -147,12 +155,26 @@ const RecommendedLessonDetails = ({
       setPerformanceLoading(true);
       setPerformanceData(null);
       setPerformanceError(null);
+      setPerformanceEbooks([]);
 
       try {
-        // Fetch all answers for the student in this recommended class
-        const response = await apiClient.get<StudentAnswersResponse>(
-          `/recommended-class/${data.recommendedClass.id}/student/${studentId}/answers`
-        );
+        // Fetch all answers for the student in this recommended class, and
+        // the student's reading of its books. The reading is an extra: the
+        // modal opens without it when it fails.
+        const [response, ebooks] = await Promise.all([
+          apiClient.get<StudentAnswersResponse>(
+            `/recommended-class/${data.recommendedClass.id}/student/${studentId}/answers`
+          ),
+          hasEbooks
+            ? apiClient
+                .get<{ data: { ebooks?: StudentAttachedEbook[] } }>(
+                  `/recommended-class/${data.recommendedClass.id}/students/${studentId}`
+                )
+                .then((reading) => reading.data.data.ebooks ?? [])
+                .catch(() => [])
+            : Promise.resolve([]),
+        ]);
+        setPerformanceEbooks(ebooks);
 
         // Convert API response to performance data format
         const performanceData = convertStudentAnswersToPerformanceData(
@@ -174,7 +196,13 @@ const RecommendedLessonDetails = ({
         setPerformanceLoading(false);
       }
     },
-    [apiClient, data?.recommendedClass.id, data?.details.students, addToast]
+    [
+      apiClient,
+      data?.recommendedClass.id,
+      data?.details.students,
+      addToast,
+      hasEbooks,
+    ]
   );
 
   /**
@@ -184,6 +212,7 @@ const RecommendedLessonDetails = ({
     setPerformanceModalOpen(false);
     setPerformanceData(null);
     setPerformanceError(null);
+    setPerformanceEbooks([]);
   }, []);
 
   /**
@@ -300,6 +329,7 @@ const RecommendedLessonDetails = ({
           loading={performanceLoading}
           error={performanceError}
           apiClient={apiClient}
+          ebooks={performanceEbooks}
         />
       )}
 

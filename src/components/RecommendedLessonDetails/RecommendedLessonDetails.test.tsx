@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import RecommendedLessonDetails from './RecommendedLessonDetails';
 import type { LessonDetailsData } from '../../types/recommendedLessons';
@@ -9,6 +9,8 @@ const mockHandleSort = jest.fn();
 
 // Records the props the lesson modal receives, and still renders the real one
 const mockViewModalProps = jest.fn();
+// Records the props the student's performance modal receives
+const mockPerformanceModalProps = jest.fn();
 jest.mock('./components', () => {
   const actual = jest.requireActual('./components');
   const React = jest.requireActual('react');
@@ -18,8 +20,18 @@ jest.mock('./components', () => {
       mockViewModalProps(props);
       return React.createElement(actual.RecommendedLessonViewModal, props);
     },
+    StudentActivityPerformanceModal: (props: Record<string, unknown>) => {
+      mockPerformanceModalProps(props);
+      return null;
+    },
   };
 });
+
+// The ebooks module; off unless a test turns it on
+const mockModules = { hasEbooks: false };
+jest.mock('../../hooks/useModules', () => ({
+  useModules: () => mockModules,
+}));
 
 // Mock the SubjectInfo to avoid dependency issues
 jest.mock('../SubjectInfo/SubjectInfo', () => ({
@@ -748,6 +760,104 @@ describe('RecommendedLessonDetails', () => {
       );
 
       expect(screen.queryByText('Corrigir atividade')).not.toBeInTheDocument();
+    });
+  });
+
+  describe("The student's reading of the class's books (AE-3327)", () => {
+    const answers = {
+      data: { message: 'ok', data: { activities: [], lessons: [] } },
+    };
+    const book = {
+      id: 'eb-1',
+      code: 'EB01',
+      title: 'Livro 1',
+      subtitle: null,
+      coverUrl: null,
+      category: null,
+      percent: 40,
+      effectiveReadAt: null,
+    };
+    const dataWithActivities: LessonDetailsData = {
+      ...mockLessonData,
+      details: {
+        ...mockLessonData.details,
+        activities: [{ id: 'activity-1', title: 'Atividade 1' }],
+      },
+    };
+
+    const openStudent = (get: jest.Mock) => {
+      render(
+        <RecommendedLessonDetails
+          data={dataWithActivities}
+          apiClient={{
+            get,
+            post: jest.fn(),
+            patch: jest.fn(),
+            delete: jest.fn(),
+          }}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+      fireEvent.click(screen.getAllByText('Corrigir atividade')[0]);
+    };
+
+    /** The books the performance modal last received. */
+    const modalEbooks = () =>
+      mockPerformanceModalProps.mock.calls.at(-1)?.[0].ebooks;
+
+    afterEach(() => {
+      mockModules.hasEbooks = false;
+    });
+
+    it("hands the modal the student's reading of each book", async () => {
+      mockModules.hasEbooks = true;
+      const get = jest.fn((url: string) =>
+        Promise.resolve(
+          url.includes('/answers')
+            ? answers
+            : { data: { message: 'ok', data: { ebooks: [book] } } }
+        )
+      );
+
+      openStudent(get);
+
+      await waitFor(() => expect(modalEbooks()).toEqual([book]));
+      expect(get).toHaveBeenCalledWith(
+        '/recommended-class/lesson-1/students/student-1'
+      );
+    });
+
+    it('opens the modal without the reading when it fails', async () => {
+      mockModules.hasEbooks = true;
+      const get = jest.fn((url: string) =>
+        url.includes('/answers')
+          ? Promise.resolve(answers)
+          : Promise.reject(new Error('rede'))
+      );
+
+      openStudent(get);
+
+      await waitFor(() =>
+        expect(mockPerformanceModalProps.mock.calls.at(-1)?.[0].loading).toBe(
+          false
+        )
+      );
+      expect(mockPerformanceModalProps.mock.calls.at(-1)?.[0].error).toBeNull();
+      expect(modalEbooks()).toEqual([]);
+    });
+
+    it('never asks for the reading while the ebooks are off', async () => {
+      const get = jest.fn().mockResolvedValue(answers);
+
+      openStudent(get);
+
+      await waitFor(() =>
+        expect(mockPerformanceModalProps.mock.calls.at(-1)?.[0].loading).toBe(
+          false
+        )
+      );
+      expect(get).toHaveBeenCalledTimes(1);
+      expect(modalEbooks()).toEqual([]);
     });
   });
 });
