@@ -64,6 +64,11 @@ export interface SupportConversationMessageItem {
   faq?: SupportChatFaqReference;
   attachments?: SupportChatAttachment[];
   status?: SupportChatSendStatus;
+  /**
+   * AI/agent messages: whether the requester saw it. When set, the message
+   * shows "Visualizada" or "Enviada"; leave undefined to hide the indicator.
+   */
+  read?: boolean;
   onRetry?: () => void;
 }
 

@@ -74,6 +74,8 @@ const ConversationItem = ({ item }: { item: SupportConversationItem }) => {
           faq={item.faq}
           attachments={item.attachments}
           status={item.status}
+          showReadStatus={item.read !== undefined}
+          read={item.read}
           onRetry={item.onRetry}
         />
       );

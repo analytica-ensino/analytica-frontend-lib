@@ -80,6 +80,12 @@ const statusOf = (error: unknown) =>
 
 const GUEST_TOKEN_HEADER = 'x-support-guest-token';
 
+/** Routes of the visitor support API, kept together for easy adjustment */
+export const GUEST_SUPPORT_ROUTES = {
+  /** Mark the AI/agent replies of the ticket as read by the requester */
+  markAsRead: (ticketId: string) => `/support/guest/${ticketId}/read`,
+} as const;
+
 const senderNameFor = (role: string, requesterName: string) => {
   if (role === SUPPORT_CHAT_AUTHOR.AGENT) return 'Suporte';
   if (role === SUPPORT_CHAT_AUTHOR.AI) return 'Assistente';
@@ -108,6 +114,7 @@ export const fromSupportAnswer = (
       ? { id: answer.faqArticleId, title: answer.faqArticleTitle }
       : null,
   contactRequest: answer.contactRequest ?? null,
+  read: answer.read ?? false,
 });
 
 /**
@@ -306,6 +313,18 @@ export const createGuestSupportChatAdapter = ({
         sessions.delete(ticketId);
         return null;
       }
+    },
+
+    async markAsRead(ticketId) {
+      // Without PATCH (or a session) the replies just stay unread
+      if (!apiClient.patch || !sessions.has(ticketId)) return;
+      await apiClient.patch(
+        GUEST_SUPPORT_ROUTES.markAsRead(ticketId),
+        undefined,
+        {
+          headers: headersFor(ticketId),
+        }
+      );
     },
 
     forgetConversation() {
