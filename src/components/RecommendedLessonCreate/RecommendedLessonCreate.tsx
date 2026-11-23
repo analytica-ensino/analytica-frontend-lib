@@ -1345,21 +1345,11 @@ const RecommendedLessonCreate = ({
     return <RecommendedLessonCreateSkeleton />;
   }
 
-  // "Adicionar livro à aula": a whole page, with its own header
-  if (hasEbooks && isEbookPickerOpen) {
-    return (
-      <EbookPicker
-        apiClient={apiClient}
-        target="lesson"
-        initialSelected={ebooks}
-        onBack={() => setIsEbookPickerOpen(false)}
-        onConfirm={(selected) => {
-          setEbooks(selected);
-          setIsEbookPickerOpen(false);
-        }}
-      />
-    );
-  }
+  // "Adicionar livro à aula" takes the whole page, with its own header. The
+  // builder stays mounted underneath, only hidden: unmounting it would
+  // remount the filters panel from the draft's filters and lose what the
+  // teacher applied since.
+  const showEbookPicker = hasEbooks && isEbookPickerOpen;
 
   // The compact layout has no "filters" tab; filters live in a popover there
   const compactView = selectedView === 'filters' ? 'lessons' : selectedView;
@@ -1659,64 +1649,79 @@ const RecommendedLessonCreate = ({
   };
 
   return (
-    <div
-      data-testid="create-recommended-class-page"
-      className={cn(
-        'flex flex-col w-full h-screen overflow-hidden p-5',
-        isCompactScreen ? 'bg-background-50' : 'bg-background'
+    <>
+      {showEbookPicker && (
+        <EbookPicker
+          apiClient={apiClient}
+          target="lesson"
+          initialSelected={ebooks}
+          onBack={() => setIsEbookPickerOpen(false)}
+          onConfirm={(selected) => {
+            setEbooks(selected);
+            setIsEbookPickerOpen(false);
+          }}
+        />
       )}
-    >
-      {/* Header Section */}
-      <RecommendedLessonCreateHeader
-        recommendedLesson={recommendedLesson || undefined}
-        draftType={draftType}
-        lastSavedAt={lastSavedAt}
-        isSaving={isSaving}
-        lessonsCount={lessons.length}
-        onSaveModel={handleSaveModel}
-        onSendLesson={handleOpenSendModal}
-        onBack={handleBack}
-      />
+      <div
+        data-testid="create-recommended-class-page"
+        className={cn(
+          'flex-col w-full h-screen overflow-hidden p-5',
+          isCompactScreen ? 'bg-background-50' : 'bg-background',
+          showEbookPicker ? 'hidden' : 'flex'
+        )}
+      >
+        {/* Header Section */}
+        <RecommendedLessonCreateHeader
+          recommendedLesson={recommendedLesson || undefined}
+          draftType={draftType}
+          lastSavedAt={lastSavedAt}
+          isSaving={isSaving}
+          lessonsCount={lessons.length}
+          onSaveModel={handleSaveModel}
+          onSendLesson={handleOpenSendModal}
+          onBack={handleBack}
+        />
 
-      {/* Main Content */}
-      {renderMainContent()}
+        {/* Main Content */}
+        {renderMainContent()}
 
-      {/* Save Lesson Model Modal */}
-      <SaveActivityModelModal
-        isOpen={isSaveModelModalOpen}
-        onClose={() => setIsSaveModelModalOpen(false)}
-        onConfirm={handleConfirmSaveModel}
-        isLoading={isSavingModel}
-      />
+        {/* Save Lesson Model Modal */}
+        <SaveActivityModelModal
+          isOpen={isSaveModelModalOpen}
+          onClose={() => setIsSaveModelModalOpen(false)}
+          onConfirm={handleConfirmSaveModel}
+          isLoading={isSavingModel}
+        />
 
-      {/* Send Lesson Modal */}
-      <SendLessonModal
-        isOpen={isSendModalOpen}
-        onClose={() => setIsSendModalOpen(false)}
-        onSubmit={handleSendLesson}
-        categories={categories}
-        onCategoriesChange={handleCategoriesChange}
-        isLoading={isSendingLesson}
-        hasAttachedActivities={
-          (recommendedLesson?.activityDraftIds?.length ?? 0) > 0
-        }
-        recipientWarning={recipientWarning}
-        onError={(error) => {
-          console.error('Error sending lesson:', error);
-          const errorMessage =
-            error instanceof Error
-              ? error.message
-              : 'Erro ao enviar aula. Por favor, tente novamente.';
-          addToast({
-            title: 'Erro ao enviar aula',
-            description: errorMessage,
-            variant: 'solid',
-            action: 'warning',
-            position: 'top-right',
-          });
-        }}
-      />
-    </div>
+        {/* Send Lesson Modal */}
+        <SendLessonModal
+          isOpen={isSendModalOpen}
+          onClose={() => setIsSendModalOpen(false)}
+          onSubmit={handleSendLesson}
+          categories={categories}
+          onCategoriesChange={handleCategoriesChange}
+          isLoading={isSendingLesson}
+          hasAttachedActivities={
+            (recommendedLesson?.activityDraftIds?.length ?? 0) > 0
+          }
+          recipientWarning={recipientWarning}
+          onError={(error) => {
+            console.error('Error sending lesson:', error);
+            const errorMessage =
+              error instanceof Error
+                ? error.message
+                : 'Erro ao enviar aula. Por favor, tente novamente.';
+            addToast({
+              title: 'Erro ao enviar aula',
+              description: errorMessage,
+              variant: 'solid',
+              action: 'warning',
+              position: 'top-right',
+            });
+          }}
+        />
+      </div>
+    </>
   );
 };
 

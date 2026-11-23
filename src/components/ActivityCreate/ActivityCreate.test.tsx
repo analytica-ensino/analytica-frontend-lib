@@ -5877,9 +5877,7 @@ describe('CreateActivity', () => {
         'activity'
       );
       expect(screen.getByTestId('picker-initial')).toHaveTextContent('eb-1');
-      expect(
-        screen.queryByTestId('create-activity-page')
-      ).not.toBeInTheDocument();
+      expect(screen.getByTestId('create-activity-page')).toHaveClass('hidden');
 
       fireEvent.click(screen.getByTestId('picker-confirm'));
       expect(screen.getByTestId('lesson-ebook-ids')).toHaveTextContent(
@@ -5893,6 +5891,20 @@ describe('CreateActivity', () => {
           expect.objectContaining({ ebookIds: ['eb-1', 'eb-2'] })
         );
       });
+    });
+
+    it('keeps the builder mounted under the selection, filters and all', async () => {
+      await openDraft();
+      const filtersPanel = screen.getByTestId('activity-filters');
+
+      fireEvent.click(screen.getByTestId('open-ebook-picker'));
+      fireEvent.click(screen.getByTestId('picker-back'));
+
+      // Remounting the panel would reset it to the draft's filters
+      expect(screen.getByTestId('activity-filters')).toBe(filtersPanel);
+      expect(screen.getByTestId('create-activity-page')).not.toHaveClass(
+        'hidden'
+      );
     });
 
     it('leaves the selection without changing the books', async () => {

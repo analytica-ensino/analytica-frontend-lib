@@ -579,16 +579,21 @@ jest.mock('../EbookAttachment', () => ({
   EbookPicker: ({
     target,
     initialSelected,
+    onBack,
     onConfirm,
   }: {
     target: string;
     initialSelected: { id: string }[];
+    onBack: () => void;
     onConfirm: (ebooks: unknown[]) => void;
   }) => (
     <div data-testid="ebook-picker" data-target={target}>
       <span data-testid="picker-initial">
         {initialSelected.map((ebook) => ebook.id).join(',')}
       </span>
+      <button data-testid="picker-back" onClick={onBack}>
+        Voltar
+      </button>
       <button
         data-testid="picker-confirm"
         onClick={() => onConfirm(mockPickedEbooks)}
@@ -4166,7 +4171,9 @@ describe('RecommendedLessonCreate', () => {
         'lesson'
       );
       expect(screen.getByTestId('picker-initial')).toHaveTextContent('eb-1');
-      expect(screen.queryByTestId('lesson-preview')).not.toBeInTheDocument();
+      expect(screen.getByTestId('create-recommended-class-page')).toHaveClass(
+        'hidden'
+      );
 
       await act(async () => {
         fireEvent.click(screen.getByTestId('picker-confirm'));
@@ -4182,6 +4189,24 @@ describe('RecommendedLessonCreate', () => {
           expect.objectContaining({ ebookIds: ['eb-1', 'eb-2'] })
         );
       });
+    });
+
+    it('keeps the builder mounted under the selection, filters and all', async () => {
+      await openDraft();
+      const filtersPanel = screen.getByTestId('lesson-filters');
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('open-ebook-picker'));
+      });
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('picker-back'));
+      });
+
+      // Remounting the panel would reset it to the draft's filters
+      expect(screen.getByTestId('lesson-filters')).toBe(filtersPanel);
+      expect(
+        screen.getByTestId('create-recommended-class-page')
+      ).not.toHaveClass('hidden');
     });
 
     /** Opens the send modal and submits it. */

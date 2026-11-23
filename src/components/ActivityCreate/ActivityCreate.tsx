@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useTabletScreen } from '../../hooks/useScreen';
+import { cn } from '../../utils/utils';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Button,
@@ -1222,21 +1223,11 @@ const CreateActivity = ({
     return <ActivityCreateSkeleton />;
   }
 
-  // "Adicionar livro à atividade": a whole page, with its own header
-  if (hasEbooks && isEbookPickerOpen) {
-    return (
-      <EbookPicker
-        apiClient={apiClient}
-        target="activity"
-        initialSelected={ebooks}
-        onBack={() => setIsEbookPickerOpen(false)}
-        onConfirm={(selected) => {
-          setEbooks(selected);
-          setIsEbookPickerOpen(false);
-        }}
-      />
-    );
-  }
+  // "Adicionar livro à atividade" takes the whole page, with its own header.
+  // The builder stays mounted underneath, only hidden: unmounting it would
+  // remount the filters panel from the draft's filters and lose what the
+  // teacher applied since.
+  const showEbookPicker = hasEbooks && isEbookPickerOpen;
 
   const ebooksSection = hasEbooks ? (
     <LessonEbooksSection
@@ -1250,208 +1241,231 @@ const CreateActivity = ({
   ) : undefined;
 
   return (
-    <div
-      data-testid="create-activity-page"
-      className="flex flex-col w-full h-full overflow-hidden p-4 bg-background min-[1200px]:p-5"
-    >
-      {/* Header Section */}
-      <ActivityCreateHeader
-        activity={activity || undefined}
-        activityType={activityType}
-        lastSavedAt={lastSavedAt}
-        isSaving={isSaving}
-        questionsCount={questions.length}
-        onSaveModel={handleSaveModel}
-        onSendActivity={handleOpenSendModal}
-        onBack={handleBack}
-        isRecommendedLessonMode={isRecommendedLessonMode}
-        onLessonPreview={handleLessonPreview}
-        onAddActivity={handleAddActivityToLesson}
-        enableExamMode={enableExamMode || isInPersonExam}
-      />
+    <>
+      {showEbookPicker && (
+        <EbookPicker
+          apiClient={apiClient}
+          target="activity"
+          initialSelected={ebooks}
+          onBack={() => setIsEbookPickerOpen(false)}
+          onConfirm={(selected) => {
+            setEbooks(selected);
+            setIsEbookPickerOpen(false);
+          }}
+        />
+      )}
+      <div
+        data-testid="create-activity-page"
+        className={cn(
+          'flex-col w-full h-full overflow-hidden p-4 bg-background min-[1200px]:p-5',
+          showEbookPicker ? 'hidden' : 'flex'
+        )}
+      >
+        {/* Header Section */}
+        <ActivityCreateHeader
+          activity={activity || undefined}
+          activityType={activityType}
+          lastSavedAt={lastSavedAt}
+          isSaving={isSaving}
+          questionsCount={questions.length}
+          onSaveModel={handleSaveModel}
+          onSendActivity={handleOpenSendModal}
+          onBack={handleBack}
+          isRecommendedLessonMode={isRecommendedLessonMode}
+          onLessonPreview={handleLessonPreview}
+          onAddActivity={handleAddActivityToLesson}
+          enableExamMode={enableExamMode || isInPersonExam}
+        />
 
-      {/* Builder tabs — in-person booklets also carry an essay theme */}
-      {showEssayTab && (
-        <div className="flex-shrink-0 border-b border-border-100 mb-4">
-          {/* The menu2 variant makes both the list and its items `w-full`, so
+        {/* Builder tabs — in-person booklets also carry an essay theme */}
+        {showEssayTab && (
+          <div className="flex-shrink-0 border-b border-border-100 mb-4">
+            {/* The menu2 variant makes both the list and its items `w-full`, so
               the underline would span half the page. Shrink-wrapping from the
               outside keeps each tab as wide as its label, while the divider
               above still runs the full width. */}
-          <div className="w-fit">
-            <Menu
-              defaultValue="questions"
-              value={activeTab}
-              onValueChange={(value) =>
-                setActiveTab(value as 'questions' | 'essay')
-              }
-              variant="menu2"
-              className="bg-transparent shadow-none px-0"
-            >
-              <MenuContent variant="menu2">
-                <MenuItem
-                  value="questions"
-                  variant="menu2"
-                  data-testid="tab-questions"
-                >
-                  <ArticleIcon size={18} aria-hidden />
-                  Questões
-                </MenuItem>
-                <MenuItem value="essay" variant="menu2" data-testid="tab-essay">
-                  <TextAlignLeftIcon size={18} aria-hidden />
-                  Redação
-                </MenuItem>
-              </MenuContent>
-            </Menu>
-          </div>
-        </div>
-      )}
-
-      {/* Main Content */}
-      {showEssayTab && activeTab === 'essay' && (
-        <EssayThemePicker
-          apiClient={apiClient}
-          selectedTheme={essayTheme}
-          onSelectTheme={setEssayTheme}
-          onRemoveTheme={() => setEssayTheme(null)}
-        />
-      )}
-
-      {showQuestionsTab &&
-        (isSmallScreen ? (
-          <SmallScreenLayout
-            apiClient={apiClient}
-            institutionId={institutionId}
-            isDark={isDark}
-            selectedView={selectedView}
-            onViewChange={setSelectedView}
-            initialFiltersData={initialFiltersData}
-            onFiltersChange={handleFiltersChange}
-            onApplyFilters={handleApplyFilters}
-            onClearFilters={handleClearFilters}
-            onAddQuestion={handleAddQuestion}
-            addedQuestionIds={addedQuestionIds}
-            enableExamMode={enableExamMode || isInPersonExam}
-            isInPersonExam={isInPersonExam}
-            loadingInitialQuestions={loadingInitialQuestions}
-            questions={questions}
-            onRemoveAll={handleRemoveAll}
-            onRemoveQuestion={handleRemoveQuestion}
-            onReorder={handleReorder}
-            filtersKey={filtersKey}
-            previewExtra={ebooksSection}
-          />
-        ) : (
-          <DesktopLayout
-            apiClient={apiClient}
-            institutionId={institutionId}
-            isDark={isDark}
-            initialFiltersData={initialFiltersData}
-            draftFilters={draftFilters}
-            onFiltersChange={handleFiltersChange}
-            onApplyFilters={handleApplyFilters}
-            onClearFilters={handleClearFilters}
-            onAddQuestion={handleAddQuestion}
-            addedQuestionIds={addedQuestionIds}
-            enableExamMode={enableExamMode || isInPersonExam}
-            isInPersonExam={isInPersonExam}
-            loadingInitialQuestions={loadingInitialQuestions}
-            questions={questions}
-            onRemoveAll={handleRemoveAll}
-            onRemoveQuestion={handleRemoveQuestion}
-            onReorder={handleReorder}
-            filtersKey={filtersKey}
-            previewExtra={ebooksSection}
-          />
-        ))}
-
-      {/* Save Activity Model Modal */}
-      <SaveActivityModelModal
-        isOpen={isSaveModelModalOpen}
-        onClose={() => setIsSaveModelModalOpen(false)}
-        onConfirm={handleConfirmSaveModel}
-        isLoading={isSavingModel}
-      />
-
-      {/* Send Activity Modal */}
-      <SendActivityModal
-        isOpen={isSendModalOpen}
-        onClose={() => setIsSendModalOpen(false)}
-        onSubmit={handleSendActivity}
-        categories={categories}
-        onCategoriesChange={handleCategoriesChange}
-        isLoading={isSendingActivity}
-        enableExamMode={enableExamMode || isInPersonExam}
-        isInPersonExam={isInPersonExam}
-        recipientWarning={recipientWarning}
-        onError={(error) => {
-          console.error('Erro ao enviar atividade:', error);
-          const errorMessage =
-            error instanceof Error
-              ? error.message
-              : 'Erro ao enviar atividade. Por favor, tente novamente.';
-          addToast({
-            title: 'Erro ao enviar atividade',
-            description: errorMessage,
-            variant: 'solid',
-            action: 'warning',
-            position: 'top-right',
-          });
-        }}
-      />
-
-      {/* Lesson Preview Modal */}
-      <Modal
-        isOpen={isLessonPreviewModalOpen}
-        onClose={() => setIsLessonPreviewModalOpen(false)}
-        title="Prévia da aula recomendada"
-        size="sm"
-        footer={
-          <Button onClick={() => setIsLessonPreviewModalOpen(false)}>OK</Button>
-        }
-      >
-        <div className="flex flex-col gap-3">
-          {isLoadingPreviewLessons ? (
-            <div className="flex flex-col gap-3">
-              <SkeletonText className="h-4 w-32" />
-              <SkeletonText className="h-14 w-full" />
-              <SkeletonText className="h-14 w-full" />
-            </div>
-          ) : (
-            <>
-              <Text size="sm" className="text-text-500">
-                {previewLessons.length} aula
-                {previewLessons.length === 1 ? '' : 's'} adicionada
-                {previewLessons.length === 1 ? '' : 's'}
-              </Text>
-              <div className="flex flex-col gap-2">
-                {previewLessons.map((lesson) => (
-                  <div
-                    key={lesson.id}
-                    className="flex items-center justify-between p-4 border border-border-200 rounded-lg"
+            <div className="w-fit">
+              <Menu
+                defaultValue="questions"
+                value={activeTab}
+                onValueChange={(value) =>
+                  setActiveTab(value as 'questions' | 'essay')
+                }
+                variant="menu2"
+                className="bg-transparent shadow-none px-0"
+              >
+                <MenuContent variant="menu2">
+                  <MenuItem
+                    value="questions"
+                    variant="menu2"
+                    data-testid="tab-questions"
                   >
-                    <Text
-                      size="sm"
-                      className="text-text-700 truncate flex-1 mr-2"
-                    >
-                      {lesson.videoTitle || lesson.title || 'Aula sem título'}
-                    </Text>
-                    <MonitorPlayIcon
-                      size={20}
-                      className="text-text-400 flex-shrink-0"
-                    />
-                  </div>
-                ))}
-                {previewLessons.length === 0 && (
-                  <Text size="sm" className="text-text-500 text-center py-4">
-                    Nenhuma aula adicionada ainda.
-                  </Text>
-                )}
+                    <ArticleIcon size={18} aria-hidden />
+                    Questões
+                  </MenuItem>
+                  <MenuItem
+                    value="essay"
+                    variant="menu2"
+                    data-testid="tab-essay"
+                  >
+                    <TextAlignLeftIcon size={18} aria-hidden />
+                    Redação
+                  </MenuItem>
+                </MenuContent>
+              </Menu>
+            </div>
+          </div>
+        )}
+
+        {/* Main Content */}
+        {showEssayTab && activeTab === 'essay' && (
+          <EssayThemePicker
+            apiClient={apiClient}
+            selectedTheme={essayTheme}
+            onSelectTheme={setEssayTheme}
+            onRemoveTheme={() => setEssayTheme(null)}
+          />
+        )}
+
+        {showQuestionsTab &&
+          (isSmallScreen ? (
+            <SmallScreenLayout
+              apiClient={apiClient}
+              institutionId={institutionId}
+              isDark={isDark}
+              selectedView={selectedView}
+              onViewChange={setSelectedView}
+              initialFiltersData={initialFiltersData}
+              onFiltersChange={handleFiltersChange}
+              onApplyFilters={handleApplyFilters}
+              onClearFilters={handleClearFilters}
+              onAddQuestion={handleAddQuestion}
+              addedQuestionIds={addedQuestionIds}
+              enableExamMode={enableExamMode || isInPersonExam}
+              isInPersonExam={isInPersonExam}
+              loadingInitialQuestions={loadingInitialQuestions}
+              questions={questions}
+              onRemoveAll={handleRemoveAll}
+              onRemoveQuestion={handleRemoveQuestion}
+              onReorder={handleReorder}
+              filtersKey={filtersKey}
+              previewExtra={ebooksSection}
+            />
+          ) : (
+            <DesktopLayout
+              apiClient={apiClient}
+              institutionId={institutionId}
+              isDark={isDark}
+              initialFiltersData={initialFiltersData}
+              draftFilters={draftFilters}
+              onFiltersChange={handleFiltersChange}
+              onApplyFilters={handleApplyFilters}
+              onClearFilters={handleClearFilters}
+              onAddQuestion={handleAddQuestion}
+              addedQuestionIds={addedQuestionIds}
+              enableExamMode={enableExamMode || isInPersonExam}
+              isInPersonExam={isInPersonExam}
+              loadingInitialQuestions={loadingInitialQuestions}
+              questions={questions}
+              onRemoveAll={handleRemoveAll}
+              onRemoveQuestion={handleRemoveQuestion}
+              onReorder={handleReorder}
+              filtersKey={filtersKey}
+              previewExtra={ebooksSection}
+            />
+          ))}
+
+        {/* Save Activity Model Modal */}
+        <SaveActivityModelModal
+          isOpen={isSaveModelModalOpen}
+          onClose={() => setIsSaveModelModalOpen(false)}
+          onConfirm={handleConfirmSaveModel}
+          isLoading={isSavingModel}
+        />
+
+        {/* Send Activity Modal */}
+        <SendActivityModal
+          isOpen={isSendModalOpen}
+          onClose={() => setIsSendModalOpen(false)}
+          onSubmit={handleSendActivity}
+          categories={categories}
+          onCategoriesChange={handleCategoriesChange}
+          isLoading={isSendingActivity}
+          enableExamMode={enableExamMode || isInPersonExam}
+          isInPersonExam={isInPersonExam}
+          recipientWarning={recipientWarning}
+          onError={(error) => {
+            console.error('Erro ao enviar atividade:', error);
+            const errorMessage =
+              error instanceof Error
+                ? error.message
+                : 'Erro ao enviar atividade. Por favor, tente novamente.';
+            addToast({
+              title: 'Erro ao enviar atividade',
+              description: errorMessage,
+              variant: 'solid',
+              action: 'warning',
+              position: 'top-right',
+            });
+          }}
+        />
+
+        {/* Lesson Preview Modal */}
+        <Modal
+          isOpen={isLessonPreviewModalOpen}
+          onClose={() => setIsLessonPreviewModalOpen(false)}
+          title="Prévia da aula recomendada"
+          size="sm"
+          footer={
+            <Button onClick={() => setIsLessonPreviewModalOpen(false)}>
+              OK
+            </Button>
+          }
+        >
+          <div className="flex flex-col gap-3">
+            {isLoadingPreviewLessons ? (
+              <div className="flex flex-col gap-3">
+                <SkeletonText className="h-4 w-32" />
+                <SkeletonText className="h-14 w-full" />
+                <SkeletonText className="h-14 w-full" />
               </div>
-            </>
-          )}
-        </div>
-      </Modal>
-    </div>
+            ) : (
+              <>
+                <Text size="sm" className="text-text-500">
+                  {previewLessons.length} aula
+                  {previewLessons.length === 1 ? '' : 's'} adicionada
+                  {previewLessons.length === 1 ? '' : 's'}
+                </Text>
+                <div className="flex flex-col gap-2">
+                  {previewLessons.map((lesson) => (
+                    <div
+                      key={lesson.id}
+                      className="flex items-center justify-between p-4 border border-border-200 rounded-lg"
+                    >
+                      <Text
+                        size="sm"
+                        className="text-text-700 truncate flex-1 mr-2"
+                      >
+                        {lesson.videoTitle || lesson.title || 'Aula sem título'}
+                      </Text>
+                      <MonitorPlayIcon
+                        size={20}
+                        className="text-text-400 flex-shrink-0"
+                      />
+                    </div>
+                  ))}
+                  {previewLessons.length === 0 && (
+                    <Text size="sm" className="text-text-500 text-center py-4">
+                      Nenhuma aula adicionada ainda.
+                    </Text>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </Modal>
+      </div>
+    </>
   );
 };
 
