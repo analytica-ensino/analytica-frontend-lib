@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import {
   ActivityFilters,
   ActivityFiltersPopover,
@@ -66,6 +67,8 @@ interface SmallScreenLayoutProps {
   onRemoveQuestion: (questionId: string) => void;
   onReorder: (questions: PreviewQuestion[]) => void;
   filtersKey?: number;
+  /** Shown in the preview after the questions ("Livro da aula") */
+  previewExtra?: ReactNode;
   /**
    * Scopes the question bank to one institution. Only needed by a SUPER_ADMIN
    * (no institution in the session) building an exam for a given institution;
@@ -97,6 +100,7 @@ export const SmallScreenLayout = ({
   onRemoveQuestion,
   onReorder,
   filtersKey = 0,
+  previewExtra,
   questionsInstitutionId,
 }: SmallScreenLayoutProps) => (
   <div className="flex flex-col w-full flex-1 overflow-hidden gap-5 min-h-0">
@@ -232,7 +236,9 @@ export const SmallScreenLayout = ({
               onReorder={onReorder}
               isDark={isDark}
               className="h-full overflow-y-auto"
-            />
+            >
+              {previewExtra}
+            </ActivityPreview>
           )}
         </div>
       )}
@@ -259,6 +265,8 @@ interface DesktopLayoutProps {
   onRemoveQuestion: (questionId: string) => void;
   onReorder: (questions: PreviewQuestion[]) => void;
   filtersKey?: number;
+  /** Shown in the preview after the questions ("Livro da aula") */
+  previewExtra?: ReactNode;
   /** See `SmallScreenLayoutProps.questionsInstitutionId`. */
   questionsInstitutionId?: string;
 }
@@ -285,6 +293,7 @@ export const DesktopLayout = ({
   onRemoveQuestion,
   onReorder,
   filtersKey = 0,
+  previewExtra,
   questionsInstitutionId,
 }: DesktopLayoutProps) => {
   const {
@@ -379,7 +388,9 @@ export const DesktopLayout = ({
             onReorder={onReorder}
             isDark={isDark}
             className="h-full overflow-y-auto"
-          />
+          >
+            {previewExtra}
+          </ActivityPreview>
         )}
       </div>
     </div>

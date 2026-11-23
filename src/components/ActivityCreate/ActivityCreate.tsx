@@ -37,6 +37,13 @@ import { ActivityType } from './ActivityCreate.types';
 import type { CreateActivityPayload } from '../../types/sendActivity';
 import type { EssayTheme } from '../../types/essayThemes';
 import { EssayThemePicker } from '../EssayThemePicker/EssayThemePicker';
+import {
+  EbookPicker,
+  LessonEbooksSection,
+  sameEbookIds,
+} from '../EbookAttachment';
+import type { AttachableEbook } from '../../types/ebookAttachment';
+import { useModules } from '../../hooks/useModules';
 import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
 import { ArticleIcon } from '@phosphor-icons/react/dist/csr/Article';
 import { TextAlignLeftIcon } from '@phosphor-icons/react/dist/csr/TextAlignLeft';
@@ -250,6 +257,13 @@ const CreateActivity = ({
   const lastSavedFiltersRef = useRef<ActivityFiltersData | null>(null);
   const lastSavedQuestionsRef = useRef<PreviewQuestion[]>([]);
   const hasAppliedInitialFiltersRef = useRef(false);
+
+  // Books attached to the activity ("Livro da aula", AE-3325), only with the
+  // ebooks module on.
+  const { hasEbooks } = useModules();
+  const [ebooks, setEbooks] = useState<AttachableEbook[]>([]);
+  const [isEbookPickerOpen, setIsEbookPickerOpen] = useState(false);
+  const lastSavedEbooksRef = useRef<AttachableEbook[]>([]);
   const lastFetchedActivityIdRef = useRef<string | null>(null);
 
   const handleFiltersChange = useCallback(
@@ -381,6 +395,8 @@ const CreateActivity = ({
             'data' in response.data ? response.data.data : response.data;
 
           setActivity(activityData);
+          setEbooks(activityData.ebooks ?? []);
+          lastSavedEbooksRef.current = activityData.ebooks ?? [];
           setPreFilters(activityData.filters);
           setDraftId(activityData.id || null);
           setActivityType(activityData.type);
@@ -474,6 +490,8 @@ const CreateActivity = ({
       filters,
       questionIds,
       isDigital: !isInPersonExam,
+      // Absent keeps what is attached: the module off never clears it
+      ...(hasEbooks ? { ebookIds: ebooks.map((ebook) => ebook.id) } : {}),
     };
   }, [
     appliedFilters,
@@ -482,6 +500,8 @@ const CreateActivity = ({
     questions,
     isInPersonExam,
     activityCategory,
+    hasEbooks,
+    ebooks,
   ]);
 
   /**
@@ -497,6 +517,7 @@ const CreateActivity = ({
       filters: BackendFiltersFormat;
       questionIds: string[];
       isDigital: boolean;
+      ebookIds?: string[];
     }) => {
       const response = await apiClient.patch<ActivityDraftResponse>(
         `${draftEndpoint}/${draftId}`,
@@ -504,6 +525,7 @@ const CreateActivity = ({
       );
       lastSavedQuestionsRef.current = questions;
       lastSavedFiltersRef.current = appliedFilters!;
+      lastSavedEbooksRef.current = ebooks;
 
       const savedDraft = response?.data?.data?.draft;
       setLastSavedAt(
@@ -536,7 +558,15 @@ const CreateActivity = ({
         onSaveModel(response.data);
       }
     },
-    [draftId, apiClient, questions, appliedFilters, onSaveModel, draftEndpoint]
+    [
+      draftId,
+      apiClient,
+      questions,
+      appliedFilters,
+      ebooks,
+      onSaveModel,
+      draftEndpoint,
+    ]
   );
 
   /**
@@ -559,6 +589,7 @@ const CreateActivity = ({
       );
       lastSavedQuestionsRef.current = questions;
       lastSavedFiltersRef.current = appliedFilters!;
+      lastSavedEbooksRef.current = ebooks;
 
       // Atualiza o estado interno da atividade
       const updatedActivity: ActivityData = {
@@ -591,7 +622,14 @@ const CreateActivity = ({
         onSaveModel(fullResponse);
       }
     },
-    [questions, appliedFilters, onSaveModel, navigate, buildUrlWithParams]
+    [
+      questions,
+      appliedFilters,
+      ebooks,
+      onSaveModel,
+      navigate,
+      buildUrlWithParams,
+    ]
   );
 
   /**
@@ -915,7 +953,14 @@ const CreateActivity = ({
       appliedFilters
     );
 
-    if (!questionsChanged && !filtersChanged && hasFirstSaveBeenDone.current) {
+    const ebooksChanged = !sameEbookIds(ebooks, lastSavedEbooksRef.current);
+
+    if (
+      !questionsChanged &&
+      !filtersChanged &&
+      !ebooksChanged &&
+      hasFirstSaveBeenDone.current
+    ) {
       return;
     }
 
@@ -928,7 +973,13 @@ const CreateActivity = ({
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [questions, appliedFilters, activityType, loadingInitialQuestions]);
+  }, [
+    questions,
+    appliedFilters,
+    ebooks,
+    activityType,
+    loadingInitialQuestions,
+  ]);
 
   /**
    * Handle adding a question to the activity
@@ -1079,7 +1130,8 @@ const CreateActivity = ({
           startDateTime,
           finalDateTime,
           activityCategory,
-          essayTheme?.id ?? null
+          essayTheme?.id ?? null,
+          hasEbooks ? ebooks.map((ebook) => ebook.id) : undefined
         );
 
         // Create activity/exam
@@ -1152,6 +1204,8 @@ const CreateActivity = ({
       activityEndpoint,
       activityCategory,
       essayTheme?.id,
+      hasEbooks,
+      ebooks,
       onCreateActivity,
       enableExamMode,
       isInPersonExam,
@@ -1167,6 +1221,33 @@ const CreateActivity = ({
   if (loading) {
     return <ActivityCreateSkeleton />;
   }
+
+  // "Adicionar livro à atividade": a whole page, with its own header
+  if (hasEbooks && isEbookPickerOpen) {
+    return (
+      <EbookPicker
+        apiClient={apiClient}
+        target="activity"
+        initialSelected={ebooks}
+        onBack={() => setIsEbookPickerOpen(false)}
+        onConfirm={(selected) => {
+          setEbooks(selected);
+          setIsEbookPickerOpen(false);
+        }}
+      />
+    );
+  }
+
+  const ebooksSection = hasEbooks ? (
+    <LessonEbooksSection
+      ebooks={ebooks}
+      onAdd={() => setIsEbookPickerOpen(true)}
+      onRemove={(ebookId) =>
+        setEbooks((current) => current.filter((ebook) => ebook.id !== ebookId))
+      }
+      onRemoveAll={() => setEbooks([])}
+    />
+  ) : undefined;
 
   return (
     <div
@@ -1257,6 +1338,7 @@ const CreateActivity = ({
             onRemoveQuestion={handleRemoveQuestion}
             onReorder={handleReorder}
             filtersKey={filtersKey}
+            previewExtra={ebooksSection}
           />
         ) : (
           <DesktopLayout
@@ -1278,6 +1360,7 @@ const CreateActivity = ({
             onRemoveQuestion={handleRemoveQuestion}
             onReorder={handleReorder}
             filtersKey={filtersKey}
+            previewExtra={ebooksSection}
           />
         ))}
 

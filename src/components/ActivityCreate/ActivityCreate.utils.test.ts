@@ -12,6 +12,7 @@ import {
   getTypeFromUrl,
   getTypeFromUrlString,
   buildSendActivityPayload,
+  formatErrorMessage,
   type KnowledgeArea,
 } from './ActivityCreate.utils';
 import { loadCategoriesData, formatTime } from '@/utils/categoryDataUtils';
@@ -984,6 +985,24 @@ describe('ActivityCreate.utils', () => {
       }
     );
 
+    it('carries the attached books only when given (AE-3325)', () => {
+      const build = (ebookIds?: string[]) =>
+        buildSendActivityPayload(
+          baseFormData,
+          'subject-1',
+          ['q-1'],
+          '2026-01-01T08:00:00.000Z',
+          '2026-01-02T18:00:00.000Z',
+          'ATIVIDADE',
+          null,
+          ebookIds
+        );
+
+      expect(build(['eb-1', 'eb-2']).ebookIds).toEqual(['eb-1', 'eb-2']);
+      expect(build([]).ebookIds).toEqual([]);
+      expect(build()).not.toHaveProperty('ebookIds');
+    });
+
     const buildWithTheme = (
       subtype: ActivitySubtype,
       mode: ActivityMode | undefined,
@@ -1091,6 +1110,30 @@ describe('ActivityCreate.utils', () => {
         buildFinalDateTime('2026-09-18', '23:59', false),
         '2026-09-18T23:59'
       );
+    });
+  });
+
+  describe('formatErrorMessage', () => {
+    it("prefers the backend's reason over the HTTP client's message", () => {
+      const error = Object.assign(
+        new Error('Request failed with status code 400'),
+        {
+          response: {
+            data: {
+              message: 'Um ou mais alunos não têm acesso aos e-books anexados',
+            },
+          },
+        }
+      );
+
+      expect(formatErrorMessage(error, 'Erro')).toBe(
+        'Um ou mais alunos não têm acesso aos e-books anexados'
+      );
+    });
+
+    it('falls back to the error message, then to the default', () => {
+      expect(formatErrorMessage(new Error('Falhou'), 'Erro')).toBe('Falhou');
+      expect(formatErrorMessage('?', 'Erro')).toBe('Erro');
     });
   });
 });

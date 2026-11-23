@@ -21,6 +21,8 @@ import type {
 } from '../types/sendActivity';
 import { loadCategoriesData } from '../utils/categoryDataUtils';
 import { useDynamicStudentFetching } from '../utils/useDynamicStudentFetching';
+import { getApiErrorMessage } from '../utils/apiErrorMessage';
+import { useModules } from './useModules';
 // Import direto, e não pelo barrel `../index`, para não criar ciclo entre o
 // hook e o índice público da lib.
 import useToastStore from '../components/Toast/utils/ToastStore';
@@ -71,6 +73,7 @@ export function useSendActivity(
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(false);
 
   const addToast = useToastStore((state) => state.addToast);
+  const { hasEbooks } = useModules();
 
   /**
    * Feedback do envio. Os consumidores montam este hook sem `onSuccess`/`onError`
@@ -172,14 +175,19 @@ export function useSendActivity(
       setIsLoading(true);
 
       try {
-        // 1. Fetch question IDs from draft/model
+        // 1. Fetch question IDs (and the attached books) from draft/model
         let questionIds: string[] | null = null;
+        let ebookIds: string[] = [];
         try {
           const response = await api.get<{
-            data: { selectedQuestions?: { id: string }[] };
+            data: {
+              selectedQuestions?: { id: string }[];
+              ebooks?: { id: string }[];
+            };
           }>(`/activity-drafts/${selectedModel.id}`);
           questionIds =
             response.data.data.selectedQuestions?.map((q) => q.id) || null;
+          ebookIds = (response.data.data.ebooks ?? []).map((e) => e.id);
         } catch {
           questionIds = null;
         }
@@ -204,6 +212,8 @@ export function useSendActivity(
             startDate: toISODateTime(data.startDate, data.startTime),
             finalDate: toISODateTime(data.finalDate, data.finalTime),
             canRetry: data.canRetry,
+            // The model's books go along only with the ebooks module on
+            ...(hasEbooks && ebookIds.length > 0 && { ebookIds }),
           }
         );
 
@@ -230,12 +240,16 @@ export function useSendActivity(
         closeModal();
       } catch (error) {
         console.error('Error sending activity:', error);
-        notify(onError, 'Erro ao enviar atividade', 'warning');
+        notify(
+          onError,
+          getApiErrorMessage(error) ?? 'Erro ao enviar atividade',
+          'warning'
+        );
       } finally {
         setIsLoading(false);
       }
     },
-    [selectedModel, api, onSuccess, onError, closeModal, notify]
+    [selectedModel, api, hasEbooks, onSuccess, onError, closeModal, notify]
   );
 
   return {

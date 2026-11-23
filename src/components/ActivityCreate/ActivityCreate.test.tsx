@@ -17,6 +17,7 @@ import type {
   QuestionActivity,
 } from '../..';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
+import { useModulesStore } from '../../store/modulesStore';
 import {
   QUESTION_STATUS_ENUM,
   DIFFICULTY_LEVEL_ENUM,
@@ -289,11 +290,13 @@ jest.mock('../ActivityPreview/ActivityPreview', () => ({
     onRemoveAll,
     onRemoveQuestion,
     onReorder,
+    children,
   }: {
     questions: PreviewQuestion[];
     onRemoveAll?: () => void;
     onRemoveQuestion?: (id: string) => void;
     onReorder?: (questions: PreviewQuestion[]) => void;
+    children?: React.ReactNode;
   }) => (
     <div data-testid="activity-preview">
       <div data-testid="questions-count">{questions.length}</div>
@@ -315,6 +318,89 @@ jest.mock('../ActivityPreview/ActivityPreview', () => ({
         onClick={() => onReorder?.(questions.slice().reverse())}
       >
         Reorder
+      </button>
+      {children}
+    </div>
+  ),
+}));
+
+const mockPickedEbooks = [
+  {
+    id: 'eb-1',
+    code: 'EB01',
+    title: 'Livro 1',
+    subtitle: null,
+    coverUrl: null,
+    category: null,
+  },
+  {
+    id: 'eb-2',
+    code: 'EB02',
+    title: 'Livro 2',
+    subtitle: null,
+    coverUrl: null,
+    category: null,
+  },
+];
+
+jest.mock('../EbookAttachment', () => ({
+  sameEbookIds: jest.requireActual('../EbookAttachment/ebookAttachment.utils')
+    .sameEbookIds,
+  LessonEbooksSection: ({
+    ebooks,
+    onAdd,
+    onRemove,
+    onRemoveAll,
+  }: {
+    ebooks: { id: string }[];
+    onAdd: () => void;
+    onRemove: (id: string) => void;
+    onRemoveAll: () => void;
+  }) => (
+    <div data-testid="lesson-ebooks">
+      <span data-testid="lesson-ebook-ids">
+        {ebooks.map((ebook) => ebook.id).join(',')}
+      </span>
+      <button data-testid="open-ebook-picker" onClick={onAdd}>
+        Adicionar livro
+      </button>
+      {ebooks.map((ebook) => (
+        <button
+          key={ebook.id}
+          data-testid={`remove-ebook-${ebook.id}`}
+          onClick={() => onRemove(ebook.id)}
+        >
+          Remover
+        </button>
+      ))}
+      <button data-testid="remove-all-ebooks" onClick={onRemoveAll}>
+        Remover tudo
+      </button>
+    </div>
+  ),
+  EbookPicker: ({
+    target,
+    initialSelected,
+    onBack,
+    onConfirm,
+  }: {
+    target: string;
+    initialSelected: { id: string }[];
+    onBack: () => void;
+    onConfirm: (ebooks: unknown[]) => void;
+  }) => (
+    <div data-testid="ebook-picker" data-target={target}>
+      <span data-testid="picker-initial">
+        {initialSelected.map((ebook) => ebook.id).join(',')}
+      </span>
+      <button data-testid="picker-back" onClick={onBack}>
+        Voltar
+      </button>
+      <button
+        data-testid="picker-confirm"
+        onClick={() => onConfirm(mockPickedEbooks)}
+      >
+        Concluir seleção
       </button>
     </div>
   ),
@@ -5663,6 +5749,217 @@ describe('CreateActivity', () => {
       fireEvent.click(screen.getByText('clear-theme'));
 
       expect(screen.getByTestId('selected-theme')).toHaveTextContent('none');
+    });
+  });
+
+  describe('Attached ebooks (AE-3325)', () => {
+    const subjectFilters = {
+      types: [],
+      bankIds: [],
+      yearIds: [],
+      subjectIds: ['subject1'],
+      topicIds: [],
+      subtopicIds: [],
+      contentIds: [],
+    };
+
+    const draftWithEbooks: ActivityData = {
+      id: 'draft-ebooks',
+      type: ActivityType.RASCUNHO,
+      title: 'Rascunho',
+      subjectId: 'subject1',
+      filters: {},
+      questionIds: ['q1'],
+      selectedQuestions: [createMockQuestion({ id: 'q1' })],
+      ebooks: [mockPickedEbooks[0]],
+    };
+
+    const setEbooksModule = (on: boolean) =>
+      useModulesStore.setState({
+        modules: { ...useModulesStore.getState().modules, ebooks: on },
+      });
+
+    /** Opens the draft with one question and one attached book. */
+    const openDraft = async () => {
+      mockParams.type = 'rascunho';
+      mockParams.id = 'draft-ebooks';
+      mockApiClient.get = jest.fn((url: string) => {
+        if (url === '/activity-drafts/draft-ebooks') {
+          return Promise.resolve({ data: { data: draftWithEbooks } } as never);
+        }
+        if (url === '/school')
+          return Promise.resolve({ data: { data: { schools: [] } } } as never);
+        if (url === '/schoolYear')
+          return Promise.resolve({
+            data: { data: { schoolYears: [] } },
+          } as never);
+        if (url === '/classes')
+          return Promise.resolve({ data: { data: { classes: [] } } } as never);
+        return Promise.resolve({ data: { data: {} } } as never);
+      }) as typeof mockApiClient.get;
+      mockApiClient.patch = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {
+              id: 'draft-ebooks',
+              type: ActivityType.RASCUNHO,
+              title: 'Rascunho',
+              subjectId: 'subject1',
+              filters: {},
+            },
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+      await waitFor(() => {
+        expect(screen.getByTestId('question-q1')).toBeInTheDocument();
+      });
+    };
+
+    /** Lets the 500 ms autosave debounce run. */
+    const flushAutosave = async () => {
+      await act(async () => {
+        jest.advanceTimersByTime(600);
+      });
+    };
+
+    beforeEach(() => {
+      mockAppliedFilters = subjectFilters;
+      mockDraftFilters = subjectFilters;
+      setEbooksModule(true);
+    });
+
+    afterEach(() => {
+      setEbooksModule(false);
+    });
+
+    it('hides the section and never sends ebookIds with the module off', async () => {
+      setEbooksModule(false);
+      await openDraft();
+
+      expect(screen.queryByTestId('lesson-ebooks')).not.toBeInTheDocument();
+      fireEvent.click(screen.getByTestId('add-question-2'));
+      await flushAutosave();
+
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalledWith(
+          '/activity-drafts/draft-ebooks',
+          expect.objectContaining({ questionIds: ['q1', 'q2'] })
+        );
+      });
+      for (const [, payload] of (mockApiClient.patch as jest.Mock).mock.calls) {
+        expect(payload).not.toHaveProperty('ebookIds');
+      }
+    });
+
+    it('shows the books of the draft and saves a removal', async () => {
+      await openDraft();
+
+      expect(screen.getByTestId('lesson-ebook-ids')).toHaveTextContent('eb-1');
+      fireEvent.click(screen.getByTestId('remove-ebook-eb-1'));
+      await flushAutosave();
+
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalledWith(
+          '/activity-drafts/draft-ebooks',
+          expect.objectContaining({ questionIds: ['q1'], ebookIds: [] })
+        );
+      });
+    });
+
+    it('opens the selection as a page and saves what it concludes', async () => {
+      await openDraft();
+
+      fireEvent.click(screen.getByTestId('open-ebook-picker'));
+      expect(screen.getByTestId('ebook-picker')).toHaveAttribute(
+        'data-target',
+        'activity'
+      );
+      expect(screen.getByTestId('picker-initial')).toHaveTextContent('eb-1');
+      expect(
+        screen.queryByTestId('create-activity-page')
+      ).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId('picker-confirm'));
+      expect(screen.getByTestId('lesson-ebook-ids')).toHaveTextContent(
+        'eb-1,eb-2'
+      );
+      await flushAutosave();
+
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalledWith(
+          '/activity-drafts/draft-ebooks',
+          expect.objectContaining({ ebookIds: ['eb-1', 'eb-2'] })
+        );
+      });
+    });
+
+    it('leaves the selection without changing the books', async () => {
+      await openDraft();
+
+      fireEvent.click(screen.getByTestId('open-ebook-picker'));
+      fireEvent.click(screen.getByTestId('picker-back'));
+
+      expect(screen.getByTestId('lesson-ebook-ids')).toHaveTextContent('eb-1');
+      await flushAutosave();
+      // Opening the draft may autosave its filters, never other books
+      for (const [, payload] of (mockApiClient.patch as jest.Mock).mock.calls) {
+        expect(payload.ebookIds).toEqual(['eb-1']);
+      }
+    });
+
+    it('sends the attached books with the activity', async () => {
+      await openDraft();
+      mockApiClient.post = jest.fn((url: string) =>
+        Promise.resolve(
+          url === '/activities'
+            ? { data: { data: { activity: { id: 'act-1' } } } }
+            : { data: { message: 'ok', data: {} } }
+        )
+      ) as typeof mockApiClient.post;
+
+      fireEvent.click(screen.getByText('Enviar atividade'));
+      await waitFor(() => {
+        expect(screen.getByTestId('send-activity-modal')).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByTestId('modal-submit'));
+
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/activities',
+          expect.objectContaining({ questionIds: ['q1'], ebookIds: ['eb-1'] })
+        );
+      });
+    });
+
+    it("shows the backend's reason when a student cannot open a book", async () => {
+      await openDraft();
+      mockApiClient.post = jest.fn().mockRejectedValue(
+        Object.assign(new Error('Request failed with status code 400'), {
+          response: {
+            data: {
+              message: 'Um ou mais alunos não têm acesso aos e-books anexados',
+            },
+          },
+        })
+      );
+
+      fireEvent.click(screen.getByText('Enviar atividade'));
+      await waitFor(() => {
+        expect(screen.getByTestId('send-activity-modal')).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByTestId('modal-submit'));
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith({
+          title: 'Erro ao enviar atividade',
+          description: 'Um ou mais alunos não têm acesso aos e-books anexados',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+      });
     });
   });
 });

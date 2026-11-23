@@ -9,6 +9,7 @@ import React from 'react';
 import { RecommendedLessonCreate } from './RecommendedLessonCreate';
 import { RecommendedClassDraftType } from './RecommendedLessonCreate.types';
 import type { BaseApiClient } from '../../types/api';
+import { useModulesStore } from '../../store/modulesStore';
 
 // Mock react-router-dom
 const mockNavigate = jest.fn();
@@ -140,7 +141,7 @@ jest.mock('../..', () => ({
   }: {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (data: unknown) => void;
+    onSubmit: (data: unknown) => void | Promise<void>;
     onCategoriesChange?: (categories: unknown[]) => void;
     categories?: unknown[];
     recipientWarning?: string;
@@ -156,13 +157,18 @@ jest.mock('../..', () => ({
         <button
           data-testid="submit-send-modal"
           onClick={() =>
-            onSubmit({
-              startDate: '2024-01-15',
-              startTime: '10:00',
-              finalDate: '2024-01-20',
-              finalTime: '18:00',
-              students: [{ studentId: 'student-1', userInstitutionId: 'ui-1' }],
-            })
+            // The real modal swallows a rejected submit (the toast is the feedback)
+            Promise.resolve(
+              onSubmit({
+                startDate: '2024-01-15',
+                startTime: '10:00',
+                finalDate: '2024-01-20',
+                finalTime: '18:00',
+                students: [
+                  { studentId: 'student-1', userInstitutionId: 'ui-1' },
+                ],
+              })
+            ).catch(() => undefined)
           }
         >
           Submit
@@ -423,9 +429,11 @@ jest.mock('../LessonPreview/LessonPreview', () => ({
     onRemoveActivity,
     variant,
     allowPictureInPicture,
+    children,
   }: {
     variant?: string;
     allowPictureInPicture?: boolean;
+    children?: React.ReactNode;
     lessons: { id: string; title: string }[];
     onRemoveAll: () => void;
     onRemoveLesson: (id: string) => void;
@@ -514,6 +522,79 @@ jest.mock('../LessonPreview/LessonPreview', () => ({
           Remove Activity
         </button>
       )}
+      {children}
+    </div>
+  ),
+}));
+
+const mockPickedEbooks = [
+  {
+    id: 'eb-1',
+    code: 'EB01',
+    title: 'Livro 1',
+    subtitle: null,
+    coverUrl: null,
+    category: null,
+  },
+  {
+    id: 'eb-2',
+    code: 'EB02',
+    title: 'Livro 2',
+    subtitle: null,
+    coverUrl: null,
+    category: null,
+  },
+];
+
+jest.mock('../EbookAttachment', () => ({
+  sameEbookIds: jest.requireActual('../EbookAttachment/ebookAttachment.utils')
+    .sameEbookIds,
+  LessonEbooksSection: ({
+    ebooks,
+    onAdd,
+    onRemove,
+  }: {
+    ebooks: { id: string }[];
+    onAdd: () => void;
+    onRemove: (id: string) => void;
+  }) => (
+    <div data-testid="lesson-ebooks">
+      <span data-testid="lesson-ebook-ids">
+        {ebooks.map((ebook) => ebook.id).join(',')}
+      </span>
+      <button data-testid="open-ebook-picker" onClick={onAdd}>
+        Adicionar livro
+      </button>
+      {ebooks.map((ebook) => (
+        <button
+          key={ebook.id}
+          data-testid={`remove-ebook-${ebook.id}`}
+          onClick={() => onRemove(ebook.id)}
+        >
+          Remover
+        </button>
+      ))}
+    </div>
+  ),
+  EbookPicker: ({
+    target,
+    initialSelected,
+    onConfirm,
+  }: {
+    target: string;
+    initialSelected: { id: string }[];
+    onConfirm: (ebooks: unknown[]) => void;
+  }) => (
+    <div data-testid="ebook-picker" data-target={target}>
+      <span data-testid="picker-initial">
+        {initialSelected.map((ebook) => ebook.id).join(',')}
+      </span>
+      <button
+        data-testid="picker-confirm"
+        onClick={() => onConfirm(mockPickedEbooks)}
+      >
+        Concluir seleção
+      </button>
     </div>
   ),
 }));
@@ -3964,6 +4045,200 @@ describe('RecommendedLessonCreate', () => {
 
       // Call count should be the same (no new API calls for same selections)
       expect(newCallCount).toBe(callCount);
+    });
+  });
+
+  describe('attached ebooks (AE-3325)', () => {
+    const setEbooksModule = (on: boolean) =>
+      useModulesStore.setState({
+        modules: { ...useModulesStore.getState().modules, ebooks: on },
+      });
+
+    /** Opens a draft with one lesson and one attached book. */
+    const openDraft = async () => {
+      mockAppliedFilters = { subjectIds: ['subject-1'] };
+      mockSearchParams.set('id', 'draft-ebooks');
+      mockSearchParams.set('type', 'rascunho');
+      (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
+        if (url === '/recommended-class/drafts/draft-ebooks') {
+          return Promise.resolve({
+            data: {
+              data: {
+                id: 'draft-ebooks',
+                type: RecommendedClassDraftType.RASCUNHO,
+                title: 'Rascunho',
+                filters: { subjects: ['subject-1'] },
+                lessons: [
+                  {
+                    lessonId: 'lesson-1',
+                    sequence: 1,
+                    lesson: { id: 'lesson-1', title: 'Lesson 1' },
+                  },
+                ],
+                ebooks: [mockPickedEbooks[0]],
+                updatedAt: '2024-01-15T10:00:00Z',
+              },
+            },
+          });
+        }
+        if (url === 'knowledge/subjects') {
+          return Promise.resolve({
+            data: { data: { subjects: [{ id: 'subject-1', name: 'Math' }] } },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+      (mockApiClient.patch as jest.Mock).mockResolvedValue({
+        data: {
+          data: {
+            id: 'draft-ebooks',
+            type: RecommendedClassDraftType.RASCUNHO,
+            title: 'Rascunho',
+            subjectId: 'subject-1',
+            filters: { subjects: ['subject-1'] },
+          },
+        },
+      });
+
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+      await waitFor(() => {
+        expect(screen.getByTestId('lesson-lesson-1')).toBeInTheDocument();
+      });
+    };
+
+    const flushAutosave = async () => {
+      await act(async () => {
+        jest.advanceTimersByTime(600);
+      });
+    };
+
+    const patchPayloads = () =>
+      (mockApiClient.patch as jest.Mock).mock.calls.map(
+        ([, payload]) => payload
+      );
+
+    beforeEach(() => setEbooksModule(true));
+    afterEach(() => setEbooksModule(false));
+
+    it('hides the section and never sends ebookIds with the module off', async () => {
+      setEbooksModule(false);
+      await openDraft();
+
+      expect(screen.queryByTestId('lesson-ebooks')).not.toBeInTheDocument();
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('add-lesson-2-btn'));
+      });
+      await flushAutosave();
+
+      await waitFor(() => expect(mockApiClient.patch).toHaveBeenCalled());
+      for (const payload of patchPayloads()) {
+        expect(payload).not.toHaveProperty('ebookIds');
+      }
+    });
+
+    it('shows the books of the draft and saves a removal', async () => {
+      await openDraft();
+
+      expect(screen.getByTestId('lesson-ebook-ids')).toHaveTextContent('eb-1');
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('remove-ebook-eb-1'));
+      });
+      await flushAutosave();
+
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalledWith(
+          '/recommended-class/drafts/draft-ebooks',
+          expect.objectContaining({ ebookIds: [] })
+        );
+      });
+    });
+
+    it('opens the selection as a page and saves what it concludes', async () => {
+      await openDraft();
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('open-ebook-picker'));
+      });
+      expect(screen.getByTestId('ebook-picker')).toHaveAttribute(
+        'data-target',
+        'lesson'
+      );
+      expect(screen.getByTestId('picker-initial')).toHaveTextContent('eb-1');
+      expect(screen.queryByTestId('lesson-preview')).not.toBeInTheDocument();
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('picker-confirm'));
+      });
+      expect(screen.getByTestId('lesson-ebook-ids')).toHaveTextContent(
+        'eb-1,eb-2'
+      );
+      await flushAutosave();
+
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalledWith(
+          '/recommended-class/drafts/draft-ebooks',
+          expect.objectContaining({ ebookIds: ['eb-1', 'eb-2'] })
+        );
+      });
+    });
+
+    /** Opens the send modal and submits it. */
+    const submitSend = async () => {
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('send-lesson-btn'));
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId('send-lesson-modal')).toBeInTheDocument();
+      });
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('submit-send-modal'));
+      });
+    };
+
+    it('sends the attached books with the class', async () => {
+      await openDraft();
+      (mockApiClient.post as jest.Mock).mockResolvedValue({
+        data: { data: { id: 'rc-1' } },
+      });
+
+      await submitSend();
+
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/recommended-class',
+          expect.objectContaining({
+            lessonIds: [{ lessonId: 'lesson-1', sequence: 1 }],
+            ebookIds: ['eb-1'],
+          })
+        );
+      });
+    });
+
+    it("shows the backend's reason when a student cannot open a book", async () => {
+      await openDraft();
+      (mockApiClient.post as jest.Mock).mockRejectedValue(
+        Object.assign(new Error('Request failed with status code 400'), {
+          response: {
+            data: {
+              message: 'Um ou mais alunos não têm acesso aos e-books anexados',
+            },
+          },
+        })
+      );
+
+      await submitSend();
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Erro ao enviar aula',
+            description:
+              'Um ou mais alunos não têm acesso aos e-books anexados',
+          })
+        );
+      });
     });
   });
 });

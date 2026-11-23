@@ -1,4 +1,5 @@
 import type { Lesson } from '../../types/lessons';
+import type { AttachableEbook } from '../../types/ebookAttachment';
 import { RecommendedClassDraftType } from '../../types/recommendedLessons';
 
 // Re-export category types from shared utils for backward compatibility
@@ -49,6 +50,8 @@ export interface RecommendedLessonDraftResponse {
     updatedAt: string;
     lessons?: RecommendedLessonIdWithSequence[] | RecommendedLessonWithData[];
     activityDrafts?: RecommendedLessonActivityDraft[];
+    /** Student books attached to the draft, in order (AE-3325) */
+    ebooks?: AttachableEbook[];
   };
 }
 
@@ -75,6 +78,8 @@ export interface RecommendedLessonData {
   selectedLessons?: Lesson[];
   activityDraftIds?: string[];
   activityDrafts?: RecommendedLessonActivityDraft[];
+  /** Student books attached to the draft, in order (AE-3325) */
+  ebooks?: AttachableEbook[];
   updatedAt?: string;
   startDate?: string | null;
   finalDate?: string | null;
@@ -111,6 +116,8 @@ export interface RecommendedLessonCreatePayload {
   /** Whether attached activities can be retried by the student.
    *  Only meaningful when activityDraftIds is non-empty. */
   canRetry?: boolean;
+  /** Student books attached to the class, in order; only with the ebooks module on */
+  ebookIds?: string[];
   [key: string]: unknown;
 }
 

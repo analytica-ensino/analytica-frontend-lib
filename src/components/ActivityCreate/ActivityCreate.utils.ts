@@ -4,6 +4,7 @@ import type {
   QuestionActivity as Question,
   SendActivityFormData,
 } from '../..';
+import { getApiErrorMessage } from '../../utils/apiErrorMessage';
 import type { Lesson } from '../../types/lessons';
 import { ActivityMode, ActivitySubtype } from '../SendActivityModal/types';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
@@ -455,7 +456,8 @@ export function buildSendActivityPayload(
   startDateTime: string,
   finalDateTime: string | null,
   activityType?: 'ATIVIDADE' | 'PROVA',
-  essayThemeId?: string | null
+  essayThemeId?: string | null,
+  ebookIds?: string[]
 ): CreateActivityPayload {
   const isDigital =
     formData.subtype === ActivitySubtype.PROVA
@@ -479,6 +481,7 @@ export function buildSendActivityPayload(
     // The backend rejects a theme on a digital activity, so it only rides along
     // on the in-person booklet that actually carries the essay sheet.
     ...(!isDigital && essayThemeId ? { essayThemeId } : {}),
+    ...(ebookIds ? { ebookIds } : {}),
   };
 }
 
@@ -849,6 +852,10 @@ export function formatErrorMessage(
   error: unknown,
   defaultMessage: string
 ): string {
+  // The backend's own reason (e.g. a student without access to an attached
+  // ebook) beats the HTTP client's "Request failed with status code 400".
+  const apiMessage = getApiErrorMessage(error);
+  if (apiMessage) return apiMessage;
   return error instanceof Error ? error.message : defaultMessage;
 }
 
