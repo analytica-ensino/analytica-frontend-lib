@@ -207,6 +207,8 @@ export default defineConfig({
     'EbookReader/webview/index': 'src/components/EbookReader/webview/index.ts',
     // The ebook reading report of "Desempenho" and "Relatórios" (AE-3329).
     'EbookReadingReport/index': 'src/components/EbookReadingReport/index.ts',
+    // The "Biblioteca" of the teacher and the manager (AE-3327).
+    'EbookLibrary/index': 'src/components/EbookLibrary/index.ts',
     'SupportChatMessage/index':
       'src/components/SupportChat/SupportChatMessage.tsx',
     'SupportChatEvent/index': 'src/components/SupportChat/SupportChatEvent.tsx',
