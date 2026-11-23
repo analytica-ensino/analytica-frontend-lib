@@ -116,4 +116,41 @@ describe('SupportConversationMessages', () => {
       'text-success-700'
     );
   });
+
+  it('shows the read status only on messages that carry it', () => {
+    render(
+      <SupportConversationMessages
+        items={[
+          {
+            kind: SUPPORT_CONVERSATION_ITEM.MESSAGE,
+            id: 'ai-1',
+            type: SUPPORT_CHAT_MESSAGE_TYPE.AI,
+            text: 'Resposta da IA',
+            time: '14:01',
+            read: true,
+          },
+          {
+            kind: SUPPORT_CONVERSATION_ITEM.MESSAGE,
+            id: 'ag-1',
+            type: SUPPORT_CHAT_MESSAGE_TYPE.AGENT,
+            text: 'Resposta do agente',
+            time: '14:02',
+            read: false,
+          },
+          {
+            kind: SUPPORT_CONVERSATION_ITEM.MESSAGE,
+            id: 'ag-2',
+            type: SUPPORT_CHAT_MESSAGE_TYPE.AGENT,
+            text: 'Sem indicador',
+            time: '14:03',
+          },
+        ]}
+      />
+    );
+    expect(screen.getByText('Visualizada')).toBeInTheDocument();
+    expect(screen.getByText('Enviada')).toBeInTheDocument();
+    expect(
+      screen.getAllByTestId('support-chat-message-read-status')
+    ).toHaveLength(2);
+  });
 });

@@ -256,4 +256,54 @@ describe('SupportChatMessage', () => {
       expect(getBubble()).not.toHaveClass('opacity-60');
     });
   });
+
+  describe('read status', () => {
+    it('shows "Visualizada" on a read AI message', () => {
+      renderMessage({
+        type: SUPPORT_CHAT_MESSAGE_TYPE.AI,
+        showReadStatus: true,
+        read: true,
+      });
+      expect(screen.getByText('Visualizada')).toBeInTheDocument();
+    });
+
+    it('shows "Enviada" on an unread agent message', () => {
+      renderMessage({
+        type: SUPPORT_CHAT_MESSAGE_TYPE.AGENT,
+        showReadStatus: true,
+      });
+      expect(screen.getByText('Enviada')).toBeInTheDocument();
+    });
+
+    it('hides it on user messages, while sending or when not asked', () => {
+      const { rerender } = renderMessage({ showReadStatus: true, read: true });
+      expect(
+        screen.queryByTestId('support-chat-message-read-status')
+      ).not.toBeInTheDocument();
+
+      rerender(
+        <SupportChatMessage
+          type={SUPPORT_CHAT_MESSAGE_TYPE.AGENT}
+          text="Oi"
+          time="13:52"
+          showReadStatus
+          status={SUPPORT_CHAT_SEND_STATUS.SENDING}
+        />
+      );
+      expect(
+        screen.queryByTestId('support-chat-message-read-status')
+      ).not.toBeInTheDocument();
+
+      rerender(
+        <SupportChatMessage
+          type={SUPPORT_CHAT_MESSAGE_TYPE.AI}
+          text="Oi"
+          time="13:52"
+        />
+      );
+      expect(
+        screen.queryByTestId('support-chat-message-read-status')
+      ).not.toBeInTheDocument();
+    });
+  });
 });
