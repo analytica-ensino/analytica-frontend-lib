@@ -5,6 +5,23 @@ import type { BaseApiClient } from '../../../types/api';
 
 // Mock useToastStore
 const mockAddToast = jest.fn();
+// The reading screen loads a book and a reading of its own, tested apart:
+// here it shows which book and which student it got.
+jest.mock('../../EbookStudentReading/StudentEbookReadingView', () => ({
+  ...jest.requireActual('../../EbookStudentReading/StudentEbookReadingView'),
+  StudentEbookReadingView: ({
+    ebook,
+    userInstitutionId,
+  }: {
+    ebook: { title: string };
+    userInstitutionId: string;
+  }) => (
+    <div data-testid="ebook-reading-view">
+      {ebook.title} de {userInstitutionId}
+    </div>
+  ),
+}));
+
 jest.mock('../../Toast/utils/ToastStore', () => ({
   __esModule: true,
   default: (selector: (state: { addToast: typeof mockAddToast }) => unknown) =>
@@ -1152,6 +1169,83 @@ describe('StudentActivityPerformanceModal', () => {
           name: 'Incluir observação da questão 2',
         })
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('Ebook reading (AE-3327)', () => {
+    const ebooks = [
+      {
+        id: 'eb-1',
+        code: 'EB01',
+        title: 'Meu pé de laranja lima',
+        subtitle: null,
+        coverUrl: null,
+        category: null,
+        percent: 75,
+        effectiveReadAt: null,
+      },
+    ];
+
+    it("shows the student's reading of the class's books", () => {
+      render(
+        <StudentActivityPerformanceModal
+          isOpen
+          onClose={jest.fn()}
+          data={mockPerformanceData}
+          apiClient={mockApiClient}
+          ebooks={ebooks}
+        />
+      );
+
+      expect(screen.getByText('Leitura do livro')).toBeInTheDocument();
+      expect(screen.getByText('75% lido')).toBeInTheDocument();
+    });
+
+    it('opens a book reading in place of the performance, and goes back', () => {
+      render(
+        <StudentActivityPerformanceModal
+          isOpen
+          onClose={jest.fn()}
+          data={mockPerformanceData}
+          apiClient={mockApiClient}
+          ebooks={ebooks}
+        />
+      );
+
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: 'Ver detalhes da leitura de Meu pé de laranja lima',
+        })
+      );
+
+      expect(screen.getByTestId('ebook-reading-view')).toHaveTextContent(
+        'Meu pé de laranja lima de user-inst-1'
+      );
+      expect(screen.getByText('João Silva')).toBeInTheDocument();
+      expect(
+        screen.queryByText('Resultado da atividade')
+      ).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Voltar' }));
+
+      expect(
+        screen.queryByTestId('ebook-reading-view')
+      ).not.toBeInTheDocument();
+      expect(screen.getByText('75% lido')).toBeInTheDocument();
+    });
+
+    it('has no reading section without books', () => {
+      render(
+        <StudentActivityPerformanceModal
+          isOpen
+          onClose={jest.fn()}
+          data={mockPerformanceData}
+          apiClient={mockApiClient}
+          ebooks={[]}
+        />
+      );
+
+      expect(screen.queryByText('Leitura do livro')).not.toBeInTheDocument();
     });
   });
 });

@@ -1,16 +1,6 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { CaretLeftIcon } from '@phosphor-icons/react/dist/csr/CaretLeft';
-import { SlidersHorizontalIcon } from '@phosphor-icons/react/dist/csr/SlidersHorizontal';
 import Button from '../Button/Button';
-import EmptyState from '../EmptyState/EmptyState';
-import Search from '../Search/Search';
-import Select, {
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../Select/Select';
-import { SkeletonRounded } from '../Skeleton/Skeleton';
 import Text from '../Text/Text';
 import type { BaseApiClient } from '../../types/api';
 import {
@@ -24,14 +14,12 @@ import {
   shelfCountLabel,
   toAttachableEbook,
 } from './ebookAttachment.utils';
+import { EbookLibraryFilters } from './EbookLibraryFilters';
 import { EbookPickerCard } from './EbookPickerCard';
 import { EbookPickerPreview } from './EbookPickerPreview';
+import { EbookShelf } from './EbookShelf';
 import { useEbookLibrary } from './useEbookLibrary';
-
-/** Value of a filter that shows every option. */
-const ALL = 'all';
-/** How long the search waits for the typing to stop. */
-const SEARCH_DEBOUNCE_MS = 300;
+import { useEbookLibraryFilters } from './useEbookLibraryFilters';
 
 export interface EbookPickerProps {
   apiClient: BaseApiClient;
@@ -60,25 +48,9 @@ export const EbookPicker = ({
   onConfirm,
 }: Readonly<EbookPickerProps>) => {
   const [selected, setSelected] = useState<AttachableEbook[]>(initialSelected);
-  const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
-  const [theme, setTheme] = useState(ALL);
-  const [segment, setSegment] = useState(ALL);
   const [previewId, setPreviewId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const timeout = setTimeout(
-      () => setSearch(searchInput),
-      SEARCH_DEBOUNCE_MS
-    );
-    return () => clearTimeout(timeout);
-  }, [searchInput]);
-
-  const library = useEbookLibrary(apiClient, {
-    search,
-    theme: theme === ALL ? '' : theme,
-    segment: segment === ALL ? '' : segment,
-  });
+  const filterState = useEbookLibraryFilters();
+  const library = useEbookLibrary(apiClient, filterState.filters);
 
   const selectedIds = new Set(selected.map((ebook) => ebook.id));
   const canAdd = selected.length < MAX_ATTACHED_EBOOKS;
@@ -109,71 +81,6 @@ export const EbookPicker = ({
           onToggle={() => ebook && toggle(ebook)}
           onBack={() => setPreviewId(null)}
         />
-      </div>
-    );
-  }
-
-  const themes = library.facets?.themes ?? [];
-  const segments = library.facets?.segments ?? [];
-
-  let shelf: ReactNode;
-  if (library.error) {
-    shelf = (
-      <div className="flex flex-col items-start gap-3" role="alert">
-        <Text size="sm" className="text-error-600">
-          Não foi possível carregar os livros.
-        </Text>
-        <Button variant="outline" size="small" onClick={library.retry}>
-          Tentar novamente
-        </Button>
-      </div>
-    );
-  } else if (library.loading) {
-    shelf = (
-      <div
-        className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6"
-        data-testid="ebook-picker-loading"
-      >
-        {Array.from({ length: 6 }, (_, index) => (
-          <SkeletonRounded key={index} className="aspect-[2/3] w-full" />
-        ))}
-      </div>
-    );
-  } else if (library.items.length === 0) {
-    shelf = (
-      <EmptyState
-        title="Nenhum livro encontrado"
-        description="Tente outros filtros ou outra busca."
-        size="compact"
-      />
-    );
-  } else {
-    shelf = (
-      <div className="flex flex-col gap-4">
-        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
-          {library.items.map((item) => (
-            <EbookPickerCard
-              key={item.id}
-              ebook={item}
-              selected={selectedIds.has(item.id)}
-              canAdd={canAdd}
-              addLabel={addLabel}
-              onToggle={() => toggle(toAttachableEbook(item))}
-              onOpen={() => setPreviewId(item.id)}
-            />
-          ))}
-        </ul>
-        {library.hasMore && (
-          <Button
-            variant="outline"
-            size="small"
-            className="self-center"
-            disabled={library.loadingMore}
-            onClick={library.loadMore}
-          >
-            Carregar mais
-          </Button>
-        )}
       </div>
     );
   }
@@ -231,59 +138,7 @@ export const EbookPicker = ({
         </Text>
       )}
 
-      <section
-        aria-labelledby="ebook-picker-filters-title"
-        className="flex flex-col gap-3 rounded-xl border border-border-100 p-4"
-      >
-        <div className="flex items-center gap-2 text-text-950">
-          <SlidersHorizontalIcon size={20} aria-hidden="true" />
-          <Text as="h2" id="ebook-picker-filters-title" size="md" weight="bold">
-            Filtrar acervo
-          </Text>
-        </div>
-        <div className="flex flex-col gap-3 md:flex-row">
-          <div className="flex flex-col md:w-72">
-            <Select value={theme} onValueChange={setTheme} label="Tema">
-              <SelectTrigger aria-label="Tema">
-                <SelectValue placeholder="Todos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL}>Todos</SelectItem>
-                {themes.map((option) => (
-                  <SelectItem key={option.code} value={option.code}>
-                    {option.name ?? option.code}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex flex-col md:w-72">
-            <Select value={segment} onValueChange={setSegment} label="Público">
-              <SelectTrigger aria-label="Público">
-                <SelectValue placeholder="Todos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL}>Todos</SelectItem>
-                {segments.map((option) => (
-                  <SelectItem key={option.name} value={option.name}>
-                    {option.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <Search
-          options={[]}
-          showDropdown={false}
-          value={searchInput}
-          onChange={(event) => setSearchInput(event.target.value)}
-          placeholder="Buscar por título, autor, tema, ano ou código BNCC…"
-          aria-label="Buscar livros"
-          containerClassName="!w-full !max-w-none"
-          data-testid="ebook-picker-search"
-        />
-      </section>
+      <EbookLibraryFilters state={filterState} facets={library.facets} />
 
       {!library.loading && !library.error && (
         <Text size="sm" weight="medium" className="text-text-800">
@@ -291,7 +146,35 @@ export const EbookPicker = ({
         </Text>
       )}
 
-      {shelf}
+      <EbookShelf
+        loading={library.loading}
+        error={library.error}
+        empty={library.items.length === 0}
+        onRetry={library.retry}
+      >
+        {library.items.map((item) => (
+          <EbookPickerCard
+            key={item.id}
+            ebook={item}
+            selected={selectedIds.has(item.id)}
+            canAdd={canAdd}
+            addLabel={addLabel}
+            onToggle={() => toggle(toAttachableEbook(item))}
+            onOpen={() => setPreviewId(item.id)}
+          />
+        ))}
+      </EbookShelf>
+      {library.hasMore && !library.loading && !library.error && (
+        <Button
+          variant="outline"
+          size="small"
+          className="self-center"
+          disabled={library.loadingMore}
+          onClick={library.loadMore}
+        >
+          Carregar mais
+        </Button>
+      )}
     </div>
   );
 };

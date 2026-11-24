@@ -4,6 +4,7 @@
  */
 
 import { z } from 'zod';
+import type { AttachableEbook, StudentEbookProgress } from './ebookAttachment';
 
 /**
  * Student activity status enum
@@ -54,6 +55,10 @@ export const studentActivityStatusSchema = z.enum([
 export interface ActivityStudentData {
   studentId: string;
   studentName: string;
+  /** The student's enrollment; missing on a response cached before it existed */
+  userInstitutionId?: string;
+  /** The student's reading of each attached ebook (AE-3324) */
+  ebooks?: StudentEbookProgress[];
   answeredAt: string | null;
   timeSpent: number;
   score: number | null;
@@ -148,6 +153,8 @@ export interface ActivityDetailsData {
    * showing two empty cells per student.
    */
   requiresEssay?: boolean;
+  /** The student ebooks attached to the activity, in display order (AE-3324) */
+  ebooks?: AttachableEbook[];
 }
 
 /**

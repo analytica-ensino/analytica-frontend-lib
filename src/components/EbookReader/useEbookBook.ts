@@ -62,6 +62,8 @@ export interface UseEbookBookOptions {
   onSectionsSeen?: (sections: string[]) => void;
   /** Called whenever the pages on screen change: on a page turn, a scroll or a new section of a scroll-only material */
   onPageChange?: (page: EbookPageChange) => void;
+  /** One page on screen at a time, never a spread (a boxed preview) */
+  singlePage?: boolean;
 }
 
 export interface UseEbookBookReturn {
@@ -150,7 +152,11 @@ const pageIndexOf = (template: BookTemplate, target: string): number =>
   );
 
 /** Width and height left for the book inside `<main>`, padding excluded. */
-const availableSize = (content: HTMLElement, main: HTMLElement): BookSize => {
+const availableSize = (
+  content: HTMLElement,
+  main: HTMLElement,
+  allowSpread: boolean
+): BookSize => {
   const style = getComputedStyle(main);
   const width =
     main.clientWidth -
@@ -160,7 +166,7 @@ const availableSize = (content: HTMLElement, main: HTMLElement): BookSize => {
     content.clientHeight -
     (Number.parseFloat(style.paddingTop) || 0) -
     (Number.parseFloat(style.paddingBottom) || 0);
-  return measureBook(width, height);
+  return measureBook(width, height, allowSpread);
 };
 
 /**
@@ -182,6 +188,7 @@ export const useEbookBook = ({
   initialSection,
   onSectionsSeen,
   onPageChange,
+  singlePage = false,
 }: UseEbookBookOptions): UseEbookBookReturn => {
   const template = useMemo(() => parseTemplate(html), [html]);
   const hasBookLayout = template.pages.length > 0;
@@ -267,7 +274,7 @@ export const useEbookBook = ({
       content.replaceChildren(main);
       const book = main.querySelector<HTMLElement>(BOOK_SELECTOR);
       if (!book) return;
-      const size = availableSize(content, main);
+      const size = availableSize(content, main, !singlePage);
       book.style.width = `${size.spread ? 2 * size.pageWidth : size.pageWidth}px`;
       book.style.height = `${size.pageHeight}px`;
       book.classList.add(EBOOK_CLASS.OPEN);
@@ -299,7 +306,7 @@ export const useEbookBook = ({
         }
       );
     },
-    [contentRef, syncFromFlip, teardown, template]
+    [contentRef, singlePage, syncFromFlip, teardown, template]
   );
 
   const mountScroll = useCallback(
@@ -389,7 +396,7 @@ export const useEbookBook = ({
       const main = content.querySelector('main');
       const current = sizeRef.current;
       if (!main || !current) return;
-      const next = availableSize(content, main);
+      const next = availableSize(content, main, !singlePage);
       if (
         next.spread === current.spread &&
         Math.abs(next.pageWidth - current.pageWidth) < RESIZE_TOLERANCE_PX
@@ -407,7 +414,7 @@ export const useEbookBook = ({
       clearTimeout(timer);
       observer.disconnect();
     };
-  }, [contentRef, layout, mountBook]);
+  }, [contentRef, layout, mountBook, singlePage]);
 
   const goToIndex = useCallback(
     (index: number) => {

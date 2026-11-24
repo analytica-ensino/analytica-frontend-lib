@@ -23,13 +23,18 @@ export interface BookSize {
  * never overflows the space by a pixel.
  * @param width - Width available for the book, in pixels
  * @param height - Height available for the book, in pixels
+ * @param allowSpread - False keeps one page on screen, whatever the space
  * @returns Page size and whether to show a spread
  */
-export const measureBook = (width: number, height: number): BookSize => {
+export const measureBook = (
+  width: number,
+  height: number,
+  allowSpread = true
+): BookSize => {
   const available = width - BOOK_GUTTER;
   const tallest = Math.max(PAGE_MIN_HEIGHT, Math.min(height, PAGE_MAX_HEIGHT));
   const pageWidth = Math.floor(tallest / PAGE_RATIO);
-  if (available >= 2 * pageWidth) {
+  if (allowSpread && available >= 2 * pageWidth) {
     return {
       pageWidth,
       pageHeight: Math.floor(pageWidth * PAGE_RATIO),

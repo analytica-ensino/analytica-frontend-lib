@@ -14,6 +14,23 @@ import {
 
 // Mock useToastStore
 const mockAddToast = jest.fn();
+// The reading screen loads a book and a reading of its own, tested apart:
+// here it shows which book and which student it got.
+jest.mock('../EbookStudentReading/StudentEbookReadingView', () => ({
+  ...jest.requireActual('../EbookStudentReading/StudentEbookReadingView'),
+  StudentEbookReadingView: ({
+    ebook,
+    userInstitutionId,
+  }: {
+    ebook: { title: string };
+    userInstitutionId: string;
+  }) => (
+    <div data-testid="ebook-reading-view">
+      {ebook.title} de {userInstitutionId}
+    </div>
+  ),
+}));
+
 jest.mock('../Toast/utils/ToastStore', () => ({
   __esModule: true,
   default: (selector: (state: { addToast: typeof mockAddToast }) => unknown) =>
@@ -2791,6 +2808,128 @@ describe('CorrectActivityModal', () => {
       expect(getAttachmentLinkLabel('arquivo.pdf#p1')).toBe(
         'Anexado: arquivo.pdf (abre em nova aba)'
       );
+    });
+  });
+
+  describe('Ebook reading (AE-3327)', () => {
+    const ebooks = [
+      {
+        id: 'eb-1',
+        code: 'EB01',
+        title: 'Meu pé de laranja lima',
+        subtitle: null,
+        coverUrl: null,
+        category: 'Educação Financeira',
+        percent: 40,
+        effectiveReadAt: null,
+      },
+    ];
+    const apiClient = {
+      get: jest.fn(),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    };
+
+    it("shows the student's reading of the attached books", () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          ebooks={ebooks}
+          apiClient={apiClient}
+          userInstitutionId="ui-123"
+        />
+      );
+
+      expect(
+        screen.getByRole('heading', { name: 'Leitura do livro' })
+      ).toBeInTheDocument();
+      expect(screen.getByText('40% lido')).toBeInTheDocument();
+    });
+
+    it('has no reading section without attached books', () => {
+      render(<CorrectActivityModal {...defaultProps} ebooks={[]} />);
+
+      expect(
+        screen.queryByRole('heading', { name: 'Leitura do livro' })
+      ).not.toBeInTheDocument();
+    });
+
+    it('opens a book reading in place of the correction, and goes back', () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          ebooks={ebooks}
+          apiClient={apiClient}
+          userInstitutionId="ui-123"
+        />
+      );
+
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: 'Ver detalhes da leitura de Meu pé de laranja lima',
+        })
+      );
+
+      expect(screen.getByTestId('ebook-reading-view')).toHaveTextContent(
+        'Meu pé de laranja lima de ui-123'
+      );
+      expect(screen.getByText('João Silva')).toBeInTheDocument();
+      expect(screen.queryByText('Corrigir atividade')).not.toBeInTheDocument();
+      expect(screen.queryByText('Respostas')).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Voltar' }));
+
+      expect(
+        screen.queryByTestId('ebook-reading-view')
+      ).not.toBeInTheDocument();
+      expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+    });
+
+    it('goes back to the correction when another student opens', () => {
+      const { rerender } = render(
+        <CorrectActivityModal
+          {...defaultProps}
+          ebooks={ebooks}
+          apiClient={apiClient}
+          userInstitutionId="ui-123"
+        />
+      );
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: 'Ver detalhes da leitura de Meu pé de laranja lima',
+        })
+      );
+
+      rerender(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={{ ...mockData, studentId: 'student-456' }}
+          ebooks={ebooks}
+          apiClient={apiClient}
+          userInstitutionId="ui-456"
+        />
+      );
+
+      expect(
+        screen.queryByTestId('ebook-reading-view')
+      ).not.toBeInTheDocument();
+    });
+
+    it('cannot open the reading without the student enrollment', () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          ebooks={ebooks}
+          apiClient={apiClient}
+        />
+      );
+
+      expect(
+        screen.queryByRole('button', {
+          name: 'Ver detalhes da leitura de Meu pé de laranja lima',
+        })
+      ).not.toBeInTheDocument();
     });
   });
 });

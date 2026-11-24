@@ -39,6 +39,13 @@ import type {
 import { DEFAULT_ACTIVITY_PERFORMANCE_LABELS } from '../types';
 import { cn } from '../../../utils/utils';
 import { HtmlMathRenderer } from '../../HtmlMathRenderer';
+import { StudentEbooksSection } from '../../EbookStudentReading/StudentEbooksSection';
+import {
+  StudentEbookReadingTitle,
+  StudentEbookReadingView,
+} from '../../EbookStudentReading/StudentEbookReadingView';
+import { useOpenStudentEbook } from '../../EbookStudentReading/useOpenStudentEbook';
+import type { StudentAttachedEbook } from '../../../types/ebookAttachment';
 
 /** Field names for essay correction state updates */
 const EssayCorrectionField = {
@@ -74,6 +81,11 @@ export interface StudentActivityPerformanceModalProps {
   apiClient?: BaseApiClient;
   /** Custom labels */
   labels?: Partial<StudentActivityPerformanceLabels>;
+  /**
+   * The class's books, with this student's reading of each (AE-3327): the
+   * "Leitura do livro" section. Hidden when empty.
+   */
+  ebooks?: StudentAttachedEbook[];
 }
 
 /**
@@ -302,6 +314,7 @@ export const StudentActivityPerformanceModal = ({
   error = null,
   apiClient,
   labels: customLabels,
+  ebooks,
 }: StudentActivityPerformanceModalProps) => {
   const labels = useMemo(
     () => ({ ...DEFAULT_ACTIVITY_PERFORMANCE_LABELS, ...customLabels }),
@@ -310,6 +323,12 @@ export const StudentActivityPerformanceModal = ({
 
   // Toast store for notifications
   const addToast = useToastStore((state) => state.addToast);
+
+  /** The book whose reading is on screen, in place of the performance */
+  const [openEbook, setOpenEbook] = useOpenStudentEbook(
+    isOpen,
+    data?.userInstitutionId
+  );
 
   // State for essay question corrections (keyed by question id)
   const [essayCorrections, setEssayCorrections] = useState<
@@ -736,22 +755,39 @@ export const StudentActivityPerformanceModal = ({
     }
 
     if (data) {
+      const studentRow = (
+        <div className="flex items-center gap-2">
+          <Text
+            as="span"
+            className="size-8 rounded-full bg-background-100 flex items-center justify-center"
+          >
+            <UserIcon size={16} className="text-text-500" />
+          </Text>
+          <Text size="md" weight="medium" className="text-text-950">
+            {data.studentName}
+          </Text>
+        </div>
+      );
+
+      if (openEbook && apiClient) {
+        return (
+          <div className="flex flex-col gap-5">
+            {studentRow}
+            <StudentEbookReadingView
+              apiClient={apiClient}
+              ebook={openEbook}
+              userInstitutionId={data.userInstitutionId}
+            />
+          </div>
+        );
+      }
+
       const formattedScore = data.score == null ? '-' : data.score.toFixed(1);
 
       return (
         <div className="flex flex-col gap-5">
           {/* Student name with icon */}
-          <div className="flex items-center gap-2">
-            <Text
-              as="span"
-              className="size-8 rounded-full bg-background-100 flex items-center justify-center"
-            >
-              <UserIcon size={16} className="text-text-500" />
-            </Text>
-            <Text size="md" weight="medium" className="text-text-950">
-              {data.studentName}
-            </Text>
-          </div>
+          {studentRow}
 
           {/* Result title */}
           <Text size="md" weight="semibold" className="text-text-950">
@@ -796,6 +832,13 @@ export const StudentActivityPerformanceModal = ({
             />
           </div>
 
+          {ebooks && ebooks.length > 0 && (
+            <StudentEbooksSection
+              ebooks={ebooks}
+              onOpen={apiClient ? setOpenEbook : undefined}
+            />
+          )}
+
           {/* Activities section */}
           {data.activities.length > 0 && (
             <div className="flex flex-col gap-3">
@@ -834,7 +877,13 @@ export const StudentActivityPerformanceModal = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={labels.title}
+      title={
+        openEbook && apiClient ? (
+          <StudentEbookReadingTitle onBack={() => setOpenEbook(null)} />
+        ) : (
+          labels.title
+        )
+      }
       size="lg"
       contentClassName="max-h-[70vh] overflow-y-auto"
     >
