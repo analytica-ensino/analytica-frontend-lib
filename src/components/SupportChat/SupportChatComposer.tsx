@@ -4,6 +4,8 @@ import { ChatTeardropTextIcon } from '@phosphor-icons/react/dist/csr/ChatTeardro
 import { LinkIcon } from '@phosphor-icons/react/dist/csr/Link';
 import { CaretUpIcon } from '@phosphor-icons/react/dist/csr/CaretUp';
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
+import { SmileyIcon } from '@phosphor-icons/react/dist/csr/Smiley';
+import SupportChatEmojiPicker from './SupportChatEmojiPicker';
 import Chips from '../Chips/Chips';
 import TextArea from '../TextArea/TextArea';
 import Button from '../Button/Button';
@@ -128,7 +130,23 @@ const SupportChatComposer = ({
   const [mode, setMode] = useState<SupportChatReplyMode>(defaultMode);
   const [text, setText] = useState('');
   const [quickMenuOpen, setQuickMenuOpen] = useState(false);
+  const [emojiOpen, setEmojiOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Insert at the cursor (or replace the selection) and keep the focus there
+  const insertEmoji = (emoji: string) => {
+    const field = textAreaRef.current;
+    const start = field?.selectionStart ?? text.length;
+    const end = field?.selectionEnd ?? text.length;
+    setText(text.slice(0, start) + emoji + text.slice(end));
+    setEmojiOpen(false);
+    const caret = start + emoji.length;
+    requestAnimationFrame(() => {
+      field?.focus();
+      field?.setSelectionRange(caret, caret);
+    });
+  };
 
   const hasQuickReplies = Boolean(quickReplies?.length);
   const isNote = mode === SUPPORT_CHAT_REPLY_MODE.INTERNAL_NOTE;
@@ -177,6 +195,11 @@ const SupportChatComposer = ({
   );
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Escape' && emojiOpen) {
+      event.preventDefault();
+      setEmojiOpen(false);
+      return;
+    }
     if (event.key === 'Escape' && menuOpen) {
       event.preventDefault();
       setQuickMenuOpen(false);
@@ -255,7 +278,14 @@ const SupportChatComposer = ({
             )}
           </div>
         )}
+        {emojiOpen && !disabled && (
+          <SupportChatEmojiPicker
+            onSelect={insertEmoji}
+            className="absolute bottom-full left-0 z-10 mb-2"
+          />
+        )}
         <TextArea
+          ref={textAreaRef}
           aria-label="Resposta"
           placeholder={
             isNote ? 'Escreva uma nota para a equipe…' : fieldPlaceholder
@@ -299,6 +329,14 @@ const SupportChatComposer = ({
               />
             </>
           )}
+          <IconButton
+            icon={<SmileyIcon size={20} />}
+            size="sm"
+            aria-label="Inserir emoji"
+            aria-expanded={emojiOpen}
+            disabled={disabled}
+            onClick={() => setEmojiOpen((open) => !open)}
+          />
           {hasQuickReplies && (
             <Button
               variant="link"

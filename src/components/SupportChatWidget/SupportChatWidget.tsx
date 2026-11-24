@@ -244,6 +244,7 @@ const SupportChatWidgetContent = ({
     restored,
     send,
     updateContact,
+    markAsRead,
     reset,
   } = useSupportChat({
     adapter,
@@ -301,6 +302,11 @@ const SupportChatWidgetContent = ({
     const replies = fresh.filter((message) => !isOwnMessage(message)).length;
     if (replies) setUnread((count) => count + replies);
   }, [messages, isOpen, restored]);
+
+  // The conversation is on screen: the support replies were seen
+  useEffect(() => {
+    if (isOpen && !article) markAsRead();
+  }, [isOpen, article, markAsRead]);
 
   useEffect(() => {
     if (!isOpen || article) return;

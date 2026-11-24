@@ -717,3 +717,34 @@ describe('createGuestSupportChatAdapter session kept across reloads', () => {
     spies.forEach((spy) => spy.mockRestore());
   });
 });
+
+describe('createGuestSupportChatAdapter markAsRead', () => {
+  it('marks the replies as read with the guest token', async () => {
+    const { apiClient, adapter } = setup();
+    const patch = jest.fn().mockResolvedValue({ data: {} });
+    (apiClient as unknown as SupportChatHttpClient).patch = patch;
+    await adapter.startConversation({ message: 'oi', channel: 'login' });
+
+    await adapter.markAsRead?.('t1');
+    expect(patch).toHaveBeenCalledWith('/support/guest/t1/read', undefined, {
+      headers: { 'x-support-guest-token': 'tok' },
+    });
+  });
+
+  it('does nothing without PATCH or for an unknown ticket', async () => {
+    const { apiClient, adapter } = setup();
+    await expect(adapter.markAsRead?.('t1')).resolves.toBeUndefined();
+
+    const patch = jest.fn();
+    (apiClient as unknown as SupportChatHttpClient).patch = patch;
+    await adapter.markAsRead?.('other');
+    expect(patch).not.toHaveBeenCalled();
+  });
+
+  it('maps the read flag of the answer', () => {
+    expect(fromSupportAnswer({ ...answer('a1'), read: true }, 'Ana').read).toBe(
+      true
+    );
+    expect(fromSupportAnswer(answer('a1'), 'Ana').read).toBe(false);
+  });
+});

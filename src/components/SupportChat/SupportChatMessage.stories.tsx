@@ -138,3 +138,25 @@ export const SendStatus: Story = () => (
     />
   </div>
 );
+
+/**
+ * Read status of AI and agent replies, as the backoffice shows it
+ */
+export const ReadStatus: Story = () => (
+  <div className="flex w-full max-w-3xl flex-col gap-4 p-4">
+    <SupportChatMessage
+      type={SUPPORT_CHAT_MESSAGE_TYPE.AI}
+      text="Clique em Esqueci a senha na tela de login."
+      time="13:50"
+      showReadStatus
+      read
+    />
+    <SupportChatMessage
+      type={SUPPORT_CHAT_MESSAGE_TYPE.AGENT}
+      text="Conseguiu acessar?"
+      time="13:52"
+      author={agent}
+      showReadStatus
+    />
+  </div>
+);

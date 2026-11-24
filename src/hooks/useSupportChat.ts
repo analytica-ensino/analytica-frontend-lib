@@ -35,9 +35,18 @@ export interface UseSupportChatReturn {
    * save it.
    */
   updateContact?: (contact: SupportChatContact) => Promise<boolean>;
+  /**
+   * Tell the backend the requester saw the support replies (AI/agent). Does
+   * nothing when there is no unread reply or the adapter cannot do it.
+   */
+  markAsRead: () => void;
   /** Forget the current conversation */
   reset: () => void;
 }
+
+const isSupportReply = (message: SupportChatMessage) =>
+  message.senderRole === SUPPORT_CHAT_AUTHOR.AI ||
+  message.senderRole === SUPPORT_CHAT_AUTHOR.AGENT;
 
 let pendingSequence = 0;
 
@@ -153,7 +162,11 @@ export const useSupportChat = ({
           setMessages((list) =>
             list.map((item) =>
               item.id === event.payload.messageId
-                ? { ...item, content: event.payload.content }
+                ? {
+                    ...item,
+                    content: event.payload.content,
+                    read: event.payload.read,
+                  }
                 : item
             )
           );
@@ -245,6 +258,21 @@ export const useSupportChat = ({
     [adapter, ticketId]
   );
 
+  const hasUnreadReply = messages.some(
+    (message) => isSupportReply(message) && !message.read
+  );
+  const markAsRead = useCallback(() => {
+    if (!ticketId || !adapter.markAsRead || !hasUnreadReply) return;
+    setMessages((list) =>
+      list.map((item) =>
+        isSupportReply(item) && !item.read ? { ...item, read: true } : item
+      )
+    );
+    adapter.markAsRead(ticketId).catch(() => {
+      // Best effort: the next visible reply tries again
+    });
+  }, [adapter, ticketId, hasUnreadReply]);
+
   const reset = useCallback(() => {
     adapter.forgetConversation?.();
     setTicket(null);
@@ -262,6 +290,7 @@ export const useSupportChat = ({
     restored,
     send,
     updateContact: adapter.updateContact ? updateContact : undefined,
+    markAsRead,
     reset,
   };
 };

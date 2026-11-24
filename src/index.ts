@@ -1304,6 +1304,14 @@ export type { SupportChatEventProps } from './components/SupportChat/SupportChat
 export { default as SupportChatTypingIndicator } from './components/SupportChat/SupportChatTypingIndicator';
 export type { SupportChatTypingIndicatorProps } from './components/SupportChat/SupportChatTypingIndicator';
 export { default as SupportChatComposer } from './components/SupportChat/SupportChatComposer';
+export {
+  default as SupportChatEmojiPicker,
+  SUPPORT_CHAT_EMOJI_CATEGORIES,
+} from './components/SupportChat/SupportChatEmojiPicker';
+export type {
+  SupportChatEmojiPickerProps,
+  SupportChatEmojiCategory,
+} from './components/SupportChat/SupportChatEmojiPicker';
 export type {
   SupportChatComposerProps,
   SupportComposerSubmitStatus,

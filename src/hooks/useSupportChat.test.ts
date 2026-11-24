@@ -468,3 +468,55 @@ describe('useSupportChat resuming a conversation', () => {
     expect(hook.result.current.restored).toBe(false);
   });
 });
+
+describe('useSupportChat markAsRead', () => {
+  const reply = (id: string, read = false): SupportChatMessage => ({
+    ...message(id, 'resposta'),
+    senderId: 'ai',
+    senderRole: SUPPORT_CHAT_AUTHOR.AI,
+    read,
+  });
+
+  it('marks the unread replies once and applies read updates', async () => {
+    const { adapter, hook, emit } = setup();
+    adapter.markAsRead = jest.fn().mockResolvedValue(undefined);
+    await act(async () => {
+      await hook.result.current.send('oi');
+    });
+
+    // Nothing to mark yet: only the visitor message
+    act(() => hook.result.current.markAsRead());
+    expect(adapter.markAsRead).not.toHaveBeenCalled();
+
+    emit({ type: 'new_message', payload: { message: reply('r1') } });
+    act(() => hook.result.current.markAsRead());
+    expect(adapter.markAsRead).toHaveBeenCalledWith('ticket-1');
+    expect(
+      hook.result.current.messages.find((item) => item.id === 'r1')?.read
+    ).toBe(true);
+
+    act(() => hook.result.current.markAsRead());
+    expect(adapter.markAsRead).toHaveBeenCalledTimes(1);
+
+    emit({
+      type: 'message_updated',
+      payload: { messageId: 'm1', content: 'oi', read: true },
+    });
+    expect(
+      hook.result.current.messages.find((item) => item.id === 'm1')?.read
+    ).toBe(true);
+  });
+
+  it('ignores a failed request', async () => {
+    const { adapter, hook, emit } = setup();
+    adapter.markAsRead = jest.fn().mockRejectedValue(new Error('offline'));
+    await act(async () => {
+      await hook.result.current.send('oi');
+    });
+    emit({ type: 'new_message', payload: { message: reply('r1') } });
+    await act(async () => {
+      hook.result.current.markAsRead();
+    });
+    expect(hook.result.current.error).toBeNull();
+  });
+});

@@ -197,6 +197,11 @@ export interface SupportChatMessage {
    * under the message
    */
   contactRequest?: SupportChatContactField[] | null;
+  /**
+   * Read by the other side: for AI/agent messages, the requester saw it
+   * (shown as "Visualizada" in the backoffice)
+   */
+  read?: boolean;
   /** Local only: shown before the server confirms it (optimistic) */
   pending?: boolean;
 }
@@ -290,6 +295,11 @@ export interface SupportChatAdapter {
     institutionId: string,
     articleId: string
   ): Promise<SupportChatArticle>;
+  /**
+   * Mark the support replies (AI and agent) of the ticket as read by the
+   * requester, so the backoffice shows them as "Visualizada"
+   */
+  markAsRead?(ticketId: string): Promise<void>;
 }
 
 /** Contact field the AI asks for */
@@ -356,6 +366,12 @@ export interface SupportChatHttpClient {
     data?: unknown,
     config?: { headers?: Record<string, string> }
   ) => Promise<{ data: T }>;
+  /** Used to mark the replies as read (PATCH /support/guest/:id/read) */
+  patch?: <T>(
+    url: string,
+    data?: unknown,
+    config?: { headers?: Record<string, string> }
+  ) => Promise<{ data: T }>;
 }
 
 /**
@@ -372,4 +388,6 @@ export interface SupportChatAnswerApi {
   faqArticleTitle?: string | null;
   /** Contact fields an AI message asks for */
   contactRequest?: SupportChatContactField[] | null;
+  /** Read by the other side of the conversation */
+  read?: boolean;
 }

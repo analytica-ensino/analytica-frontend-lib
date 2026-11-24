@@ -1,5 +1,6 @@
 import { FileIcon } from '@phosphor-icons/react/dist/csr/File';
 import { WarningCircleIcon } from '@phosphor-icons/react/dist/csr/WarningCircle';
+import { ChecksIcon } from '@phosphor-icons/react/dist/csr/Checks';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import Sparkle from '../../assets/icons/Sparkle';
@@ -33,6 +34,13 @@ export interface SupportChatMessageProps {
   attachments?: SupportChatAttachment[];
   /** Delivery status; defaults to SENT */
   status?: SupportChatSendStatus;
+  /**
+   * Show whether the requester saw the message ("Visualizada"/"Enviada").
+   * Only applies to AI and agent messages (backoffice view).
+   */
+  showReadStatus?: boolean;
+  /** The requester saw the message (used with `showReadStatus`) */
+  read?: boolean;
   /** Called when the user clicks "Tentar novamente" on a failed message */
   onRetry?: () => void;
   /** Extra classes for the root element */
@@ -145,6 +153,8 @@ export default function SupportChatMessage({
   faq,
   attachments,
   status = SUPPORT_CHAT_SEND_STATUS.SENT,
+  showReadStatus = false,
+  read = false,
   onRetry,
   className,
 }: Readonly<SupportChatMessageProps>) {
@@ -154,6 +164,10 @@ export default function SupportChatMessage({
   const isRight = isAgent || isNote;
   const isSending = status === SUPPORT_CHAT_SEND_STATUS.SENDING;
   const isFailed = status === SUPPORT_CHAT_SEND_STATUS.FAILED;
+  const showRead =
+    showReadStatus &&
+    (isAi || isAgent) &&
+    status === SUPPORT_CHAT_SEND_STATUS.SENT;
 
   const avatar = isAi ? (
     <AiAvatar />
@@ -285,6 +299,25 @@ export default function SupportChatMessage({
           <Text as="span" size="2xs" color="text-text-400">
             {time}
           </Text>
+          {showRead && (
+            <span
+              data-testid="support-chat-message-read-status"
+              className="flex items-center gap-0.5"
+            >
+              <ChecksIcon
+                size={14}
+                aria-hidden="true"
+                className={read ? 'text-info-600' : 'text-text-400'}
+              />
+              <Text
+                as="span"
+                size="2xs"
+                color={read ? 'text-info-600' : 'text-text-400'}
+              >
+                {read ? 'Visualizada' : 'Enviada'}
+              </Text>
+            </span>
+          )}
         </div>
       </div>
 

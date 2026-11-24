@@ -415,4 +415,43 @@ describe('SupportChatComposer', () => {
       ).toBeInTheDocument();
     });
   });
+
+  describe('emojis', () => {
+    beforeEach(() => {
+      jest
+        .spyOn(window, 'requestAnimationFrame')
+        .mockImplementation((callback) => {
+          callback(0);
+          return 0;
+        });
+    });
+    afterEach(() => jest.restoreAllMocks());
+
+    it('inserts the emoji at the cursor and closes the picker', () => {
+      render(<SupportChatComposer onSend={jest.fn()} />);
+      type('oi mundo');
+      (field() as HTMLTextAreaElement).setSelectionRange(2, 2);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Inserir emoji' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Inserir 😀' }));
+
+      expect(field()).toHaveValue('oi😀 mundo');
+      expect(
+        screen.queryByTestId('support-chat-emoji-picker')
+      ).not.toBeInTheDocument();
+    });
+
+    it('closes the picker with Escape', () => {
+      render(<SupportChatComposer onSend={jest.fn()} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Inserir emoji' }));
+      expect(
+        screen.getByTestId('support-chat-emoji-picker')
+      ).toBeInTheDocument();
+
+      fireEvent.keyDown(field(), { key: 'Escape' });
+      expect(
+        screen.queryByTestId('support-chat-emoji-picker')
+      ).not.toBeInTheDocument();
+    });
+  });
 });

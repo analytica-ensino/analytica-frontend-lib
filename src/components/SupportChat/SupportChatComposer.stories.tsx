@@ -63,3 +63,12 @@ export const Disabled: Story = () => (
     />
   </div>
 );
+
+/**
+ * Emoji picker: the smiley button inserts an emoji at the cursor
+ */
+export const EmojiPicker: Story = () => (
+  <div className="w-[640px] p-4 pt-80">
+    <SupportChatComposer onSend={() => undefined} />
+  </div>
+);
