@@ -135,6 +135,17 @@ describe('ebooks', () => {
   });
 });
 
+describe('actionPlans', () => {
+  it('is off by default', () => {
+    expect(DEFAULT_MODULES.actionPlans).toBe(false);
+    expect(mergeModulesConfig().actionPlans).toBe(false);
+  });
+
+  it('is on when the stored row says so', () => {
+    expect(mergeModulesConfig({ actionPlans: true }).actionPlans).toBe(true);
+  });
+});
+
 describe('lessonVideoMp4Only', () => {
   it('is off by default: lessons play their HLS when they have one', () => {
     expect(DEFAULT_MODULES.lessonVideoMp4Only).toBe(false);

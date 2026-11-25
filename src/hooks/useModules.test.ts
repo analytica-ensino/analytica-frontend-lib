@@ -1115,4 +1115,53 @@ describe('useModules', () => {
       expect(result.current.hasEbooks).toBe(false);
     });
   });
+
+  describe('actionPlans', () => {
+    it('is false by default (opt-in per institution)', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: defaultModules,
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasActionPlans).toBe(false);
+    });
+
+    it('is true when the institution switched it on', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: { ...defaultModules, actionPlans: true },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasActionPlans).toBe(true);
+    });
+
+    it('is false when the key is missing', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: legacyModules, // old persisted state, without the key
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasActionPlans).toBe(false);
+    });
+
+    it('is false for anything but a real `true`', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          actionPlans: 'true' as unknown as boolean,
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasActionPlans).toBe(false);
+    });
+  });
 });
