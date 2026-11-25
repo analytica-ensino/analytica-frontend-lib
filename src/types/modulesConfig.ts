@@ -252,6 +252,16 @@ export interface ModulesConfig {
    */
   ebooks: boolean;
 
+  /**
+   * Action plans (AE-3355; opt-in per institution, off by default): teachers
+   * and managers turn a report, ranking or result into a plan with a
+   * responsible, a deadline and a status. Web only, for teachers and
+   * managers. Only a real `true` switches it on: a missing key (an older
+   * backend, an older persisted state) reads as off. Consumed via
+   * `useModules().hasActionPlans`.
+   */
+  actionPlans: boolean;
+
   // Nested configurations
   exams: boolean;
   simulations: SimulationsConfig;
@@ -317,6 +327,9 @@ export const DEFAULT_MODULES: ModulesConfig = {
 
   // Authored ebooks off by default (opt-in per institution)
   ebooks: false,
+
+  // Action plans off by default (opt-in per institution)
+  actionPlans: false,
 
   // Nested configurations
   exams: DEFAULT_EXAMS,
