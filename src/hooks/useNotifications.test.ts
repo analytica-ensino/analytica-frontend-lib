@@ -175,6 +175,17 @@ describe('useNotifications', () => {
       expect(window.location.href).toBe(originalHref);
     });
 
+    it('should not navigate for an action plan yet (no screen before AE-3366)', () => {
+      const { result } = renderHook(() => useNotifications());
+      const originalHref = window.location.href;
+
+      act(() => {
+        result.current.handleNavigate('action_plan', 'plan-1');
+      });
+
+      expect(window.location.href).toBe(originalHref);
+    });
+
     it('should execute callback after successful navigation', () => {
       const { result } = renderHook(() => useNotifications());
       const mockCallback = jest.fn();
@@ -260,6 +271,12 @@ describe('useNotifications', () => {
 
       const label = result.current.getActionLabel('UNKNOWN');
       expect(label).toBeUndefined();
+    });
+
+    it('should return no action label for an action plan yet', () => {
+      const { result } = renderHook(() => useNotifications());
+
+      expect(result.current.getActionLabel('action_plan')).toBeUndefined();
     });
 
     it('should return "Ver mais" when entityType is falsy (global notifications)', () => {

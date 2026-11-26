@@ -14,7 +14,8 @@ export type NotificationType =
   | 'ANNOUNCEMENT'
   | 'RECOMMENDEDCLASS'
   | 'SIMULATION'
-  | 'SISU_SIMULATOR';
+  | 'SISU_SIMULATOR'
+  | 'ACTION_PLAN';
 
 /**
  * Entity type for navigation
@@ -36,6 +37,13 @@ export enum NotificationEntityType {
    * route.
    */
   SISU_SIMULATOR = 'SISU_SIMULATOR',
+  /**
+   * An action plan of a teacher or manager: assigned, status changed, or its
+   * deadline near or due. The backend stores it as `action_plan` (snake case,
+   * so it upper-cases to this). Not navigable yet: the plan screen comes with
+   * AE-3366, so it has no route and no action label.
+   */
+  ACTION_PLAN = 'ACTION_PLAN',
 }
 
 /**
