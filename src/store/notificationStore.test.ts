@@ -1261,6 +1261,49 @@ describe('Internal Helper Functions', () => {
       expect(notification.entityId).toBe('exam-1');
     });
 
+    it('should map the backend action_plan entity type', async () => {
+      const mockResponse: BackendNotificationsResponse = {
+        notifications: [
+          {
+            id: '1',
+            senderUserInstitutionId: 'manager-1',
+            receiverUserInstitutionId: 'user-1',
+            title: 'Novo plano de ação para você',
+            description:
+              'Você é o responsável pelo plano de ação "Reforço de frações".',
+            // Snake case on the backend so it upper-cases to ACTION_PLAN.
+            entityType: 'action_plan',
+            entityId: 'plan-1',
+            read: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            sender: null,
+            activity: null,
+            recommendedClass: null,
+          },
+        ],
+        pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      };
+
+      const mockApiClient: NotificationApiClient = {
+        get: jest.fn().mockResolvedValue({ data: mockResponse }),
+        patch: jest.fn(),
+        delete: jest.fn(),
+      };
+
+      const useStore = createNotificationStore(mockApiClient);
+      const { result } = renderHook(() => useStore());
+
+      await act(async () => {
+        await result.current.fetchNotifications();
+      });
+
+      const notification = result.current.notifications[0];
+      expect(notification.type).toBe('ACTION_PLAN');
+      expect(notification.entityType).toBe(NotificationEntityType.ACTION_PLAN);
+      expect(notification.entityId).toBe('plan-1');
+    });
+
     it('should handle lowercase entity types correctly', async () => {
       const mockResponse: BackendNotificationsResponse = {
         notifications: [
