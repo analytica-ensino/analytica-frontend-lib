@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { SupportChatWidget } from './SupportChatWidget';
+import { OPEN_SUPPORT_CHAT_EVENT, openSupportChat } from './openSupportChat';
 import { SupportType } from '../../types/support';
 import {
   SUPPORT_CHAT_AUTHOR,
@@ -89,6 +90,54 @@ describe('SupportChatWidget', () => {
         />
       );
       expect(screen.getByLabelText('Abrir suporte')).toBeInTheDocument();
+    });
+  });
+
+  describe('openSupportChat', () => {
+    it('opens the window and focuses the message box', () => {
+      const onOpen = jest.fn();
+      render(
+        <SupportChatWidget
+          adapter={createAdapter().adapter}
+          channel="login"
+          onOpen={onOpen}
+        />
+      );
+      expect(screen.queryByLabelText('Mensagem')).not.toBeInTheDocument();
+
+      act(() => openSupportChat());
+
+      expect(onOpen).toHaveBeenCalledTimes(1);
+      expect(screen.getByLabelText('Mensagem')).toHaveFocus();
+    });
+
+    it('focuses the message box again when the window is already open', () => {
+      render(
+        <SupportChatWidget adapter={createAdapter().adapter} channel="login" />
+      );
+      fireEvent.click(screen.getByLabelText('Abrir suporte'));
+      const input = screen.getByLabelText('Mensagem');
+      expect(input).not.toHaveFocus();
+
+      act(() => openSupportChat());
+
+      expect(input).toHaveFocus();
+    });
+
+    it('stops listening once unmounted', () => {
+      const removeSpy = jest.spyOn(window, 'removeEventListener');
+      const { unmount } = render(
+        <SupportChatWidget adapter={createAdapter().adapter} channel="login" />
+      );
+
+      unmount();
+
+      expect(removeSpy).toHaveBeenCalledWith(
+        OPEN_SUPPORT_CHAT_EVENT,
+        expect.any(Function)
+      );
+      removeSpy.mockRestore();
+      expect(() => openSupportChat()).not.toThrow();
     });
   });
 
