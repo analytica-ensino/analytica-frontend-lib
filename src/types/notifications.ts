@@ -40,8 +40,7 @@ export enum NotificationEntityType {
   /**
    * An action plan of a teacher or manager: assigned, status changed, or its
    * deadline near or due. The backend stores it as `action_plan` (snake case,
-   * so it upper-cases to this). Not navigable yet: the plan screen comes with
-   * AE-3366, so it has no route and no action label.
+   * so it upper-cases to this). Opens the plan (`/planos-de-acao/:id`, AE-3366).
    */
   ACTION_PLAN = 'ACTION_PLAN',
 }

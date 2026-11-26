@@ -209,6 +209,8 @@ export default defineConfig({
     'EbookReadingReport/index': 'src/components/EbookReadingReport/index.ts',
     // The "Biblioteca" of the teacher and the manager (AE-3327).
     'EbookLibrary/index': 'src/components/EbookLibrary/index.ts',
+    // The "Planos de ação" of the teacher and the manager (AE-3366).
+    'ActionPlans/index': 'src/components/ActionPlans/index.ts',
     'SupportChatMessage/index':
       'src/components/SupportChat/SupportChatMessage.tsx',
     'SupportChatEvent/index': 'src/components/SupportChat/SupportChatEvent.tsx',

@@ -435,4 +435,58 @@ describe('DateTimeInput', () => {
       );
     });
   });
+  describe('date only (showTime={false})', () => {
+    const dateOnlyProps = {
+      label: 'Prazo',
+      date: '',
+      onDateChange: mockOnDateChange,
+      showTime: false,
+      testId: 'deadline',
+    };
+
+    it('is a date field holding only the date', () => {
+      render(<DateTimeInput {...dateOnlyProps} date="2026-12-15" />);
+
+      const input = screen.getByTestId('deadline-input');
+      expect(input).toHaveAttribute('type', 'date');
+      expect(input).toHaveValue('2026-12-15');
+    });
+
+    it('opens the calendar without the time footer', () => {
+      render(<DateTimeInput {...dateOnlyProps} />);
+
+      fireEvent.click(screen.getByLabelText('Prazo'));
+
+      expect(screen.getByLabelText('Mês anterior')).toBeInTheDocument();
+      expect(screen.queryByText('Hora')).not.toBeInTheDocument();
+    });
+
+    it('picks a day without asking for a time', async () => {
+      render(
+        <DateTimeInput
+          {...dateOnlyProps}
+          date="2025-01-01"
+          onTimeChange={mockOnTimeChange}
+        />
+      );
+
+      fireEvent.click(screen.getByLabelText('Prazo'));
+      fireEvent.click(screen.getByText('15'));
+
+      await waitFor(() =>
+        expect(mockOnDateChange).toHaveBeenCalledWith('2025-01-15')
+      );
+      expect(mockOnTimeChange).not.toHaveBeenCalled();
+    });
+
+    it('takes a typed date as it is', () => {
+      render(<DateTimeInput {...dateOnlyProps} />);
+
+      fireEvent.change(screen.getByTestId('deadline-input'), {
+        target: { value: '2026-03-02' },
+      });
+
+      expect(mockOnDateChange).toHaveBeenCalledWith('2026-03-02');
+    });
+  });
 });

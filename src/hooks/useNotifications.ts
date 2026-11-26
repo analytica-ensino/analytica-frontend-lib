@@ -69,6 +69,11 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
               // The simulator reads every momento: the id is not in the route.
               globalThis.location.href = '/simulador-sisu/momento-enem';
               break;
+            case NotificationEntityType.ACTION_PLAN:
+              if (entityId) {
+                globalThis.location.href = `/planos-de-acao/${entityId}`;
+              }
+              break;
             default:
               break;
           }
@@ -98,6 +103,8 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
             return 'Ver simulado';
           case NotificationEntityType.SISU_SIMULATOR:
             return 'Simular agora';
+          case NotificationEntityType.ACTION_PLAN:
+            return 'Ver plano';
           default:
             return undefined;
         }

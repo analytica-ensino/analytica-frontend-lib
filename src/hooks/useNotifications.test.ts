@@ -127,6 +127,16 @@ describe('useNotifications', () => {
       expect(window.location.href).toBe('/simulador-sisu/momento-enem');
     });
 
+    it('should open the plan for ACTION_PLAN', () => {
+      const { result } = renderHook(() => useNotifications());
+
+      act(() => {
+        result.current.handleNavigate('action_plan', 'plan-1');
+      });
+
+      expect(window.location.href).toBe('/planos-de-acao/plan-1');
+    });
+
     it('should accept the backend lowercase simulation entity type', () => {
       const { result } = renderHook(() => useNotifications());
 
@@ -170,17 +180,6 @@ describe('useNotifications', () => {
 
       act(() => {
         result.current.handleNavigate('UNKNOWN', '123');
-      });
-
-      expect(window.location.href).toBe(originalHref);
-    });
-
-    it('should not navigate for an action plan yet (no screen before AE-3366)', () => {
-      const { result } = renderHook(() => useNotifications());
-      const originalHref = window.location.href;
-
-      act(() => {
-        result.current.handleNavigate('action_plan', 'plan-1');
       });
 
       expect(window.location.href).toBe(originalHref);
@@ -248,6 +247,13 @@ describe('useNotifications', () => {
       expect(result.current.getActionLabel('simulation')).toBe('Ver simulado');
     });
 
+    it('should return "Ver plano" for ACTION_PLAN', () => {
+      const { result } = renderHook(() => useNotifications());
+
+      expect(result.current.getActionLabel('ACTION_PLAN')).toBe('Ver plano');
+      expect(result.current.getActionLabel('action_plan')).toBe('Ver plano');
+    });
+
     it('should return "Simular agora" for SISU_SIMULATOR', () => {
       const { result } = renderHook(() => useNotifications());
 
@@ -271,12 +277,6 @@ describe('useNotifications', () => {
 
       const label = result.current.getActionLabel('UNKNOWN');
       expect(label).toBeUndefined();
-    });
-
-    it('should return no action label for an action plan yet', () => {
-      const { result } = renderHook(() => useNotifications());
-
-      expect(result.current.getActionLabel('action_plan')).toBeUndefined();
     });
 
     it('should return "Ver mais" when entityType is falsy (global notifications)', () => {
