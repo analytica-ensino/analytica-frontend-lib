@@ -1164,4 +1164,69 @@ describe('useModules', () => {
       expect(result.current.hasActionPlans).toBe(false);
     });
   });
+
+  describe('aiAssistant', () => {
+    it('is off with the default limits by default (opt-in per institution and profile)', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: defaultModules,
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasAiAssistant).toBe(false);
+      expect(result.current.aiAssistantMonthlyQuestions).toBe(100);
+      expect(result.current.aiAssistantMonthlyTokens).toBeNull();
+    });
+
+    it('reads the assistant and both limits the institution set', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          aiAssistant: { enabled: true, monthlyQuestionsPerUser: 30 },
+          aiAssistantMonthlyTokens: 500000,
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasAiAssistant).toBe(true);
+      expect(result.current.aiAssistantMonthlyQuestions).toBe(30);
+      expect(result.current.aiAssistantMonthlyTokens).toBe(500000);
+    });
+
+    it('is off with the default limits when the keys are missing', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: legacyModules, // old persisted state, without the keys
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasAiAssistant).toBe(false);
+      expect(result.current.aiAssistantMonthlyQuestions).toBe(100);
+      expect(result.current.aiAssistantMonthlyTokens).toBeNull();
+    });
+
+    it('turns on only for a real `true` and ignores limits that are not positive integers', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          aiAssistant: {
+            enabled: 'true' as unknown as boolean,
+            monthlyQuestionsPerUser: 0,
+          },
+          aiAssistantMonthlyTokens: '500000' as unknown as number,
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasAiAssistant).toBe(false);
+      expect(result.current.aiAssistantMonthlyQuestions).toBe(100);
+      expect(result.current.aiAssistantMonthlyTokens).toBeNull();
+    });
+  });
 });

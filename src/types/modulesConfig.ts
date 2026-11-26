@@ -25,6 +25,19 @@ export interface SimulationsConfig {
 }
 
 /**
+ * Per-institution and per-profile configuration of the AI assistant
+ * (AE-3357), for teachers and managers. The institution's monthly token cap is
+ * not here but in the flat `aiAssistantMonthlyTokens`: each profile's row
+ * carries this whole block, and a cap inside it would vary by profile.
+ */
+export interface AiAssistantConfig {
+  /** Whether the assistant is on. Off by default (opt-in) */
+  enabled: boolean;
+  /** Questions each person may ask a month (São Paulo calendar) */
+  monthlyQuestionsPerUser: number;
+}
+
+/**
  * Configuration for Performance screen graphs
  */
 export interface PerformanceGraphsConfig {
@@ -98,6 +111,20 @@ export const DEFAULT_SIMULATIONS: SimulationsConfig = {
   simuladao: 'ENABLED',
   vestibular: 'ENABLED',
   provaQuestions: DEFAULT_PROVA_QUESTIONS,
+};
+
+/**
+ * Questions per person per month when the institution sets no number
+ * (mirrors `AI_ASSISTANT_DEFAULT_MONTHLY_QUESTIONS` on the backend)
+ */
+export const DEFAULT_AI_ASSISTANT_MONTHLY_QUESTIONS = 100;
+
+/**
+ * Default AI assistant configuration - off, with the default question limit
+ */
+export const DEFAULT_AI_ASSISTANT: AiAssistantConfig = {
+  enabled: false,
+  monthlyQuestionsPerUser: DEFAULT_AI_ASSISTANT_MONTHLY_QUESTIONS,
 };
 
 /**
@@ -262,7 +289,21 @@ export interface ModulesConfig {
    */
   actionPlans: boolean;
 
+  /**
+   * Tokens the whole institution may spend on the AI assistant a month, all
+   * profiles together (AE-3357); null means no cap. Institution-wide only,
+   * kept out of `aiAssistant` so no profile carries its own. Consumed via
+   * `useModules().aiAssistantMonthlyTokens`.
+   */
+  aiAssistantMonthlyTokens: number | null;
+
   // Nested configurations
+  /**
+   * AI assistant for teachers and managers (AE-3354; opt-in per institution
+   * and profile, web only). Consumed via `useModules().hasAiAssistant` and
+   * `useModules().aiAssistantMonthlyQuestions`.
+   */
+  aiAssistant: AiAssistantConfig;
   exams: boolean;
   simulations: SimulationsConfig;
   performanceGraphs: PerformanceGraphsConfig;
@@ -331,7 +372,11 @@ export const DEFAULT_MODULES: ModulesConfig = {
   // Action plans off by default (opt-in per institution)
   actionPlans: false,
 
+  // No monthly token cap for the AI assistant unless the institution sets one
+  aiAssistantMonthlyTokens: null,
+
   // Nested configurations
+  aiAssistant: DEFAULT_AI_ASSISTANT,
   exams: DEFAULT_EXAMS,
   simulations: DEFAULT_SIMULATIONS,
   performanceGraphs: DEFAULT_PERFORMANCE_GRAPHS,
@@ -351,7 +396,8 @@ export const DEFAULT_MODULES: ModulesConfig = {
 
 /**
  * Deep merge a partial config onto defaults.
- * Handles nested objects (simulations, performanceGraphs, reports, simulatedScore).
+ * Handles nested objects (aiAssistant, simulations, performanceGraphs, reports,
+ * simulatedScore).
  */
 export const mergeModulesConfig = (
   version?: DeepPartial<ModulesConfig> | null
@@ -362,6 +408,7 @@ export const mergeModulesConfig = (
     ...v,
     // exams is now a simple boolean, use default if not provided
     exams: v.exams ?? DEFAULT_EXAMS,
+    aiAssistant: { ...DEFAULT_AI_ASSISTANT, ...v.aiAssistant },
     simulations: { ...DEFAULT_SIMULATIONS, ...v.simulations },
     performanceGraphs: {
       ...DEFAULT_PERFORMANCE_GRAPHS,
