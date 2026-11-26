@@ -1,5 +1,7 @@
 import { useModulesStore } from '../store/modulesStore';
 import {
+  DEFAULT_AI_ASSISTANT,
+  DEFAULT_AI_ASSISTANT_MONTHLY_QUESTIONS,
   DEFAULT_SIMULATIONS,
   DEFAULT_PROVA_QUESTIONS,
   DEFAULT_PERFORMANCE_GRAPHS,
@@ -70,6 +72,15 @@ export interface UseModulesReturn {
   // only). Off by default.
   hasActionPlans: boolean;
 
+  // AI assistant for teachers and managers (per institution and profile, web
+  // only). Off by default. The server checks the flag and the limits on every
+  // assistant route; these are for the screens.
+  hasAiAssistant: boolean;
+  /** Questions each person may ask the assistant a month (default 100). */
+  aiAssistantMonthlyQuestions: number;
+  /** Tokens the institution may spend a month; null means no cap. */
+  aiAssistantMonthlyTokens: number | null;
+
   // AI correction of dissertative answers (institution-wide). Off by default:
   // an institution that wants its teachers to be the only graders must be able
   // to say so, and with it off the essays keep landing in the manual queue.
@@ -110,6 +121,15 @@ export interface UseModulesReturn {
 }
 
 /**
+ * Whether a module value is a usable limit: a positive whole number.
+ *
+ * @param value - The value read from the modules
+ * @returns True for a positive integer
+ */
+const isPositiveInteger = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isInteger(value) && value > 0;
+
+/**
  * Hook to access modules configuration
  * Provides both the raw modules object and convenience boolean helpers
  *
@@ -140,6 +160,7 @@ export const useModules = (): UseModulesReturn => {
 
   // Defensive fallbacks for nested objects - handles older persisted state
   const simulations = modules.simulations ?? DEFAULT_SIMULATIONS;
+  const aiAssistant = modules.aiAssistant ?? DEFAULT_AI_ASSISTANT;
   const performanceGraphs =
     modules.performanceGraphs ?? DEFAULT_PERFORMANCE_GRAPHS;
   const reports = modules.reports ?? DEFAULT_REPORTS;
@@ -197,6 +218,22 @@ export const useModules = (): UseModulesReturn => {
     // Action plans (opt-in per institution, defaults off). Only a real `true`
     // switches it on.
     hasActionPlans: modules.actionPlans === true,
+
+    // AI assistant (opt-in per institution and profile, defaults off). Only a
+    // real `true` switches it on. A limit that is not a positive integer reads
+    // as the default (questions) or as no cap (tokens) — mirrors
+    // `resolveAiAssistantSettings` on the backend.
+    hasAiAssistant: aiAssistant.enabled === true,
+    aiAssistantMonthlyQuestions: isPositiveInteger(
+      aiAssistant.monthlyQuestionsPerUser
+    )
+      ? aiAssistant.monthlyQuestionsPerUser
+      : DEFAULT_AI_ASSISTANT_MONTHLY_QUESTIONS,
+    aiAssistantMonthlyTokens: isPositiveInteger(
+      modules.aiAssistantMonthlyTokens
+    )
+      ? modules.aiAssistantMonthlyTokens
+      : null,
 
     // AI correction of dissertative answers (opt-in per institution, defaults
     // off — with it off only the teacher grades an essay)

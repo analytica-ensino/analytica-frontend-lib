@@ -146,6 +146,33 @@ describe('actionPlans', () => {
   });
 });
 
+describe('aiAssistant', () => {
+  it('is off with the default limits by default', () => {
+    expect(DEFAULT_MODULES.aiAssistant).toEqual({
+      enabled: false,
+      monthlyQuestionsPerUser: 100,
+    });
+    expect(DEFAULT_MODULES.aiAssistantMonthlyTokens).toBeNull();
+    expect(mergeModulesConfig().aiAssistant).toEqual({
+      enabled: false,
+      monthlyQuestionsPerUser: 100,
+    });
+  });
+
+  it('keeps the default question limit when the stored row only turns it on', () => {
+    expect(
+      mergeModulesConfig({ aiAssistant: { enabled: true } }).aiAssistant
+    ).toEqual({ enabled: true, monthlyQuestionsPerUser: 100 });
+  });
+
+  it('reads the token cap from the stored row', () => {
+    expect(
+      mergeModulesConfig({ aiAssistantMonthlyTokens: 500000 })
+        .aiAssistantMonthlyTokens
+    ).toBe(500000);
+  });
+});
+
 describe('lessonVideoMp4Only', () => {
   it('is off by default: lessons play their HLS when they have one', () => {
     expect(DEFAULT_MODULES.lessonVideoMp4Only).toBe(false);

@@ -1073,6 +1073,7 @@ export { useModulesStore } from './store/modulesStore';
 export type { ModulesState } from './store/modulesStore';
 export {
   DEFAULT_MODULES,
+  DEFAULT_AI_ASSISTANT,
   DEFAULT_SIMULATIONS,
   DEFAULT_EXAMS,
   DEFAULT_PERFORMANCE_GRAPHS,
@@ -1082,6 +1083,7 @@ export {
 } from './types/modulesConfig';
 export type {
   ModulesConfig,
+  AiAssistantConfig,
   SimulationsConfig,
   PerformanceGraphsConfig,
   ReportsConfig,
