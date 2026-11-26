@@ -36,6 +36,7 @@ import {
   type SupportChatUser,
 } from '../../types/supportChat';
 import { cn } from '../../utils/utils';
+import { OPEN_SUPPORT_CHAT_EVENT } from './openSupportChat';
 
 /** Visibility of the chat window */
 export type SupportChatWindowState = 'closed' | 'open' | 'minimized';
@@ -234,6 +235,9 @@ const SupportChatWidgetContent = ({
   const [expanded, setExpanded] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // Bumped by openSupportChat(): focus the message box once it is on screen
+  const [focusRequest, setFocusRequest] = useState(0);
   const seenCount = useRef(0);
 
   const {
@@ -318,6 +322,23 @@ const SupportChatWidgetContent = ({
     setWindowState('open');
     onOpen?.();
   };
+
+  // openSupportChat() from anywhere on the page: open and focus the input
+  const openRef = useRef(open);
+  openRef.current = open;
+  useEffect(() => {
+    const handleOpenRequest = () => {
+      openRef.current();
+      setFocusRequest((count) => count + 1);
+    };
+    window.addEventListener(OPEN_SUPPORT_CHAT_EVENT, handleOpenRequest);
+    return () =>
+      window.removeEventListener(OPEN_SUPPORT_CHAT_EVENT, handleOpenRequest);
+  }, []);
+
+  useEffect(() => {
+    if (focusRequest && isOpen) textareaRef.current?.focus();
+  }, [focusRequest, isOpen]);
 
   const close = () => {
     setWindowState('closed');
@@ -526,6 +547,7 @@ const SupportChatWidgetContent = ({
                       <PaperclipIcon size={20} />
                     </Button>
                     <textarea
+                      ref={textareaRef}
                       aria-label="Mensagem"
                       placeholder={
                         awaitingContact

@@ -1425,6 +1425,8 @@ export {
   createMockSupportChatAdapter,
   createGuestSupportChatAdapter,
   fromSupportAnswer,
+  openSupportChat,
+  OPEN_SUPPORT_CHAT_EVENT,
 } from './components/SupportChatWidget';
 export type {
   SupportChatWidgetProps,

@@ -1,5 +1,6 @@
 export { SupportChatWidget } from './SupportChatWidget';
 export { NativeSupportChat } from './NativeSupportChat';
+export { openSupportChat, OPEN_SUPPORT_CHAT_EVENT } from './openSupportChat';
 export type { NativeSupportChatProps } from './NativeSupportChat';
 export type {
   SupportChatWidgetProps,
