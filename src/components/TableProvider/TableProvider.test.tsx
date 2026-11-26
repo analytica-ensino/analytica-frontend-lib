@@ -1252,6 +1252,71 @@ describe('TableProvider', () => {
     });
   });
 
+  describe('externalParams', () => {
+    const largeData = Array.from({ length: 25 }, (_, i) => ({
+      id: i,
+      name: `User ${i}`,
+      age: 20 + i,
+      status: 'active' as const,
+    }));
+
+    const renderWith = (
+      externalParams: Record<string, unknown>,
+      onParamsChange: jest.Mock
+    ) => (
+      <TableProvider
+        data={largeData}
+        headers={testHeaders}
+        enablePagination
+        externalParams={externalParams}
+        onParamsChange={onParamsChange}
+      />
+    );
+
+    it('merges the page params into every call', () => {
+      const onParamsChange = jest.fn();
+      render(renderWith({ tab: 'created', status: ['DONE'] }, onParamsChange));
+
+      expect(onParamsChange).toHaveBeenLastCalledWith({
+        page: 1,
+        limit: 10,
+        tab: 'created',
+        status: ['DONE'],
+      });
+    });
+
+    it('goes back to page 1 together with new params, in one call', () => {
+      const onParamsChange = jest.fn();
+      const { rerender } = render(
+        renderWith({ tab: 'responsible' }, onParamsChange)
+      );
+      fireEvent.click(screen.getByLabelText('Próxima página'));
+      onParamsChange.mockClear();
+
+      rerender(renderWith({ tab: 'created' }, onParamsChange));
+
+      expect(onParamsChange).toHaveBeenCalledTimes(1);
+      expect(onParamsChange).toHaveBeenCalledWith({
+        page: 1,
+        limit: 10,
+        tab: 'created',
+      });
+    });
+
+    it('keeps the page when the same params come in a new object', () => {
+      const onParamsChange = jest.fn();
+      const { rerender } = render(
+        renderWith({ tab: 'responsible' }, onParamsChange)
+      );
+      fireEvent.click(screen.getByLabelText('Próxima página'));
+      onParamsChange.mockClear();
+
+      rerender(renderWith({ tab: 'responsible' }, onParamsChange));
+
+      expect(onParamsChange).not.toHaveBeenCalled();
+    });
+  });
+
   // ======================
   // GROUP 10: Render Props Pattern
   // ======================

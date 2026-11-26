@@ -19,12 +19,12 @@ export interface DateTimeInputProps {
   label: string;
   /** Date value in YYYY-MM-DD format */
   date: string;
-  /** Time value in HH:MM format */
-  time: string;
+  /** Time value in HH:MM format (unused with `showTime={false}`) */
+  time?: string;
   /** Callback when date changes */
   onDateChange: (date: string) => void;
-  /** Callback when time changes */
-  onTimeChange: (time: string) => void;
+  /** Callback when time changes (unused with `showTime={false}`) */
+  onTimeChange?: (time: string) => void;
   /** Error message to display */
   errorMessage?: string;
   /** Whether the input is disabled */
@@ -37,6 +37,12 @@ export interface DateTimeInputProps {
   timeLabel?: string;
   /** Additional className for container */
   className?: string;
+  /**
+   * Whether the field takes a time too. False makes it a date-only field
+   * (YYYY-MM-DD), with the same calendar and no time footer.
+   * @default true
+   */
+  showTime?: boolean;
 }
 
 /**
@@ -68,7 +74,7 @@ const formatDateToInput = (dateObj: Date): string => {
 const DateTimeInput = ({
   label,
   date,
-  time,
+  time = '',
   onDateChange,
   onTimeChange,
   errorMessage,
@@ -77,6 +83,7 @@ const DateTimeInput = ({
   testId,
   timeLabel = 'Hora',
   className,
+  showTime = true,
 }: DateTimeInputProps) => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
@@ -103,8 +110,8 @@ const DateTimeInput = ({
     setSelectedDate(dateObj);
     onDateChange(formatDateToInput(dateObj));
 
-    if (!time) {
-      onTimeChange(defaultTime);
+    if (showTime && !time) {
+      onTimeChange?.(defaultTime);
     }
   };
 
@@ -118,7 +125,7 @@ const DateTimeInput = ({
       const [datePart, timePart] = value.split('T');
       onDateChange(datePart);
       if (timePart) {
-        onTimeChange(timePart);
+        onTimeChange?.(timePart);
       }
     } else {
       onDateChange(value);
@@ -137,10 +144,11 @@ const DateTimeInput = ({
    * Handle time input change
    */
   const handleTimeChange = (e: ChangeEvent<HTMLInputElement>) => {
-    onTimeChange(e.target.value);
+    onTimeChange?.(e.target.value);
   };
 
-  const inputValue = date ? `${date}T${time || defaultTime}` : '';
+  let inputValue = date;
+  if (showTime) inputValue = date ? `${date}T${time || defaultTime}` : '';
 
   /**
    * Mirrors the menu state (outside click, Escape) back to the field. Stable
@@ -218,7 +226,7 @@ const DateTimeInput = ({
           // A disabled input fires no click; `isOpen` honours `disabled` too
           onClick={() => setIsCalendarOpen((open) => !open)}
           label={label}
-          type="datetime-local"
+          type={showTime ? 'datetime-local' : 'date'}
           placeholder="00/00/0000"
           value={inputValue}
           onChange={handleDateInputChange}
@@ -271,23 +279,25 @@ const DateTimeInput = ({
             ela caía abaixo do corte e o usuário precisava descobrir que dava
             para rolar ali dentro. O `bg-background` é o que impede os dias de
             aparecerem por baixo ao rolar. */}
-        <div className="sticky bottom-0 flex items-center justify-between gap-3 border-t border-border-200 bg-background px-3 py-2">
-          <label
-            htmlFor={timeInputId}
-            className="text-sm font-bold text-text-900"
-          >
-            {timeLabel}
-          </label>
-          <Input
-            id={timeInputId}
-            type="time"
-            value={time || defaultTime}
-            onChange={handleTimeChange}
-            variant="rounded"
-            containerClassName="w-32 shrink-0"
-            data-testid={testId ? `${testId}-time` : undefined}
-          />
-        </div>
+        {showTime && (
+          <div className="sticky bottom-0 flex items-center justify-between gap-3 border-t border-border-200 bg-background px-3 py-2">
+            <label
+              htmlFor={timeInputId}
+              className="text-sm font-bold text-text-900"
+            >
+              {timeLabel}
+            </label>
+            <Input
+              id={timeInputId}
+              type="time"
+              value={time || defaultTime}
+              onChange={handleTimeChange}
+              variant="rounded"
+              containerClassName="w-32 shrink-0"
+              data-testid={testId ? `${testId}-time` : undefined}
+            />
+          </div>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

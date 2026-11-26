@@ -278,6 +278,12 @@ export interface TableProviderProps<T = Record<string, unknown>> {
 
   /** Initial filter configurations */
   readonly initialFilters?: FilterConfig[];
+  /**
+   * Params kept outside the table (a page's own filter modal, a tab), merged
+   * into every `onParamsChange`. Compared by value: a change sends the table
+   * back to page 1 in the same update, so the parent fetches once.
+   */
+  readonly externalParams?: Record<string, unknown>;
   /** Pagination configuration */
   readonly paginationConfig?: PaginationConfig;
   /** Search placeholder text */
@@ -398,6 +404,7 @@ export function TableProvider<T extends Record<string, unknown>>({
   enablePagination = false,
   enableRowClick = false,
   initialFilters = [],
+  externalParams,
   paginationConfig = {},
   searchPlaceholder = 'Buscar...',
   searchAriaLabel,
@@ -508,6 +515,23 @@ export function TableProvider<T extends Record<string, unknown>>({
   // old ordering has nothing to do with page 3 of the new one.
   resetPageRef.current = () => setCurrentPage(1);
 
+  // The page's own params, by value: a parent re-creating the same object on
+  // every render must not send the table back to page 1.
+  const externalParamsKey = JSON.stringify(externalParams ?? {});
+  const [appliedExternalKey, setAppliedExternalKey] =
+    useState(externalParamsKey);
+  if (appliedExternalKey !== externalParamsKey) {
+    // Adjusted while rendering: the new params and page 1 reach
+    // `onParamsChange` together, so the parent never fetches the old page
+    // with the new params.
+    setAppliedExternalKey(externalParamsKey);
+    setCurrentPage(1);
+  }
+  const appliedExternalParams = useMemo(
+    () => JSON.parse(appliedExternalKey) as Record<string, unknown>,
+    [appliedExternalKey]
+  );
+
   // Filter modal state
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
@@ -525,6 +549,8 @@ export function TableProvider<T extends Record<string, unknown>>({
     if (enableFilters) {
       Object.assign(params, activeFilters);
     }
+
+    Object.assign(params, appliedExternalParams);
 
     if (enableTableSort && sortColumn && sortDirection) {
       params.sortBy = sortColumn;
@@ -547,6 +573,7 @@ export function TableProvider<T extends Record<string, unknown>>({
     enableFilters,
     enableTableSort,
     columnFilterParams,
+    appliedExternalParams,
   ]);
 
   // Notify parent when parameters change
