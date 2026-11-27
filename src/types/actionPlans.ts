@@ -65,6 +65,33 @@ export const ACTION_PLAN_LIMITS = {
   COMMENT: 1000,
 } as const;
 
+/** What a plan was created from (same values as the backend). */
+export const ACTION_PLAN_ORIGIN_TYPE = {
+  /** A report of the platform (access, activities, simulados, reading…) */
+  REPORT: 'REPORT',
+  /** A ranking ("Estudantes com maior dificuldade", say) */
+  RANKING: 'RANKING',
+  /** One student's result */
+  STUDENT_RESULT: 'STUDENT_RESULT',
+  /** A school or municipality flagged as needing support */
+  SCHOOL_SUPPORT: 'SCHOOL_SUPPORT',
+  /** A draft of the AI assistant */
+  ASSISTANT: 'ASSISTANT',
+} as const;
+
+export type ActionPlanOriginType =
+  (typeof ACTION_PLAN_ORIGIN_TYPE)[keyof typeof ACTION_PLAN_ORIGIN_TYPE];
+
+/** Size limits of the origin's texts (same as the backend). */
+export const ACTION_PLAN_ORIGIN_LIMITS = {
+  REPORT: 120,
+  FILTER: 200,
+  FILTERS: 20,
+  INDICATOR: 200,
+  VALUE: 100,
+  LINK: 2000,
+} as const;
+
 /** A professional of the plan: the enrollment and the person's name. */
 export interface ActionPlanPerson {
   userInstitutionId: string;
@@ -137,6 +164,11 @@ export interface ActionPlanEvent {
 /** Someone who may be the responsible of a plan of the school. */
 export interface ActionPlanAssignee extends ActionPlanPerson {
   profile: string;
+  /**
+   * The school the plan goes to with them: the one asked for or, asked
+   * without one, theirs (AE-3367)
+   */
+  school?: ActionPlanSchool;
 }
 
 /** Options of the "Filtros" modal: what the tab's plans hold. */

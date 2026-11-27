@@ -164,6 +164,8 @@ export interface RankingCardProps extends HTMLAttributes<HTMLDivElement> {
   emptyText?: ReactNode;
   /** Under the list — a "download the whole ranking" button, say. */
   footer?: ReactNode;
+  /** Beside the icon badge — "Criar plano", say (AE-3367). */
+  headerAction?: ReactNode;
 }
 
 /**
@@ -178,6 +180,7 @@ export const RankingCard = ({
   headerIcon,
   emptyText,
   footer,
+  headerAction,
   className,
   ...props
 }: RankingCardProps) => (
@@ -187,6 +190,7 @@ export const RankingCard = ({
     headerIcon={headerIcon}
     emptyText={emptyText}
     footer={footer}
+    headerAction={headerAction}
     // The whole ranking is handed as a single item so it can be rendered as an
     // ordered list (`ol`/`li`): screen readers then announce "lista, 3 itens"
     // and each row's place in it, which a stack of divs does not.
@@ -231,6 +235,12 @@ export interface StudentRankingProps extends HTMLAttributes<HTMLDivElement> {
    * clicked, with the card it sits in. Left out, the rows stay static.
    */
   onStudentClick?: StudentRankingClickHandler;
+  /**
+   * What sits beside each card's icon badge, per card — "Criar plano", say
+   * (AE-3367). Left out, or answering null, the headers are as they always
+   * were: the title and the badge.
+   */
+  renderHeaderAction?: (variant: RankingVariant) => ReactNode;
 }
 
 /**
@@ -262,6 +272,7 @@ export const StudentRanking = ({
   attentionStudents,
   showPercentage = true,
   onStudentClick,
+  renderHeaderAction,
   className,
   ...props
 }: StudentRankingProps) => {
@@ -273,6 +284,7 @@ export const StudentRanking = ({
         students={highlightStudents}
         showPercentage={showPercentage}
         onStudentClick={onStudentClick}
+        headerAction={renderHeaderAction?.('highlight')}
       />
       <RankingCard
         title={attentionTitle}
@@ -280,6 +292,7 @@ export const StudentRanking = ({
         students={attentionStudents}
         showPercentage={showPercentage}
         onStudentClick={onStudentClick}
+        headerAction={renderHeaderAction?.('attention')}
       />
     </RankingLayout>
   );

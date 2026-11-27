@@ -211,6 +211,11 @@ export default defineConfig({
     'EbookLibrary/index': 'src/components/EbookLibrary/index.ts',
     // The "Planos de ação" of the teacher and the manager (AE-3366).
     'ActionPlans/index': 'src/components/ActionPlans/index.ts',
+    // What the reports need to offer "Criar plano" without the whole area
+    // (AE-3367): the origin builder and the plan types and enums.
+    'ActionPlans/origin/index':
+      'src/components/ActionPlans/actionPlanOrigin.ts',
+    'types/actionPlans/index': 'src/types/actionPlans.ts',
     'SupportChatMessage/index':
       'src/components/SupportChat/SupportChatMessage.tsx',
     'SupportChatEvent/index': 'src/components/SupportChat/SupportChatEvent.tsx',

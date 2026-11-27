@@ -275,6 +275,27 @@ describe('EbookReadingReport', () => {
     });
   });
 
+  it("hands the municipality cards the app's header action", async () => {
+    const { api } = createApi();
+    render(
+      <EbookReadingReport
+        api={api}
+        filters={FILTERS}
+        groupBy={EBOOK_READING_GROUP.SCHOOL}
+        renderMunicipalityAction={(variant) => (
+          <button type="button">Criar plano ({variant})</button>
+        )}
+      />
+    );
+
+    expect(
+      await screen.findByRole('button', { name: 'Criar plano (highlight)' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Criar plano (attention)' })
+    ).toBeInTheDocument();
+  });
+
   it('shows the network: its municipalities, readings by period, subjects and tiers', async () => {
     const { api, post } = createApi();
     render(

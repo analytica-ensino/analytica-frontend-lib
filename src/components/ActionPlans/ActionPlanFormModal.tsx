@@ -36,6 +36,8 @@ interface ActionPlanFormModalBaseProps {
   onSaved: (plan: ActionPlan) => void;
   /** Opens the screen the plan came from ("Ver origem") */
   onOpenOrigin?: (link: string) => void;
+  /** Whether this app has the screen of an origin link (AE-3367) */
+  canOpenOrigin?: (link: string) => boolean;
 }
 
 /** Editing a plan: its fields start filled; the origin never changes. */
@@ -47,18 +49,22 @@ interface EditProps extends ActionPlanFormModalBaseProps {
 /**
  * Creating a plan from a report or the assistant (AE-3367): the origin is
  * the snapshot of that screen. Without `schoolId` the plan takes the
- * responsible's school, and a manager's responsible field is not shown.
+ * responsible's school: a teacher is the responsible, and a manager picks
+ * them among the teachers and unit managers of their schools.
  */
 interface CreateProps extends ActionPlanFormModalBaseProps {
   mode: 'create';
   origin: ActionPlanOrigin;
   schoolId?: string;
+  /** The title the form starts with, which the person may change */
+  suggestedTitle?: string;
 }
 
 export type ActionPlanFormModalProps = EditProps | CreateProps;
 
 interface FormErrors {
   title?: string;
+  responsible?: string;
   deadline?: string;
 }
 
@@ -70,14 +76,23 @@ interface FormErrors {
 export const ActionPlanFormModal = (
   props: Readonly<ActionPlanFormModalProps>
 ) => {
-  const { apiClient, isManager, onClose, onSaved, onOpenOrigin } = props;
+  const {
+    apiClient,
+    isManager,
+    onClose,
+    onSaved,
+    onOpenOrigin,
+    canOpenOrigin,
+  } = props;
   const plan = props.mode === 'edit' ? props.plan : null;
   const origin = props.mode === 'edit' ? props.plan.origin : props.origin;
   const schoolId =
     props.mode === 'edit' ? props.plan.school.id : props.schoolId;
 
   const addToast = useToastStore((state) => state.addToast);
-  const [title, setTitle] = useState(plan?.title ?? '');
+  const [title, setTitle] = useState(
+    props.mode === 'edit' ? props.plan.title : (props.suggestedTitle ?? '')
+  );
   const [description, setDescription] = useState(plan?.description ?? '');
   const [deadline, setDeadline] = useState(plan?.deadline ?? '');
   const [responsibleId, setResponsibleId] = useState(
@@ -86,17 +101,22 @@ export const ActionPlanFormModal = (
   const [errors, setErrors] = useState<FormErrors>({});
   const [saving, setSaving] = useState(false);
 
-  const showResponsible = isManager && Boolean(schoolId);
-  const assignees = useActionPlanAssignees(
-    apiClient,
-    showResponsible ? schoolId : undefined
-  );
+  // With no school in view the manager picks the person, and the plan goes
+  // to that person's school, so the picker names it and must be filled
+  const schoolFromResponsible = isManager && !schoolId;
+  const assignees = useActionPlanAssignees(apiClient, {
+    enabled: isManager,
+    schoolId,
+  });
 
   // The current responsible stays selectable even outside the first page
   const responsibleOptions = useMemo(() => {
     const options = assignees.assignees.map((person) => ({
       value: person.userInstitutionId,
-      label: person.name,
+      label:
+        schoolFromResponsible && person.school
+          ? `${person.name} · ${person.school.name}`
+          : person.name,
     }));
     const current = plan?.responsible;
     if (
@@ -109,11 +129,14 @@ export const ActionPlanFormModal = (
       });
     }
     return options;
-  }, [assignees.assignees, plan?.responsible]);
+  }, [assignees.assignees, plan?.responsible, schoolFromResponsible]);
 
   const validate = (): FormErrors => {
     const found: FormErrors = {};
     if (!title.trim()) found.title = 'Informe o título do plano';
+    if (schoolFromResponsible && !responsibleId) {
+      found.responsible = 'Escolha o responsável';
+    }
     if (!deadline) {
       found.deadline = 'Informe o prazo';
     } else if (deadline !== plan?.deadline && deadline < todayInSaoPaulo()) {
@@ -136,7 +159,7 @@ export const ActionPlanFormModal = (
       saved = await updateActionPlan(apiClient, current.id, changes);
     }
     if (
-      showResponsible &&
+      isManager &&
       responsibleId &&
       responsibleId !== current.responsible?.userInstitutionId
     ) {
@@ -166,7 +189,7 @@ export const ActionPlanFormModal = (
           description: description.trim() || null,
           deadline,
           origin,
-          ...(showResponsible &&
+          ...(isManager &&
             responsibleId && { responsibleUserInstitutionId: responsibleId }),
           ...(schoolId && { schoolId }),
         });
@@ -231,7 +254,7 @@ export const ActionPlanFormModal = (
           value={description}
           onChange={(event) => setDescription(event.target.value)}
         />
-        {showResponsible && (
+        {isManager && (
           <SearchSelect
             label="Responsável"
             placeholder="Selecione o responsável"
@@ -244,6 +267,7 @@ export const ActionPlanFormModal = (
             filterLocally={false}
             variant="rounded"
             emptyText="Ninguém encontrado"
+            errorMessage={errors.responsible}
           />
         )}
         <DateTimeInput
@@ -261,6 +285,7 @@ export const ActionPlanFormModal = (
           <ActionPlanOriginBox
             origin={origin}
             onOpenOrigin={onOpenOrigin}
+            canOpenOrigin={canOpenOrigin}
             layout="row"
           />
         </div>

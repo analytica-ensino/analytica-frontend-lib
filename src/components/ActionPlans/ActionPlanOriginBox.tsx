@@ -11,6 +11,12 @@ export interface ActionPlanOriginBoxProps {
    * it, or without a link, "Ver origem" is not shown.
    */
   onOpenOrigin?: (link: string) => void;
+  /**
+   * Whether this app has the screen of a link. A plan made in another app (a
+   * manager's report, for a teacher) keeps a path this one may not have, so
+   * "Ver origem" is not shown for it. Left out, every link opens.
+   */
+  canOpenOrigin?: (link: string) => boolean;
   /** `stacked` (detail sidebar) or `row` (form modal) */
   layout?: 'stacked' | 'row';
 }
@@ -34,6 +40,7 @@ const Field = ({ label, value }: { label: string; value: string }) => (
 export const ActionPlanOriginBox = ({
   origin,
   onOpenOrigin,
+  canOpenOrigin,
   layout = 'stacked',
 }: Readonly<ActionPlanOriginBoxProps>) => (
   <div
@@ -53,7 +60,7 @@ export const ActionPlanOriginBox = ({
         value={formatQueriedAt(origin.queriedAt)}
       />
     </dl>
-    {onOpenOrigin && origin.link && (
+    {onOpenOrigin && origin.link && (canOpenOrigin?.(origin.link) ?? true) && (
       <Button
         variant="outline"
         size="small"

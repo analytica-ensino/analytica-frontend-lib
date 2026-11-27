@@ -25,6 +25,27 @@ const mockDataSingleItem: SimpleBarChartDataItem[] = [
 
 describe('SimpleBarChart', () => {
   describe('Rendering', () => {
+    it('puts a header action at the right of the title', () => {
+      render(
+        <SimpleBarChart
+          data={mockData}
+          title="Escolas sem nenhum acesso por período"
+          headerAction={<button type="button">Criar plano</button>}
+        />
+      );
+
+      const button = screen.getByRole('button', { name: 'Criar plano' });
+      expect(button.parentElement).toHaveClass('justify-between');
+    });
+
+    it('keeps the header as it always was without an action', () => {
+      render(<SimpleBarChart data={mockData} title="Escolas" />);
+
+      const heading = screen.getByRole('heading', { name: 'Escolas' });
+      // The title column sits straight in the card, as before
+      expect(heading.parentElement?.parentElement).toHaveClass('rounded-xl');
+    });
+
     it('should render chart title', () => {
       render(
         <SimpleBarChart

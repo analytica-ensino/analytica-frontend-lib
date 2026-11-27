@@ -260,30 +260,45 @@ export const useActionPlan = (apiClient: BaseApiClient, planId: string) => {
   };
 };
 
+/** What the responsible picker asks for. */
+export interface ActionPlanAssigneesQuery {
+  /** Off, nothing is asked */
+  enabled: boolean;
+  /**
+   * The plan's school. Left out, the API answers the teachers and unit
+   * managers of the caller's schools, each with their school (AE-3367).
+   */
+  schoolId?: string;
+}
+
 /**
- * Who may be the responsible of a plan of a school, searched by name. Waits
- * until `schoolId` is known.
+ * Who may be the responsible of a plan, searched by name.
  *
  * @param apiClient - The host's API client
- * @param schoolId - The plan's school
+ * @param query - Whether to ask, and the plan's school when there is one
  * @returns The people, the loading state and `search`
  */
 export const useActionPlanAssignees = (
   apiClient: BaseApiClient,
-  schoolId: string | undefined
+  { enabled, schoolId }: ActionPlanAssigneesQuery
 ) => {
   const [assignees, setAssignees] = useState<ActionPlanAssignee[]>([]);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState('');
 
   useEffect(() => {
-    if (!schoolId) return;
+    if (!enabled) return;
     let active = true;
     setLoading(true);
     apiClient
       .get<ActionPlanApiResponse<ActionPlanAssignee[]>>(
         '/action-plans/assignees',
-        { params: { schoolId, ...(query.trim() && { search: query.trim() }) } }
+        {
+          params: {
+            ...(schoolId && { schoolId }),
+            ...(query.trim() && { search: query.trim() }),
+          },
+        }
       )
       .then((response) => {
         if (active) setAssignees(response.data.data);
@@ -297,7 +312,7 @@ export const useActionPlanAssignees = (
     return () => {
       active = false;
     };
-  }, [apiClient, schoolId, query]);
+  }, [apiClient, enabled, schoolId, query]);
 
   return { assignees, loading, search: setQuery };
 };

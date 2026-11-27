@@ -72,6 +72,11 @@ export interface BaseRankingCardProps<
   emptyText?: ReactNode;
   /** Under the list — a "download the whole ranking" button, say. */
   footer?: ReactNode;
+  /**
+   * Beside the icon badge — "Criar plano", say (AE-3367). Left out (or null),
+   * the header is as it always was.
+   */
+  headerAction?: ReactNode;
 }
 
 export function BaseRankingCard<T>({
@@ -82,10 +87,27 @@ export function BaseRankingCard<T>({
   headerIcon,
   emptyText,
   footer,
+  headerAction,
   className,
   ...props
 }: Readonly<BaseRankingCardProps<T>>) {
   const DefaultIcon = variant === 'highlight' ? TrophyIcon : WarningIcon;
+  const badge = (
+    <span
+      className={cn(
+        'w-6 h-6 rounded-full flex items-center justify-center',
+        HEADER_BADGE_CLASSES[variant]
+      )}
+    >
+      {headerIcon ?? (
+        <DefaultIcon
+          size={14}
+          weight="fill"
+          className={variant === 'highlight' ? 'text-text-950' : 'text-text'}
+        />
+      )}
+    </span>
+  );
 
   return (
     <div
@@ -95,34 +117,37 @@ export function BaseRankingCard<T>({
       )}
       {...props}
     >
-      {/* Header */}
-      <div className="flex flex-row justify-between items-center h-6 gap-4">
-        <Text
-          as="h3"
-          size="lg"
-          weight="bold"
-          className="text-text-950 tracking-[0.2px]"
-        >
-          {title}
-        </Text>
-
-        <span
-          className={cn(
-            'w-6 h-6 rounded-full flex items-center justify-center',
-            HEADER_BADGE_CLASSES[variant]
-          )}
-        >
-          {headerIcon ?? (
-            <DefaultIcon
-              size={14}
-              weight="fill"
-              className={
-                variant === 'highlight' ? 'text-text-950' : 'text-text'
-              }
-            />
-          )}
-        </span>
-      </div>
+      {/* Header. With an action, the badge stays beside the title and the
+          action sits between them; a title too long for the line wraps, and
+          the header grows with it. Without one, it is as it always was. */}
+      {headerAction ? (
+        <div className="flex flex-row justify-between items-center min-h-6 gap-4">
+          <Text
+            as="h3"
+            size="lg"
+            weight="bold"
+            className="min-w-0 text-text-950 tracking-[0.2px]"
+          >
+            {title}
+          </Text>
+          <div className="flex items-center gap-3 shrink-0">
+            {headerAction}
+            {badge}
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-row justify-between items-center h-6 gap-4">
+          <Text
+            as="h3"
+            size="lg"
+            weight="bold"
+            className="text-text-950 tracking-[0.2px]"
+          >
+            {title}
+          </Text>
+          {badge}
+        </div>
+      )}
 
       {/* Items list */}
       {items.length === 0 && emptyText ? (

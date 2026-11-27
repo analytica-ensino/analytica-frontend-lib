@@ -1,9 +1,11 @@
+import type { ReactNode } from 'react';
 import Text from '../Text/Text';
 import { SkeletonCard } from '../Skeleton/Skeleton';
 import {
   RankingCard,
   type StudentRankingItem,
 } from '../StudentRanking/StudentRanking';
+import type { RankingVariant } from '../shared/RankingShared';
 import { formatPercent } from './readingReport';
 import type { EbookReadingGroupRow } from './types';
 
@@ -76,6 +78,8 @@ export interface EbookReadingMunicipalitiesProps {
   /** Every municipality in scope, or `null` before they load */
   rows: EbookReadingGroupRow[] | null;
   loading: boolean;
+  /** Beside each card's icon — "Criar plano", say (AE-3367) */
+  renderHeaderAction?: (variant: RankingVariant) => ReactNode;
 }
 
 /**
@@ -87,6 +91,7 @@ export interface EbookReadingMunicipalitiesProps {
 export const EbookReadingMunicipalities = ({
   rows,
   loading,
+  renderHeaderAction,
 }: Readonly<EbookReadingMunicipalitiesProps>) => {
   if (loading && !rows) {
     return (
@@ -108,6 +113,7 @@ export const EbookReadingMunicipalities = ({
         students={highlight.map(toRankingRow)}
         showPercentage={false}
         emptyText="Nenhum município no período."
+        headerAction={renderHeaderAction?.('highlight')}
       />
       <RankingCard
         title="Municípios precisando de atenção"
@@ -115,6 +121,7 @@ export const EbookReadingMunicipalities = ({
         students={attention.map(toRankingRow)}
         showPercentage={false}
         emptyText="Nenhum outro município no período."
+        headerAction={renderHeaderAction?.('attention')}
       />
     </div>
   );

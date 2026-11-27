@@ -34,23 +34,44 @@ describe('action plan hooks', () => {
     expect(result.current.history).toEqual([]);
   });
 
-  it('waits for the school, and lists no one when the request fails', async () => {
+  it('asks nothing until enabled, and lists no one when the request fails', async () => {
     const api = fakeApi({});
     api.get.mockRejectedValueOnce(apiError(400));
 
     const { result, rerender } = renderHook(
-      ({ schoolId }: { schoolId?: string }) =>
-        useActionPlanAssignees(api, schoolId),
-      { initialProps: {} }
+      ({ enabled }: { enabled: boolean }) =>
+        useActionPlanAssignees(api, { enabled, schoolId: 'school-a' }),
+      { initialProps: { enabled: false } }
     );
     expect(api.get).not.toHaveBeenCalled();
 
-    rerender({ schoolId: 'school-a' });
+    rerender({ enabled: true });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(api.get).toHaveBeenCalledWith('/action-plans/assignees', {
       params: { schoolId: 'school-a' },
     });
     expect(result.current.assignees).toEqual([]);
+  });
+
+  it("asks for the caller's schools without a school", async () => {
+    const people = [
+      {
+        userInstitutionId: 'ui-teacher',
+        name: 'Ana Souza',
+        profile: 'TEACHER',
+        school: { id: 'school-b', name: 'Escola B' },
+      },
+    ];
+    const api = fakeApi({ '/action-plans/assignees': people });
+
+    const { result } = renderHook(() =>
+      useActionPlanAssignees(api, { enabled: true })
+    );
+
+    await waitFor(() => expect(result.current.assignees).toEqual(people));
+    expect(api.get).toHaveBeenCalledWith('/action-plans/assignees', {
+      params: {},
+    });
   });
 });
