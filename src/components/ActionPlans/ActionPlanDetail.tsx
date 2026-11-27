@@ -32,6 +32,8 @@ export interface ActionPlanDetailProps {
   onBack: () => void;
   /** Opens the screen the plan came from ("Ver origem") */
   onOpenOrigin?: (link: string) => void;
+  /** Whether this app has the screen of an origin link (AE-3367) */
+  canOpenOrigin?: (link: string) => boolean;
   className?: string;
 }
 
@@ -85,6 +87,7 @@ export const ActionPlanDetail = ({
   isManager,
   onBack,
   onOpenOrigin,
+  canOpenOrigin,
   className,
 }: Readonly<ActionPlanDetailProps>) => {
   const { plan, history, loading, notFound, error, setPlan, reloadHistory } =
@@ -167,6 +170,7 @@ export const ActionPlanDetail = ({
             <ActionPlanOriginBox
               origin={plan.origin}
               onOpenOrigin={onOpenOrigin}
+              canOpenOrigin={canOpenOrigin}
             />
           </div>
         </aside>
@@ -229,6 +233,7 @@ export const ActionPlanDetail = ({
           plan={plan}
           isManager={isManager}
           onOpenOrigin={onOpenOrigin}
+          canOpenOrigin={canOpenOrigin}
           onClose={() => setEditing(null)}
           onSaved={handleSaved}
         />

@@ -80,6 +80,25 @@ describe('EbookReadingMunicipalities', () => {
     expect(screen.getByText('10% de leitura')).toBeInTheDocument();
   });
 
+  it('puts each card its own header action', () => {
+    render(
+      <EbookReadingMunicipalities
+        rows={ROWS}
+        loading={false}
+        renderHeaderAction={(variant) => (
+          <button type="button">Criar plano ({variant})</button>
+        )}
+      />
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Criar plano (highlight)' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Criar plano (attention)' })
+    ).toBeInTheDocument();
+  });
+
   it('holds its place while it loads', () => {
     const { container } = render(
       <EbookReadingMunicipalities rows={null} loading />

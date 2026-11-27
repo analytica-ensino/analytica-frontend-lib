@@ -25,6 +25,20 @@ const mockDataSingleItem: SimpleBarChartDataItem[] = [
 
 describe('SimpleBarChart', () => {
   describe('Rendering', () => {
+    it('puts a header action at the right of the title', () => {
+      render(
+        <SimpleBarChart
+          data={mockData}
+          title="Escolas sem nenhum acesso por período"
+          headerAction={<button type="button">Criar plano</button>}
+        />
+      );
+
+      expect(
+        screen.getByRole('button', { name: 'Criar plano' })
+      ).toBeInTheDocument();
+    });
+
     it('should render chart title', () => {
       render(
         <SimpleBarChart

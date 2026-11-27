@@ -5,6 +5,7 @@ import Text from '../Text/Text';
 import { PerformanceDistributionChart } from '../PerformanceDistributionChart/PerformanceDistributionChart';
 import type { SimulatedPerformanceCounters } from '../PerformanceDistributionChart/types';
 import type { BaseApiClient } from '../../types/api';
+import type { RankingVariant } from '../shared/RankingShared';
 import { EbookReadingSummary } from './EbookReadingSummary';
 import { EbookReadingPeriodChart } from './EbookReadingPeriodChart';
 import { EbookReadingPreferences } from './EbookReadingPreferences';
@@ -63,6 +64,11 @@ export interface EbookReadingReportProps {
   groupBy: EbookReadingGroup;
   /** A school row was chosen: the app opens that school's page */
   onSchoolSelect?: (school: EbookReadingGroupRow) => void;
+  /**
+   * Beside the icon of "Municípios em destaque" and "Municípios precisando
+   * de atenção" — "Criar plano", say (AE-3367)
+   */
+  renderMunicipalityAction?: (variant: RankingVariant) => ReactNode;
 }
 
 /**
@@ -143,6 +149,7 @@ export const EbookReadingReport = ({
   filters,
   groupBy,
   onSchoolSelect,
+  renderMunicipalityAction,
 }: Readonly<EbookReadingReportProps>) => {
   const [dimension, setDimension] = useState<EbookRankingDimension>(
     EBOOK_RANKING_DIMENSION.EBOOK
@@ -296,6 +303,7 @@ export const EbookReadingReport = ({
           <EbookReadingMunicipalities
             rows={municipalities.data}
             loading={municipalities.loading}
+            renderHeaderAction={renderMunicipalityAction}
           />
         </ReportPart>
       )}

@@ -6,10 +6,16 @@ export type { ActionPlanDetailProps } from './ActionPlanDetail';
 export { ActionPlanFormModal } from './ActionPlanFormModal';
 export type { ActionPlanFormModalProps } from './ActionPlanFormModal';
 export {
+  buildActionPlanOrigin,
+  type ActionPlanOriginInput,
+} from './actionPlanOrigin';
+export {
   ACTION_PLAN_LIST_TAB,
+  ACTION_PLAN_ORIGIN_TYPE,
   ACTION_PLAN_STATUS,
   type ActionPlan,
   type ActionPlanListTab,
   type ActionPlanOrigin,
+  type ActionPlanOriginType,
   type ActionPlanStatus,
 } from '../../types/actionPlans';

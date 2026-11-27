@@ -72,6 +72,8 @@ export interface BaseRankingCardProps<
   emptyText?: ReactNode;
   /** Under the list — a "download the whole ranking" button, say. */
   footer?: ReactNode;
+  /** Beside the icon badge — "Criar plano", say (AE-3367). */
+  headerAction?: ReactNode;
 }
 
 export function BaseRankingCard<T>({
@@ -82,6 +84,7 @@ export function BaseRankingCard<T>({
   headerIcon,
   emptyText,
   footer,
+  headerAction,
   className,
   ...props
 }: Readonly<BaseRankingCardProps<T>>) {
@@ -96,7 +99,8 @@ export function BaseRankingCard<T>({
       {...props}
     >
       {/* Header */}
-      <div className="flex flex-row justify-between items-center h-6 gap-4">
+      {/* On a narrow card the action and the badge drop under the title */}
+      <div className="flex flex-row flex-wrap justify-between items-center min-h-6 gap-x-4 gap-y-2">
         <Text
           as="h3"
           size="lg"
@@ -106,22 +110,25 @@ export function BaseRankingCard<T>({
           {title}
         </Text>
 
-        <span
-          className={cn(
-            'w-6 h-6 rounded-full flex items-center justify-center',
-            HEADER_BADGE_CLASSES[variant]
-          )}
-        >
-          {headerIcon ?? (
-            <DefaultIcon
-              size={14}
-              weight="fill"
-              className={
-                variant === 'highlight' ? 'text-text-950' : 'text-text'
-              }
-            />
-          )}
-        </span>
+        <div className="flex items-center gap-3 shrink-0 ml-auto">
+          {headerAction}
+          <span
+            className={cn(
+              'w-6 h-6 rounded-full flex items-center justify-center',
+              HEADER_BADGE_CLASSES[variant]
+            )}
+          >
+            {headerIcon ?? (
+              <DefaultIcon
+                size={14}
+                weight="fill"
+                className={
+                  variant === 'highlight' ? 'text-text-950' : 'text-text'
+                }
+              />
+            )}
+          </span>
+        </div>
       </div>
 
       {/* Items list */}

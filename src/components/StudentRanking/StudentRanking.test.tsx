@@ -644,6 +644,40 @@ describe('RankingCard slots', () => {
     ).toBeInTheDocument();
   });
 
+  it('puts a header action beside the icon badge', () => {
+    render(
+      <RankingCard
+        title="Estudantes em destaque"
+        variant="highlight"
+        students={students}
+        headerAction={<button type="button">Criar plano</button>}
+      />
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Criar plano' })
+    ).toBeInTheDocument();
+  });
+
+  it('asks the ranking for each card its own header action', () => {
+    render(
+      <StudentRanking
+        highlightStudents={students}
+        attentionStudents={students}
+        renderHeaderAction={(variant) => (
+          <button type="button">Criar plano ({variant})</button>
+        )}
+      />
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Criar plano (highlight)' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Criar plano (attention)' })
+    ).toBeInTheDocument();
+  });
+
   it('says so when there is nobody to rank', () => {
     render(
       <RankingCard
