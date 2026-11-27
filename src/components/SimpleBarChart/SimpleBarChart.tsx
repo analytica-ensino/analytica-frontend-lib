@@ -36,7 +36,10 @@ export interface SimpleBarChartProps extends HTMLAttributes<HTMLDivElement> {
    * número do balão também sai sem separador de milhar.
    */
   formatTooltip?: (item: SimpleBarChartDataItem) => string;
-  /** At the right of the title — "Criar plano", say (AE-3367). */
+  /**
+   * At the right of the title — "Criar plano", say (AE-3367). Left out (or
+   * null), the header is as it always was.
+   */
   headerAction?: ReactNode;
 }
 
@@ -205,6 +208,23 @@ export const SimpleBarChart = ({
   const yAxisTicks = calculateTicks(maxValue);
   const adjustedMax = yAxisTicks[0];
   const tableId = useId();
+  const heading = (
+    <div className="flex flex-col gap-1">
+      <Text
+        as="h3"
+        size="lg"
+        weight="bold"
+        className="text-text-950 tracking-[0.2px]"
+      >
+        {title}
+      </Text>
+      {subtitle !== undefined && (
+        <Text size="sm" className="text-text-600">
+          {subtitle}
+        </Text>
+      )}
+    </div>
+  );
 
   return (
     <div
@@ -214,24 +234,14 @@ export const SimpleBarChart = ({
       )}
       {...props}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <Text
-            as="h3"
-            size="lg"
-            weight="bold"
-            className="text-text-950 tracking-[0.2px]"
-          >
-            {title}
-          </Text>
-          {subtitle !== undefined && (
-            <Text size="sm" className="text-text-600">
-              {subtitle}
-            </Text>
-          )}
+      {headerAction ? (
+        <div className="flex items-start justify-between gap-4">
+          {heading}
+          {headerAction}
         </div>
-        {headerAction}
-      </div>
+      ) : (
+        heading
+      )}
       {/* As barras são divs sem semântica: o gráfico vira uma imagem nomeada
           pelo título e descrita pela tabela sr-only com os mesmos dados. */}
       <div

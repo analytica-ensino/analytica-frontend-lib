@@ -237,7 +237,8 @@ export interface StudentRankingProps extends HTMLAttributes<HTMLDivElement> {
   onStudentClick?: StudentRankingClickHandler;
   /**
    * What sits beside each card's icon badge, per card — "Criar plano", say
-   * (AE-3367). Left out, the headers hold only the title and the badge.
+   * (AE-3367). Left out, or answering null, the headers are as they always
+   * were: the title and the badge.
    */
   renderHeaderAction?: (variant: RankingVariant) => ReactNode;
 }

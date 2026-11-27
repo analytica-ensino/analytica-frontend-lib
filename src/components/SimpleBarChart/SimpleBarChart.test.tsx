@@ -34,9 +34,16 @@ describe('SimpleBarChart', () => {
         />
       );
 
-      expect(
-        screen.getByRole('button', { name: 'Criar plano' })
-      ).toBeInTheDocument();
+      const button = screen.getByRole('button', { name: 'Criar plano' });
+      expect(button.parentElement).toHaveClass('justify-between');
+    });
+
+    it('keeps the header as it always was without an action', () => {
+      render(<SimpleBarChart data={mockData} title="Escolas" />);
+
+      const heading = screen.getByRole('heading', { name: 'Escolas' });
+      // The title column sits straight in the card, as before
+      expect(heading.parentElement?.parentElement).toHaveClass('rounded-xl');
     });
 
     it('should render chart title', () => {

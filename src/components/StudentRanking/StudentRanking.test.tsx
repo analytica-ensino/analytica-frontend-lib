@@ -659,6 +659,47 @@ describe('RankingCard slots', () => {
     ).toBeInTheDocument();
   });
 
+  it('keeps the header as it always was without an action, the badge beside the title', () => {
+    const { rerender } = render(
+      <RankingCard
+        title="Estudantes precisando de atenção"
+        variant="attention"
+        students={students}
+      />
+    );
+    const header = () =>
+      screen.getByRole('heading', { name: 'Estudantes precisando de atenção' })
+        .parentElement as HTMLElement;
+    expect(header()).toHaveClass('h-6');
+    expect(header().children).toHaveLength(2);
+
+    // An action that answers nothing changes nothing either
+    rerender(
+      <RankingCard
+        title="Estudantes precisando de atenção"
+        variant="attention"
+        students={students}
+        headerAction={null}
+      />
+    );
+    expect(header()).toHaveClass('h-6');
+
+    // With one, the header grows with a wrapped title, the badge still beside it
+    rerender(
+      <RankingCard
+        title="Estudantes precisando de atenção"
+        variant="attention"
+        students={students}
+        headerAction={<button type="button">Criar plano</button>}
+      />
+    );
+    expect(header()).toHaveClass('min-h-6');
+    expect(header()).not.toHaveClass('flex-wrap');
+    expect(
+      screen.getByRole('button', { name: 'Criar plano' }).nextElementSibling
+    ).not.toBeNull();
+  });
+
   it('asks the ranking for each card its own header action', () => {
     render(
       <StudentRanking
